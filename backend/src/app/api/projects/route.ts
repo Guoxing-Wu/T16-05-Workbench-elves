@@ -1,25 +1,20 @@
-let projects = [
-  {
-    id: 1,
-    title: "Example Novel",
-    targetWordCount: 80000,
-  },
-];
+import { prisma } from "../../../lib/prisma";
 
 export async function GET() {
+  const projects = await prisma.project.findMany();
+
   return Response.json(projects);
 }
 
 export async function POST(request: Request) {
   const body = await request.json();
 
-  const newProject = {
-    id: projects.length + 1,
-    title: body.title,
-    targetWordCount: body.targetWordCount,
-  };
-
-  projects.push(newProject);
+  const newProject = await prisma.project.create({
+    data: {
+      title: body.title,
+      targetWordCount: body.targetWordCount,
+    },
+  });
 
   return Response.json(newProject, { status: 201 });
 }
