@@ -1,4 +1,6 @@
 import { prisma } from "../../../lib/prisma";
+import { getStructureById } from "../../../lib/structures";
+import { mapBeatsToChapters } from "../../../lib/mapStructure";
 
 export async function GET() {
   const projects = await prisma.project.findMany();
@@ -13,6 +15,7 @@ export async function POST(request: Request) {
     title,
     targetWordCount,
     averageChapterLength,
+    structureId,
   } = body;
 
   // Check input
@@ -29,6 +32,18 @@ export async function POST(request: Request) {
     );
   }
 
+  //if parsed structureID, check whether the actual structure exist
+  let structure = null;
+  if (structureId) {
+    structure = getStructureById(structureId);
+    if (!structure) {
+      return Response.json(
+        { error: `Unknown structureId: ${structureId}` },
+        { status: 400 }
+      );
+    }
+  }
+
   // Calculate number of chapters
   const numberOfChapters = Math.ceil(
     targetWordCount / averageChapterLength
@@ -40,8 +55,31 @@ export async function POST(request: Request) {
       title,
       targetWordCount,
       averageChapterLength,
+      structureId: structureId ?? null,
     },
   });
+
+  //automatically generate corresponding chapter if selected structure
+  if (structure) {
+    const chapterMap = mapBeatsToChapters(structure, numberOfChapters);
+    const avgWordsPerChapter = Math.round(
+      targetWordCount / numberOfChapters
+    );
+
+    await prisma.chapter.createMany({
+      data: chapterMap.map((ch) => ({
+        title:
+          ch.beatNames.length > 0
+            ? ch.beatNames.join(" / ")
+            : `Chapter ${ch.order}`,
+        order: ch.order,
+        targetWordCount: avgWordsPerChapter,
+        act: ch.act,
+        beatName: ch.beatNames.join(", "),
+        projectId: newProject.id,
+      })),
+    });
+  }
 
   // Return project + calculated chapter number
   return Response.json(

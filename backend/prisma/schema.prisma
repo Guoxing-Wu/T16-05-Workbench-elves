@@ -17,6 +17,7 @@ model Project {
   title                String
   targetWordCount      Int
   averageChapterLength Int
+  structureId          String?
 
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
@@ -30,7 +31,9 @@ model Chapter {
   order           Int
   targetWordCount Int
   actualWordCount Int      @default(0)
-
+  act             String?
+  beatName        String?
+  
   projectId       Int
   project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
