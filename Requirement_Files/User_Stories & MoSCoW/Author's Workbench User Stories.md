@@ -194,7 +194,7 @@
 
 > As a user, I want to record relationships between characters and how those relationships change, so that I can follow their development throughout the story.
 
-### 
+
 
 ### Epic 7: Chronological Timeline and Continuity
 
@@ -230,17 +230,17 @@
 
 ### Epic 8: Saving, Data Safety and Project Portability
 
-#### US47: Save Project Changes
+#### US47: Automatically Save Project Changes Locally
 
-> As a user, I want my project settings, story structure, chapter plan and notes to be saved, so that I do not lose my planning work.
+> As a user, I want all changes to my project information to be automatically saved in the browser’s local database on my current device, so that I do not lose my planning work while using the application.
 
 #### US48: Reopen a Saved Project
 
 > As a user, I want to reopen a saved project with its planning information restored, so that I can continue working from where I stopped.
 
-#### US49: Display the Save Status
+#### US49: Display the Local Save Status
 
-> As a user, I want to see whether my latest changes have been saved, so that I know whether my work is safe.
+> As a user, I want to see whether my latest changes are being saved, have been saved locally, or could not be saved, so that I understand the current safety of my work.
 
 #### US50: Warn About Unsaved Changes
 
@@ -254,9 +254,9 @@
 
 ### Epic 9: Export and Cross-platform Access
 
-#### US52: Export the Story Plan to Microsoft Word
+#### US52: Export the Story Plan to Microsoft Excel
 
-> As a user, I want to export my chapter plan, story structure and notes as a document that Microsoft Word can open, so that I can review or continue developing the plan outside the application.
+> As a user, I want to export my chapter plan, story structure and notes as an Microsoft Excel file, so that I can review or continue developing the plan outside the application.
 
 #### US53: Export the Story Plan for Scrivener
 
@@ -264,7 +264,7 @@
 
 #### US54: Use the Web Application Across Supported Platforms
 
-> As a user, I want to access and edit my projects through supported web browsers on macOS, Windows and iOS or iPadOS, so that I can use the application without being limited to one operating system.
+> As a user, I want to use the application through supported web browsers on macOS, Windows, iOS and iPadOS, so that I can create, import and edit locally stored projects without being limited to one operating system.
 
 
 
