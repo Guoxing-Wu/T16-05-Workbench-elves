@@ -22,9 +22,9 @@
 
 ### Epic 2: Story Structure Templates and Automatic Chapter Mapping
 
-#### US5: Select a Predefined Story Structure Template
+#### US5: Select a Story Structure Template
 
-> As a user, I want to select a predefined story structure template for my project, so that I can plan my manuscript using an established arrangement of acts and story beats.
+> As a user, I want to select either a system-provided story structure template or my custom template, so that I can plan my manuscript by using the suitable story structure.
 
 #### US6: Calculate the Projected Number of Chapters
 
