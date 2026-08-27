@@ -134,23 +134,19 @@
 
 > As a user, I want to add and edit notes for a story beat, so that I can record how that structural moment will be represented in my manuscript.
 
-#### US28: Zoom the Visual Plan
-
-> As a user, I want to zoom in and out of the visual plan, so that I can examine individual chapters or view the complete manuscript structure.
-
 
 
 ### Epic 6: Character Locations, Events and Milestones
 
-#### US29: Record a Character’s Location
+#### US28: Record a Character’s Location
 
 > As a user, I want to record a character’s location at a dated event, scene or story moment, so that I can track where the character is during the story.
 
-#### US30: Record a Character’s Location Period
+#### US29: Record a Character’s Location Period
 
 > As a user, I want to record the period during which a character remains at a location, so that I can represent their location over time rather than only at individual events.
 
-#### US31: View and Correct Location History
+#### US30: View and Correct Location History
 
 > As a user, I want to view a character’s location records in chronological order and correct inaccurate records, so that I can maintain an accurate history of the character’s movements.
 >
@@ -158,11 +154,11 @@
 > b) Edit an incorrect location record;
 > c) Delete an unnecessary location record.
 
-#### US32: Create a Story Event or Milestone
+#### US31: Create a Story Event or Milestone
 
 > As a user, I want to create a story event or character milestone with its core details, so that I can record an important development in the story.
 
-#### US33: View and Manage a Story Event
+#### US32: View and Manage a Story Event
 
 > As a user, I want to view, edit and remove a story event, so that the event information remains accurate when my story plan changes.
 >
@@ -170,27 +166,27 @@
 > b) Edit event details;
 > c) Delete an obsolete event after confirmation.
 
-#### US34: Link Characters to an Event
+#### US33: Link Characters to an Event
 
 > As a user, I want to link one or more characters to a story event, so that I can record who participates in or is affected by that event.
 
-#### US35: Link an Event to the Story Structure
+#### US34: Link an Event to the Story Structure
 
 > As a user, I want to link an event to an act, chapter or story beat, so that I can see where the event appears in the planned manuscript.
 
-#### US36: View a Character’s Story Journey
+#### US35: View a Character’s Story Journey
 
 > As a user, I want to view all events and milestones linked to a selected character in chronological order, so that I can review the character’s journey throughout the story.
 
-#### US37: Categorise Events
+#### US36: Categorise Events
 
 > As a user, I want to assign a category to an event, so that I can distinguish between different types of story developments and milestones.
 
-#### US38: Record a Character’s Role in an Event
+#### US37: Record a Character’s Role in an Event
 
 > As a user, I want to record each linked character’s role in an event, so that I can understand how each character participates in or is affected by it.
 
-#### US39: Record Character Relationships
+#### US38: Record Character Relationships
 
 > As a user, I want to record relationships between characters and how those relationships change, so that I can follow their development throughout the story.
 
@@ -198,87 +194,75 @@
 
 ### Epic 7: Chronological Timeline and Continuity
 
-#### US40: View a Chronological Story Timeline
+#### US39: View a Chronological Story Timeline
 
 > As a user, I want to view dated story events and character milestones in chronological order, so that I can understand the sequence in which events occur in the story world.
 
-#### US41: Compare Story Time and Manuscript Order
+#### US40: Compare Story Time and Manuscript Order
 
 > As a user, I want to compare the chronological order of events with the chapters in which they are presented, so that I can understand differences between story time and manuscript order.
 
-#### US42: View Character Ages and Locations on the Timeline
+#### US41: View Character Ages and Locations on the Timeline
 
 > As a user, I want to view each linked character’s calculated age and recorded location at an event, so that I can review the character’s situation at that point in the story.
 
-#### US43: Filter Timeline Information
+#### US42: Filter Timeline Information
 
 > As a user, I want to filter the timeline by character, event category or chapter, so that I can focus on information relevant to my current planning task.
 
-#### US44: Open Related Content from the Timeline
+#### US43: Open Related Content from the Timeline
 
 > As a user, I want to select an item on the timeline and open its details, so that I can inspect or update it without searching elsewhere.
 
-#### US45: Reposition an Event on the Timeline
+#### US44: Reposition an Event on the Timeline
 
 > As a user, I want to reposition an event on the timeline, so that I can efficiently adjust its chronological position in the story.
-
-#### US46: Identify Possible Continuity Problems
-
-> As a user, I want the application to identify possible age, date-order and location conflicts, so that I can review potential continuity problems in my story plan.
 
 
 
 ### Epic 8: Saving, Data Safety and Project Portability
 
-#### US47: Automatically Save Project Changes Locally
+#### US45: Automatically Save Project Changes
 
-> As a user, I want all changes to my project information to be automatically saved in the browser’s local database on my current device, so that I do not lose my planning work while using the application.
+> As a user, I want all changes to my project information to be automatically saved in the browser’s database on my current device, so that I do not lose my planning work while using the application.
 
-#### US48: Reopen a Saved Project
+#### US46: Reopen a Saved Project
 
-> As a user, I want to reopen a saved project with its planning information restored, so that I can continue working from where I stopped.
+> As a user, I want to reopen a saved project with its planning information restored inside the workbencg, so that I can continue working from where I stopped.
 
-#### US49: Display the Local Save Status
+#### US47: Display the Save Status
 
 > As a user, I want to see whether my latest changes are being saved, have been saved locally, or could not be saved, so that I understand the current safety of my work.
 
-#### US50: Warn About Unsaved Changes
+#### US48: Warn About Unsaved Changes
 
 > As a user, I want to be warned before leaving when changes have not been saved, so that I can avoid losing my work.
 
-#### US51: Back Up and Restore a Project
+#### US49: Back Up and Restore a Project
 
-> As a user, I want to export and import a complete project backup, so that I can recover my work or manually move it to another device.
+> As a user, I want to export and import a complete project backup from local, so that I can recover my work or manually move it to another device.
 
 
 
 ### Epic 9: Export and Cross-platform Access
 
-#### US52: Export the Story Plan to Microsoft Excel
+#### US50: Export the Story Plan to Microsoft Excel
 
 > As a user, I want to export my chapter plan, story structure and notes as an Microsoft Excel file, so that I can review or continue developing the plan outside the application.
 
-#### US53: Export the Story Plan for Scrivener
-
-> As a user, I want to export my story plan in a format that Scrivener can import, so that I can transfer the planned manuscript structure into my existing writing workflow.
-
-#### US54: Use the Web Application Across Supported Platforms
+#### US51: Use the Web Application Across Supported Platforms
 
 > As a user, I want to use the application through supported web browsers on macOS, Windows, iOS and iPadOS, so that I can create, import and edit locally stored projects without being limited to one operating system.
 
 
 
-### Epic 10: Application Preferences and Deferred Extensions
+### Epic 10: Application Extensions
 
-#### US55: Adjust Application Preferences
-
-> As a user, I want to adjust basic display preferences such as date format, so that the application better matches the way I organise my story information.
-
-#### US56: Add a Project Image or Book Cover
+#### US52: Add a Project Image or Book Cover
 
 > As a user, I want to add an optional image or book cover to a project, so that I can recognise the project visually.
 
-#### US57: Create an Author Wiki Page
+#### US53: Create an Author Wiki Page
 
 > As a user, I want to publish an author wiki page, so that I can share information about myself and my books.
 
