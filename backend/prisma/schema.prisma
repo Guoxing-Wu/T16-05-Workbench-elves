@@ -40,3 +40,29 @@ model Chapter {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model CustomStructure {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+
+  nodes       CustomStructureNode[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CustomStructureNode {
+  id          Int      @id @default(autoincrement())
+  name        String              // name of the node 
+  type        String              // type of the node "act" / "beat" / "scene"
+  percentage  Float               // position in the book
+  order       Int                 // the order of its position in the book
+
+  structureId Int
+  structure   CustomStructure @relation(fields: [structureId], references: [id], onDelete: Cascade)
+
+  parentId    Int?
+  parent      CustomStructureNode?  @relation("NodeChildren", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    CustomStructureNode[] @relation("NodeChildren")
+}
