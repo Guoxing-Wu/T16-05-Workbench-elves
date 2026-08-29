@@ -5,30 +5,34 @@ import { EmptyState, Field, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
 
-// "New project" modal that needs a title and target word count for creating a new project. 
+// "New project" modal with title, target word count, average chapter length and story structure.
 function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const { createProject } = useWorkbench();
-  const [title, setTitle] = useState("");
-  // default number of words for a draft
-  const [targetWordCount, setTargetWordCount] = useState(80000);
-  const canCreate = title.trim().length > 0 && targetWordCount > 0;
+  const [title, setTitle] = useState("Untitled Story");
+  const [targetWordCount, setTargetWordCount] = useState(0);
+  const [averageChapterLength, setAverageChapterLength] = useState(0);
+  const [storyStructure, setStoryStructure] = useState("Three-Act Structure");
+  const canCreate = title.trim().length > 0 && targetWordCount > 0 && averageChapterLength > 0;
+
+  // Estimate how many chapters the plan will have.
+  const estimatedChapters =
+    averageChapterLength > 0 ? Math.round(targetWordCount / averageChapterLength) : 0;
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!canCreate) return;
-    createProject({ title: title.trim(), targetWordCount });
-    // closes the modal after creating
-    onCreated(); 
+    createProject({ title: title.trim(), targetWordCount, averageChapterLength, storyStructure });
+    onCreated();
   };
 
   return (
-    <Modal title="New project" onClose={onClose}>
+    <Modal title="Create a writing project" onClose={onClose}>
       <form className="workbench-form" onSubmit={submit}>
         <div className="form-grid">
           <Field label="Project title" full>
             <input value={title} onChange={(event) => setTitle(event.target.value)} required autoFocus />
           </Field>
-          <Field label="Target word count" full>
+          <Field label="Target word count">
             <input
               type="number"
               min={1}
@@ -37,11 +41,43 @@ function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: (
               required
             />
           </Field>
+          <Field label="Average chapter length">
+            <input
+              type="number"
+              min={1}
+              value={averageChapterLength}
+              onChange={(event) => setAverageChapterLength(Number(event.target.value))}
+              required
+            />
+          </Field>
+          <Field label="Story structure" full>
+            <select
+              value={storyStructure}
+              onChange={(event) => setStoryStructure(event.target.value)}
+            >
+              <option value="Three-Act Structure">Three-Act Structure</option>
+              <option value="Hero's Journey">Hero's Journey</option>
+              <option value="Five-Act Structure">Five-Act Structure</option>
+              <option value="Freytag's Pyramid">Freytag's Pyramid</option>
+              <option value="Save the Cat">Save the Cat</option>
+              <option value="No structure">No structure</option>
+            </select>
+          </Field>
         </div>
+
+        {/* Dynamic hint: estimated chapter count based on total words and average chapter length */}
+        <div className="form-hint">
+          <span className="form-hint-icon">📓</span>
+          <p>
+            This plan will contain approximately <strong>{estimatedChapters} chapters</strong>. Act boundaries
+            and story beats are mapped automatically.
+          </p>
+        </div>
+
         <div className="modal-actions">
           <ToolButton onClick={onClose}>Cancel</ToolButton>
           <ToolButton primary type="submit" disabled={!canCreate}>
-            <Plus size={15} /> Create
+            <Plus size={15} /> Create project
           </ToolButton>
         </div>
       </form>

@@ -3,6 +3,20 @@ import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter } from "./domain";
 import type { Chapter, WritingProject } from "./domain";
 
+//左边导航栏的内容
+export type WorkbenchView =
+  | "projects"
+  | "overview"
+  | "storyStructure"
+  | "visualPlan"
+  | "chaptersNotes"
+  | "characters"
+  | "locations"
+  | "events"
+  | "timeline"
+  | "settings"
+  | "help";
+
 // Shape of things the app can do through useWorkbench().
 interface WorkbenchStoreValue {
   projects: WritingProject[];
@@ -10,7 +24,10 @@ interface WorkbenchStoreValue {
   activeProject: WritingProject | null; 
   activeProjectId: string | null;
   setActiveProjectId: (id: string | null) => void; 
-  createProject: (input: { title: string; targetWordCount: number }) => WritingProject;
+  activeView: WorkbenchView;
+  setActiveView: (view: WorkbenchView) => void;
+  createProject: (input: { title: string; targetWordCount: number;averageChapterLength: number;
+    storyStructure: string; }) => WritingProject;
   deleteProject: (id: string) => void;
   updateProject: (id: string, updater: (project: WritingProject) => WritingProject) => void;
   addChapter: (projectId: string) => void;
@@ -27,16 +44,24 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<WritingProject[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
+  const [activeView, setActiveView] = useState<WorkbenchView>("projects");
+
   // Get the project matches the active id.
   const activeProject = projects.find((p) => p.id === activeProjectId) || null;
 
   // Creates a project, adds it to the top of the list and opens it immediately.
-  const createProject: WorkbenchStoreValue["createProject"] = ({ title, targetWordCount }) => {
-    const project = createProjectRecord({ title, targetWordCount });
+    const createProject: WorkbenchStoreValue["createProject"] = ({
+    title,
+    targetWordCount,
+    averageChapterLength,
+    storyStructure,
+  }) => {
+    const project = createProjectRecord({ title, targetWordCount, averageChapterLength, storyStructure });
     setProjects((list) => [project, ...list]);
     setActiveProjectId(project.id);
     return project;
   };
+
 
   // Removes a project, go back to the projects overview if the project was opening.
   const deleteProject = (id: string) => {
@@ -97,6 +122,8 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       activeProject,
       activeProjectId,
       setActiveProjectId,
+      activeView,
+      setActiveView,
       createProject,
       deleteProject,
       updateProject,
@@ -105,7 +132,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       removeChapter,
       moveChapter,
     }),
-    [projects, activeProject, activeProjectId]
+    [projects, activeProject, activeProjectId, activeView]
   );
 
   return <WorkbenchStore.Provider value={value}>{children}</WorkbenchStore.Provider>;
