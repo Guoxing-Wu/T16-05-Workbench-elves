@@ -18,6 +18,7 @@ import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/Topbar";
 import { RightSidebar } from "./components/RightSidebar";
 import { PlaceholderPage } from "./components/PlaceholderPage";
+import { EventsPage } from "./components/EventsPage";
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
@@ -109,6 +110,21 @@ function CurrentView() {
     );
   }
 
+  // Events needs an active project to know which project's events to show.
+  if (activeView === "events") {
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Events"
+          icon={PLACEHOLDER_CONFIG.events.icon}
+          description="Open a project first to see and manage its story events."
+        />
+      );
+    }
+    return <EventsPage project={activeProject} />;
+  }
+  
   // Every other view renders a friendly placeholder for now.
   const config = PLACEHOLDER_CONFIG[activeView];
   return (

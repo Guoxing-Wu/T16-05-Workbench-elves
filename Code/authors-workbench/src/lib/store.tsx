@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { createProject as createProjectRecord, makeChapter } from "./domain";
-import type { Chapter, WritingProject } from "./domain";
+import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent } from "./domain";
+import type { Chapter, WritingProject, Character, StoryEvent, StoryDate } from "./domain";
 
 //左边导航栏的内容
 export type WorkbenchView =
@@ -34,6 +34,17 @@ interface WorkbenchStoreValue {
   updateChapter: (projectId: string, chapterId: string, patch: Partial<Chapter>) => void;
   removeChapter: (projectId: string, chapterId: string) => void;
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
+
+  // Character operations
+  addCharacter: (projectId: string, input: { name: string; birthday: StoryDate; description?: string; location: string }) => void;
+  updateCharacter: (projectId: string, characterId: string, patch: Partial<Character>) => void;
+  removeCharacter: (projectId: string, characterId: string) => void;
+
+  // Story event operations
+  addStoryEvent: (projectId: string, input: { chapterId: string; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[] }) => void;
+  updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
+  removeStoryEvent: (projectId: string, eventId: string) => void;
+
 }
 
 
@@ -114,6 +125,53 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       return { ...project, chapters: next.map((c, i) => ({ ...c, order: i })) };
     });
   };
+  // Adds a new character to the project.
+  const addCharacter: WorkbenchStoreValue["addCharacter"] = (projectId, input) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      characters: [...(project.characters || []), makeCharacter(input)],
+    }));
+  };
+
+  // Patches one character's fields.
+  const updateCharacter: WorkbenchStoreValue["updateCharacter"] = (projectId, characterId, patch) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      characters: (project.characters || []).map((c) => (c.id === characterId ? { ...c, ...patch } : c)),
+    }));
+  };
+
+  // Removes a character from the project.
+  const removeCharacter: WorkbenchStoreValue["removeCharacter"] = (projectId, characterId) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      characters: (project.characters || []).filter((c) => c.id !== characterId),
+    }));
+  };
+
+  // Adds a new story event to the project.
+  const addStoryEvent: WorkbenchStoreValue["addStoryEvent"] = (projectId, input) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      events: [...(project.events || []), makeStoryEvent(input)],
+    }));
+  };
+
+  // Patches one story event's fields.
+  const updateStoryEvent: WorkbenchStoreValue["updateStoryEvent"] = (projectId, eventId, patch) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      events: (project.events || []).map((e) => (e.id === eventId ? { ...e, ...patch } : e)),
+    }));
+  };
+
+  // Removes a story event from the project.
+  const removeStoryEvent: WorkbenchStoreValue["removeStoryEvent"] = (projectId, eventId) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      events: (project.events || []).filter((e) => e.id !== eventId),
+    }));
+  };
 
   // Subcomponents will not re-render though this provider did unless the actual state changed.
   const value = useMemo<WorkbenchStoreValue>(
@@ -131,6 +189,12 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       updateChapter,
       removeChapter,
       moveChapter,
+      addCharacter,
+      updateCharacter,
+      removeCharacter,
+      addStoryEvent,
+      updateStoryEvent,
+      removeStoryEvent,
     }),
     [projects, activeProject, activeProjectId, activeView]
   );

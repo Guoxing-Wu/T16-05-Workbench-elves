@@ -15,6 +15,8 @@ export interface WritingProject {
   averageChapterLength: number;
   storyStructure: string;
   chapters: Chapter[];
+  characters: Character[];
+  events: StoryEvent[];
   createdAt: number;
   updatedAt: number;
 }
@@ -50,6 +52,8 @@ export function createProject(input: {
     averageChapterLength: input.averageChapterLength,
     storyStructure: input.storyStructure,
     chapters: [],
+    characters: [],
+    events: [],
     createdAt: stamp,
     updatedAt: stamp,
   };
@@ -58,4 +62,97 @@ export function createProject(input: {
 // Calculates total words written so far which is the sum of every chapter's actual word count.
 export function wordsWritten(project: WritingProject): number {
   return project.chapters.reduce((sum, c) => sum + (c.actualWordCount || 0), 0);
+}
+
+//internal date with flexible precision
+//year is required; month and date are optional - more flexibility
+export interface StoryDate {
+  year: number;
+  month?: number; // 1–12, optional
+  day?: number;   // 1–31, optional
+}
+//a story event or milestone tied to a specific chapter
+export interface StoryEvent {
+  id: string;
+  chapterId: string;
+  title: string;
+  description: string;
+  eventDate: StoryDate; //the in-story year this event takes place
+  characterIds?: string[]
+  location: string
+}
+
+//a character in the story
+export interface Character{
+  id: string;
+  name: string;
+  birthday: StoryDate;
+  description: string;
+  location: string;
+}
+
+//build a new character with the provided info
+export function makeCharacter(input:{
+    name: string;
+    birthday: StoryDate;
+    description?: string;
+    location: string;
+}): Character{
+  return{
+    id: makeId(),
+    name: input.name,
+    birthday: input.birthday,
+    description: input.description??"",
+    location: input.location
+  };
+}
+
+//build a new string event tied to a chapter
+export function makeStoryEvent(input:{
+  chapterId:string;
+  title: string;
+  description?: string;
+  characterIds?: string[]
+  eventDate: StoryDate;
+  location: string
+}): StoryEvent{
+  return {
+    id: makeId(),
+    chapterId: input.chapterId,
+    title: input.title,
+    description: input.description ?? "",
+    characterIds: input.characterIds,
+    eventDate: input.eventDate,
+    location: input.location
+  };
+}
+
+// Computes a character's age at a given point in the story timeline.
+export function characterAgeAtYear(birth: StoryDate, reference: StoryDate): number {
+  let age = reference.year - birth.year;
+
+  const bothHaveMonth = birth.month !== undefined && reference.month !== undefined;
+  if (bothHaveMonth) {
+    if(reference.month! < birth.month!) {
+      age--;
+    } else if (reference.month === birth.month) {
+      const bothHaveDay = birth.day !== undefined && reference.day !== undefined;
+      if (bothHaveDay && reference.day! < birth.day!){
+        age--;
+      }
+    }
+  }
+  return age;
+}
+
+//formats a StoryDate for display, matching whaterver precision was recorded
+export function formatStoryDate(date: StoryDate): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  if (date.month !== undefined && date.day !== undefined) {
+    return `${date.year}-${pad(date.month)}-${pad(date.day)}`;
+  }
+  if (date.month !== undefined) {
+    return `${date.year}-${pad(date.month)}`;
+  }
+  return `${date.year}`;
 }

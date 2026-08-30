@@ -99,11 +99,19 @@ export function Sidebar() {
   const { activeView, setActiveView, setActiveProjectId } = useWorkbench();
   const [collapsed, setCollapsed] = useState(false);
 
+// Only top-level views (outside a project's manuscript) should close the open project.
+const TOP_LEVEL_VIEWS: WorkbenchView[] = ["projects", "overview"];
+
   // Switching to a top-level view closes any open project detail.
-  const navigate = (view: WorkbenchView) => {
+  /*const navigate = (view: WorkbenchView) => {
     setActiveView(view);
     if (view !== "projects") setActiveProjectId(null);
-  };
+  };*/
+// Switching to a top-level view closes any open project detail.
+const navigate = (view: WorkbenchView) => {
+  setActiveView(view);
+  if (TOP_LEVEL_VIEWS.includes(view)) setActiveProjectId(null);
+};
 
   // Placeholder actions for the tool buttons — real functionality comes later.
   const tools: ToolItem[] = [
