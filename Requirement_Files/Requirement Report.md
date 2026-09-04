@@ -1,26 +1,23 @@
-## **Requirement Report** 
+# **Requirement Report** 
 
-#### **Functional Requirement Artefacts**
+### **Functional Requirement Artefacts**
 
-[User Stories](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Requirement_Files/User_Stories %26 MoSCoW/Author's Workbench User Stories.md)
+[User Stories](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Requirement_Files/User_Stories%20%26%20MoSCoW/Author's%20Workbench%20User%20Stories.md)
 
-[MoSCoW for User Stories](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Requirement_Files/User_Stories %26 MoSCoW/MoSCoW for user stories - Sheet1.pdf)
+[MoSCoW for User Stories](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Requirement_Files/User_Stories%20%26%20MoSCoW/MoSCoW%20for%20user%20stories%20-%20Sheet1.pdf)
 
 Do/be/feel method for elicitation
- 
+
+
+
+### **Non-Functional Requirement Artefacts**
+
+[Motivational Model](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Requirement_Files/Motivational_Model/Motivational_model.png)
+
+[Architecture Goals and Constraints](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Design_Files/Architectural_goals_and_constraints/Architecture%20Goals%20and%20Constraints.pdf)
 
  
 
-#### **Non-Functional Requirement Artefacts**
-
-[Motivational Model](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Design_Files/Motivational Model/motivational_model.drawio.png)
-
-[Architecture Goals and Constraints](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Design_Files/Architectural_goals_and_constraints/Architecture Goals and Constraints.pdf)
-
- 
-
- 
-
-#### **Supporting Artefacts**
+**Supporting Artefacts**
 
 [Persona](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Requirement_Files/Persona/persona.png)
