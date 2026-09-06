@@ -23,20 +23,22 @@ Imbi has a need for a workbench to help manage her writing efficiently, specific
 
 
 
+## Team Members
 
-## Team Members 
-| Member | Name | Student ID | Email | Github Account
-| :---: | --- | --- | --- |
-| 1 | Kexin Meng | 1447619 | mengkm@student.unimelb.edu.au | Mackenziekk
-| 2 | Jieche Chang | 1389308 | cheaj@student.unimelb.edu.au | AngelinaChe0621
-| 3 | Ruting Kou | 1674238 | rutingk@student.unimelb.edu.au | rtk2iscoding
-| 4 | Yawen Xue | 1524304 | yawxue3@student.unimelb.edu.au | A-XYW
-| 5 | Guoxing Wu | 1259517 | guwu@student.unimelb.edu.au | Guoxing-Wu
+| Member | Name | Student ID | Email | GitHub Account |
+| :---: | --- | --- | --- | --- |
+| 1 | Kexin Meng | 1447619 | mengkm@student.unimelb.edu.au | Mackenziekk |
+| 2 | Jieche Chang | 1389308 | cheaj@student.unimelb.edu.au | AngelinaChe0621 |
+| 3 | Ruting Kou | 1674238 | rutingk@student.unimelb.edu.au | rtk2iscoding |
+| 4 | Yawen Xue | 1524304 | yawxue3@student.unimelb.edu.au | A-XYW |
+| 5 | Guoxing Wu | 1259517 | guwu@student.unimelb.edu.au | Guoxing-Wu |
 
 
 
-## Repository Structure 
 
+## Repository Structure
+
+```text
 T16-05-Workbench-elves/
 ├── Code/
 │   └── authors-workbench/                 # Current React and Vite web application
@@ -70,8 +72,8 @@ T16-05-Workbench-elves/
 ├── Team Progress/                         # Team progress and communication records
 │   ├── Team Progress 1/
 │   └── Tool Used/
-└── README.md                             
-
+└── README.md
+```
 
 
 ## Tools used
