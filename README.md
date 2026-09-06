@@ -76,8 +76,18 @@ T16-05-Workbench-elves/
 ```
 
 
-## Tools used
+
+## Tools Used
 
 | Tool | Logo | Purpose | Description |
-| :------------ | :------------ |:---------------:|:---------------:|
-|Figma|![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/Figma.png)|Prototype design|Draw high-fidelity and low-fidelity prototype 
+| --- | :---: | --- | --- |
+| GitHub | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/github.png?raw=true) | Code and file management | Store and manage all project files, including source code, design artefacts, and documentation. |
+| Draw.io | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/drawio.png?raw=true) | Diagram design | Create design diagrams, such as architecture, domain, database, and sequence diagrams. |
+| Outlook | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/outlook.png?raw=true) | Client communication | Communicate formally with the client, confirm requirements, and report project progress. |
+| Slack | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/slack.png?raw=true) | Team communication | Support communication among team members and with the supervisor. |
+| Google Drive | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/google%20driven.png?raw=true) | Shared file management | Share and collaboratively edit files before their final versions are pushed to GitHub. |
+| Visual Studio Code | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/VS%20code.png?raw=true) | Software development | Write, run, debug, and maintain the application code during development. |
+| Figma | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/Figma.png?raw=true) | Prototype design | Create high-fidelity and low-fidelity user-interface prototypes. |
+| Canva | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/canva.png?raw=true) | Visual material design | Create slides and other visual materials for presentations. |
+| Zoom | ![](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Team%20Progress/Tool%20Used/Tools_Logos/zoom.png?raw=true) | Online meetings | Conduct online meetings with team members and the client. |
+
