@@ -28,7 +28,7 @@ Imbi has a need for a workbench to help manage her writing efficiently, specific
 | Member | Name | Student ID | Email | GitHub Account |
 | :---: | --- | --- | --- | --- |
 | 1 | Kexin Meng | 1447619 | mengkm@student.unimelb.edu.au | Mackenziekk |
-| 2 | Jieche Chang | 1389308 | cheaj@student.unimelb.edu.au | AngelinaChe0621 |
+| 2 | Jiechang Che | 1389308 | cheaj@student.unimelb.edu.au | AngelinaChe0621 |
 | 3 | Ruting Kou | 1674238 | rutingk@student.unimelb.edu.au | rtk2iscoding |
 | 4 | Yawen Xue | 1524304 | yawxue3@student.unimelb.edu.au | A-XYW |
 | 5 | Guoxing Wu | 1259517 | guwu@student.unimelb.edu.au | Guoxing-Wu |
