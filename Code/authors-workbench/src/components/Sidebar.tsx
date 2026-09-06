@@ -13,7 +13,6 @@ import {
   Network,
   Settings,
   Share2,
-  TrendingUp,
   Users,
   FolderOpen,
 } from "lucide-react";
@@ -46,8 +45,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "MANUSCRIPT",
     items: [
       { icon: Network, label: "Story Structure", view: "storyStructure" },
-      { icon: TrendingUp, label: "Visual Plan", view: "visualPlan" },
-      { icon: BookOpen, label: "Chapters & Notes", view: "chaptersNotes" },
+      { icon: BookOpen, label: "Chapter Plan", view: "chapterPlan" },
       { icon: Users, label: "Characters", view: "characters" },
       { icon: MapPin, label: "Locations", view: "locations" },
       { icon: Calendar, label: "Events", view: "events" },
@@ -99,19 +97,19 @@ export function Sidebar() {
   const { activeView, setActiveView, setActiveProjectId } = useWorkbench();
   const [collapsed, setCollapsed] = useState(false);
 
-// Only top-level views (outside a project's manuscript) should close the open project.
-const TOP_LEVEL_VIEWS: WorkbenchView[] = ["projects", "overview"];
+  // Only top-level views (outside a project's manuscript) should close the open project.
+  const TOP_LEVEL_VIEWS: WorkbenchView[] = ["projects", "overview"];
 
   // Switching to a top-level view closes any open project detail.
   /*const navigate = (view: WorkbenchView) => {
     setActiveView(view);
     if (view !== "projects") setActiveProjectId(null);
   };*/
-// Switching to a top-level view closes any open project detail.
-const navigate = (view: WorkbenchView) => {
-  setActiveView(view);
-  if (TOP_LEVEL_VIEWS.includes(view)) setActiveProjectId(null);
-};
+  // Switching to a top-level view closes any open project detail.
+  const navigate = (view: WorkbenchView) => {
+    setActiveView(view);
+    if (TOP_LEVEL_VIEWS.includes(view)) setActiveProjectId(null);
+  };
 
   // Placeholder actions for the tool buttons — real functionality comes later.
   const tools: ToolItem[] = [

@@ -1,3 +1,5 @@
+import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
+
 // A single chapter within a project.
 export interface Chapter {
   id: string;
@@ -13,7 +15,7 @@ export interface WritingProject {
   title: string;
   targetWordCount: number;
   averageChapterLength: number;
-  storyStructure: string;
+  storyStructure: StoryStructureId;
   chapters: Chapter[];
   characters: Character[];
   events: StoryEvent[];
@@ -42,7 +44,7 @@ export function createProject(input: {
   title: string;
   targetWordCount: number;
   averageChapterLength: number;
-  storyStructure: string;
+  storyStructure: StoryStructureId;
 }): WritingProject {
   const stamp = Date.now();
   return {
@@ -83,7 +85,7 @@ export interface StoryEvent {
 }
 
 //a character in the story
-export interface Character{
+export interface Character {
   id: string;
   name: string;
   birthday: StoryDate;
@@ -92,30 +94,30 @@ export interface Character{
 }
 
 //build a new character with the provided info
-export function makeCharacter(input:{
-    name: string;
-    birthday: StoryDate;
-    description?: string;
-    location: string;
-}): Character{
-  return{
+export function makeCharacter(input: {
+  name: string;
+  birthday: StoryDate;
+  description?: string;
+  location: string;
+}): Character {
+  return {
     id: makeId(),
     name: input.name,
     birthday: input.birthday,
-    description: input.description??"",
+    description: input.description ?? "",
     location: input.location
   };
 }
 
 //build a new string event tied to a chapter
-export function makeStoryEvent(input:{
-  chapterId:string;
+export function makeStoryEvent(input: {
+  chapterId: string;
   title: string;
   description?: string;
   characterIds?: string[]
   eventDate: StoryDate;
   location: string
-}): StoryEvent{
+}): StoryEvent {
   return {
     id: makeId(),
     chapterId: input.chapterId,
@@ -133,11 +135,11 @@ export function characterAgeAtYear(birth: StoryDate, reference: StoryDate): numb
 
   const bothHaveMonth = birth.month !== undefined && reference.month !== undefined;
   if (bothHaveMonth) {
-    if(reference.month! < birth.month!) {
+    if (reference.month! < birth.month!) {
       age--;
     } else if (reference.month === birth.month) {
       const bothHaveDay = birth.day !== undefined && reference.day !== undefined;
-      if (bothHaveDay && reference.day! < birth.day!){
+      if (bothHaveDay && reference.day! < birth.day!) {
         age--;
       }
     }
