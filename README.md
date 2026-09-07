@@ -65,6 +65,7 @@ T16-05-Workbench-elves/
 │   └── User_Flow/
 ├── Meetings/                              # Client and team meeting records
 ├── Requirement_Files/                     # Requirements files and supporting documents
+│   ├── Elicitation/
 │   ├── Motivational_Model/
 │   ├── Persona/
 │   ├── User_Stories & MoSCoW/
