@@ -72,7 +72,9 @@ Imbi has a need for a workbench to help manage her writing efficiently, specific
       - [ClientCommunication/](https://github.com/Mackenziekk/T16-05-Workbench-elves/tree/main/Project_Files/Team_Progress1/ClientCommunication)
       - [Team\_Internal\_Communication/](https://github.com/Mackenziekk/T16-05-Workbench-elves/tree/main/Project_Files/Team_Progress1/Team_Internal_Communication)
       - [Tool Used/](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Project_Files/Team_Progress1/Tool%20Used/Tool%20Used.pdf)
-      - [Coding Standard](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Project_Files/Team_Progress1/Coding_Standard.pdf)
+      - [Coding\_Standard](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Project_Files/Team_Progress1/Coding_Standard.pdf)
+      - [Deployment\_Report](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Project_Files/Team_Progress1/Deployment_Report.pdf)
+      - [Test\_Plan](https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Project_Files/Team_Progress1/Test_Plan.pdf)
   - README.md
 
 
