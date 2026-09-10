@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Calendar, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { Field, IconButton, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
-import { characterAgeAtYear, formatStoryDate } from "../lib/domain";
+import { characterAgeAtYear } from "../lib/domain";
 import type { StoryDate, StoryEvent, WritingProject } from "../lib/domain";
 
 // Parses a "YYYY-MM-DD" (or "YYYY-MM", or "YYYY") input value into a StoryDate.
@@ -55,7 +55,10 @@ function EventRow({
           {affectedCharacters.length > 0 && (
             <span>
               {affectedCharacters
-                .map((c) => `${c.name} (${characterAgeAtYear(c.birthday, event.eventDate)})`)
+                .map((c) =>
+                  c.birthday
+                    ? `${c.name} (${characterAgeAtYear(c.birthday, event.eventDate)})`
+                    : c.name)
                 .join(", ")}
             </span>
           )}
