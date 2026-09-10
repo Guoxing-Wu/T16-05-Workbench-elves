@@ -8,7 +8,7 @@ export default defineConfig([
   globalIgnores(['dist']),
 
   {
-    files: ['**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
