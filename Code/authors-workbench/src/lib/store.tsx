@@ -36,12 +36,12 @@ interface WorkbenchStoreValue {
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
 
   // Character operations
-  addCharacter: (projectId: string, input: { name: string; birthday?: StoryDate; description?: string; location?: string }) => void;
+  addCharacter: (projectId: string, input: { name: string; birthday: StoryDate; description?: string; location?: string }) => void;
   updateCharacter: (projectId: string, characterId: string, patch: Partial<Character>) => void;
   removeCharacter: (projectId: string, characterId: string) => void;
 
   // Story event operations
-  addStoryEvent: (projectId: string, input: { chapterId: string; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[] }) => void;
+  addStoryEvent: (projectId: string, input: { chapterId: string[]; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[] }) => void;
   updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
   removeStoryEvent: (projectId: string, eventId: string) => void;
 
