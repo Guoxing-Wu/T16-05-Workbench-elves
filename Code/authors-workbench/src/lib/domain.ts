@@ -89,21 +89,32 @@ export interface Character{
   birthday?: StoryDate;
   description?: string;
   location?: string;
+  role?: string;
+  gender?: string;
 }
 
 //build a new character with the provided info
 export function makeCharacter(input:{
-    name: string;
+    firstName: string;
+    lastName?: string;
+    middleName?: string;
     birthday?: StoryDate;
     description?: string;
     location?: string;
+    role?: string;
+    gender?: string;
 }): Character{
   return{
     id: makeId(),
-    name: input.name,
+    name: [input.firstName, input.middleName, input.lastName]
+      .map((part) => part?.trim())
+      .filter(Boolean)
+      .join(" "),
     birthday: input.birthday,
     description: input.description??"",
-    location: input.location ?? ""
+    location: input.location ?? "",
+    role: input.role ?? "",
+    gender: input.gender ?? ""
   };
 }
 

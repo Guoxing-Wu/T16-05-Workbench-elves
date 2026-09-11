@@ -38,7 +38,10 @@ function EventRow({
   const chapter = project.chapters.find((c) => c.id === event.chapterId);
   const affectedCharacters = (event.characterIds || [])
     .map((id) => project.characters.find((c) => c.id === id))
-    .filter((c): c is NonNullable<typeof c> => Boolean(c));
+    .filter(
+        (c): c is NonNullable<typeof c> & { birthday: StoryDate } =>
+          c !== undefined && c.birthday !== undefined
+    );
 
   return (
     <div className="chapter-row editable event-row">
