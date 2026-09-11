@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Calendar, MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
-import { Field, IconButton, Modal, PageHeader, ToolButton } from "./primitives";
+import { MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";import { Field, IconButton, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
-import { characterAgeAtYear, formatStoryDate } from "../lib/domain";
+import { characterAgeAtYear } from "../lib/domain";
 import type { StoryDate, StoryEvent, WritingProject } from "../lib/domain";
 
 // Parses a "YYYY-MM-DD" (or "YYYY-MM", or "YYYY") input value into a StoryDate.
@@ -52,37 +51,54 @@ function EventRow({
         <span>YEAR</span>
         <strong>{event.eventDate.year}</strong>
       </div>
+      
 
-      <div className="event-body">
-        {linkedChapter.length > 0 && <p className="event-tag">CHAPTER · {linkedChapter.map((c) => c.title).join(", ")}</p>}
-        <h3 className="event-title">{event.title}</h3>
-        {event.description && <p className="event-description">{event.description}</p>}
-      </div>
+<div className="event-body">
+  {linkedChapter.length > 0 && (
+    <p className="event-tag">
+      CHAPTER · {linkedChapter.map((c) => c.title).join(", ")}
+    </p>
+  )}
 
-      <div className="event-side">
-        {affectedCharacters.length > 0 && (
-          <span className="event-meta-item">
-            <Users size={12} />
-            {affectedCharacters
-              .map((c) => `${c.name} (${characterAgeAtYear(c.birthday, event.eventDate)})`)
-              .join(", ")}
-          </span>
-        )}
-        {event.location && (
-          <span className="event-meta-item">
-            <MapPin size={12} /> {event.location}
-          </span>
-        )}
-      </div>
+  <h3 className="event-title">{event.title}</h3>
 
-      <div className="row-actions">
-        <IconButton title="Edit event" onClick={onEdit}>
-          <Pencil size={14} />
-        </IconButton>
-        <IconButton title="Delete event" danger onClick={onRemove}>
-          <Trash2 size={14} />
-        </IconButton>
-      </div>
+  {event.description && (
+    <p className="event-description">{event.description}</p>
+  )}
+</div>
+
+<div className="event-side">
+  {affectedCharacters.length > 0 && (
+    <span className="event-meta-item">
+      <Users size={12} />
+      {affectedCharacters
+        .map(
+          (c) =>
+            `${c.name} (${characterAgeAtYear(
+              c.birthday,
+              event.eventDate
+            )})`
+        )
+        .join(", ")}
+    </span>
+  )}
+
+  {event.location && (
+    <span className="event-meta-item">
+      <MapPin size={12} /> {event.location}
+    </span>
+  )}
+</div>
+
+<div className="row-actions">
+  <IconButton title="Edit event" onClick={onEdit}>
+    <Pencil size={14} />
+  </IconButton>
+
+  <IconButton title="Delete event" danger onClick={onRemove}>
+    <Trash2 size={14} />
+  </IconButton>
+</div>
     </div>
   );
 }
