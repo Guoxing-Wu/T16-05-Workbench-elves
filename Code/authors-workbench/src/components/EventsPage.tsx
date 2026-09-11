@@ -34,6 +34,9 @@ function EventRow({
   onEdit: () => void;
   onRemove: () => void;
 }) {
+
+  // Resolve stored chapter IDs and character IDs to the current project entities
+  // so the event row can display their names and related information.
   const linkedChapter = (event.chapterIds || [])
   .map((id) => project.chapters.find((c) => c.id === id))
   .filter((c): c is NonNullable<typeof c> => Boolean(c));
@@ -46,6 +49,7 @@ function EventRow({
   const accent = linkedChapter.length > 0 ? "coral" : "blue";
 
   return (
+    // UI design for event row
     <div className={`event-card accent-${accent}`}>
       <div className="event-year">
         <span>YEAR</span>
@@ -115,6 +119,7 @@ function ChapterMultiSelect({
 }) {
   const [open, setOpen] = useState(false);
 
+  // When selecting a chapter, add the chapter if it is not selected; otherwise remove it.
   const toggleChapter = (id: string) => {
     onChange(
       selectedIds.includes(id)
@@ -123,6 +128,7 @@ function ChapterMultiSelect({
     );
   };
 
+  // Keep the selected chapter objects for displaying their titles in the trigger.
   const selectedChapters = chapters.filter((chapter) =>
     selectedIds.includes(chapter.id)
   );
@@ -205,6 +211,7 @@ function EventFormModal({
   const [chapterIds, setChapterIds] = useState<string[]>(initial?.chapterIds ?? []);
   const [characterIds, setCharacterIds] = useState<string[]>(initial?.characterIds ?? []);
 
+  // When selecting a character, add if this character is not selected, otherwise, remove it
   const toggleCharacter = (id: string) => {
     setCharacterIds((list) =>
       list.includes(id)
@@ -213,6 +220,7 @@ function EventFormModal({
     );
   };
 
+  // The minimum event information required before saving
   const handleSave = () => {
     if (!title.trim() || !dateInput) return;
     onSave({

@@ -74,7 +74,7 @@ export interface StoryDate {
 //a story event or milestone tied to a specific chapter
 export interface StoryEvent {
   id: string;
-  chapterIds: string[];
+  chapterIds: string[]; // Allow multiple chapter linkage
   title: string;
   description: string;
   eventDate: StoryDate; // The in-story year this event takes place
