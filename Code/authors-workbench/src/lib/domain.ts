@@ -88,24 +88,24 @@ export interface StoryEvent {
 export interface Character {
   id: string;
   name: string;
-  birthday: StoryDate;
-  description: string;
-  location: string;
+  birthday?: StoryDate;
+  description?: string;
+  location?: string;
 }
 
-//build a new character with the provided info
+//build a new character with the provided info// build a new character with the provided info
 export function makeCharacter(input: {
   name: string;
   birthday: StoryDate;
   description?: string;
-  location: string;
+  location?: string;
 }): Character {
   return {
     id: makeId(),
     name: input.name,
     birthday: input.birthday,
     description: input.description ?? "",
-    location: input.location
+    location: input.location ?? "",
   };
 }
 
