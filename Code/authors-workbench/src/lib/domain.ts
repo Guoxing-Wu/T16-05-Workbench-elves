@@ -5,6 +5,7 @@ export interface Chapter {
   title: string;
   targetWordCount: number;
   actualWordCount: number;
+  notes: string;
 }
 
 // A writing project shows up as a card in the overview and as the detail page once opened.
@@ -34,6 +35,7 @@ export function makeChapter(order: number, n: number): Chapter {
     title: `Chapter ${n}`,
     targetWordCount: 0,
     actualWordCount: 0,
+    notes: "",
   };
 }
 
@@ -45,13 +47,24 @@ export function createProject(input: {
   storyStructure: string;
 }): WritingProject {
   const stamp = Date.now();
+  const estimate =
+    input.averageChapterLength > 0
+      ? Math.max(1, Math.round(input.targetWordCount / input.averageChapterLength))
+      : 0;
+  const chapters: Chapter[] =
+    estimate > 0
+      ? Array.from({ length: estimate }, (_, i) => makeChapter(i, i + 1)).map((c) => ({
+          ...c,
+          targetWordCount: input.averageChapterLength,
+        }))
+      : [];
   return {
     id: makeId(),
     title: input.title,
     targetWordCount: input.targetWordCount,
     averageChapterLength: input.averageChapterLength,
     storyStructure: input.storyStructure,
-    chapters: [],
+    chapters,
     characters: [],
     events: [],
     createdAt: stamp,
