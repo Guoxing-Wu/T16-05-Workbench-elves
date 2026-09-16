@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
-import { Field, IconButton, Modal, PageHeader, ToolButton } from "./primitives";
+import { MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";import { Field, IconButton, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
 import { characterAgeAtYear } from "../lib/domain";
 import type { StoryDate, StoryEvent, WritingProject } from "../lib/domain";
@@ -35,49 +34,151 @@ function EventRow({
   onEdit: () => void;
   onRemove: () => void;
 }) {
-  const chapter = project.chapters.find((c) => c.id === event.chapterId);
+
+  // Resolve stored chapter IDs and character IDs to the current project entities
+  // so the event row can display their names and related information.
+  const linkedChapter = (event.chapterIds || [])
+  .map((id) => project.chapters.find((c) => c.id === id))
+  .filter((c): c is NonNullable<typeof c> => Boolean(c));
+
   const affectedCharacters = (event.characterIds || [])
     .map((id) => project.characters.find((c) => c.id === id))
     .filter((c): c is NonNullable<typeof c> => Boolean(c));
 
+  // Chapter-linked events get a coral accent; standalone beats get blue.
+  const accent = linkedChapter.length > 0 ? "coral" : "blue";
+
   return (
-    <div className="chapter-row editable event-row">
-      <div className="chapter-number">
+    // UI design for event row
+    <div className={`event-card accent-${accent}`}>
+      <div className="event-year">
         <span>YEAR</span>
         <strong>{event.eventDate.year}</strong>
       </div>
+      
 
-      <div className="event-main">
-        {chapter && <p className="event-chapter-tag">CHAPTER · {chapter.title}</p>}
-        <h3>{event.title}</h3>
-        {event.description && <p className="muted-copy">{event.description}</p>}
-        <div className="event-meta">
-          {affectedCharacters.length > 0 && (
-            <span>
-              {affectedCharacters
-                .map((c) =>
-                  c.birthday
-                    ? `${c.name} (${characterAgeAtYear(c.birthday, event.eventDate)})`
-                    : c.name)
-                .join(", ")}
-            </span>
-          )}
-          {event.location && (
-            <span>
-              <MapPin size={12} /> {event.location}
-            </span>
+<div className="event-body">
+  {linkedChapter.length > 0 && (
+    <p className="event-tag">
+      CHAPTER · {linkedChapter.map((c) => c.title).join(", ")}
+    </p>
+  )}
+
+  <h3 className="event-title">{event.title}</h3>
+
+  {event.description && (
+    <p className="event-description">{event.description}</p>
+  )}
+</div>
+
+<div className="event-side">
+  {affectedCharacters.length > 0 && (
+    <span className="event-meta-item">
+      <Users size={12} />
+      {affectedCharacters
+        .map(
+          (c) =>
+            `${c.name} (${characterAgeAtYear(
+              c.birthday,
+              event.eventDate
+            )})`
+        )
+        .join(", ")}
+    </span>
+  )}
+
+  {event.location && (
+    <span className="event-meta-item">
+      <MapPin size={12} /> {event.location}
+    </span>
+  )}
+</div>
+
+<div className="row-actions">
+  <IconButton title="Edit event" onClick={onEdit}>
+    <Pencil size={14} />
+  </IconButton>
+
+  <IconButton title="Delete event" danger onClick={onRemove}>
+    <Trash2 size={14} />
+  </IconButton>
+</div>
+    </div>
+  );
+}
+
+// Multi-select dropdown for linking an event to multiple chapters.
+function ChapterMultiSelect({
+  chapters,
+  selectedIds,
+  onChange,
+}: {
+  chapters: WritingProject["chapters"];
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  // When selecting a chapter, add the chapter if it is not selected; otherwise remove it.
+  const toggleChapter = (id: string) => {
+    onChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((chapterId) => chapterId !== id)
+        : [...selectedIds, id]
+    );
+  };
+
+  // Keep the selected chapter objects for displaying their titles in the trigger.
+  const selectedChapters = chapters.filter((chapter) =>
+    selectedIds.includes(chapter.id)
+  );
+
+  return (
+    <div className="multi-select">
+      <button
+        type="button"
+        className="multi-select-trigger"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span>
+          {selectedChapters.length === 0
+            ? "Select chapters"
+            : selectedChapters.map((chapter) => chapter.title).join(", ")}
+        </span>
+
+        <span className="multi-select-arrow">
+          {open ? "▴" : "▾"}
+        </span>
+      </button>
+
+      {open && (
+        <div className="multi-select-menu">
+          {chapters.length === 0 ? (
+            <p className="muted-copy">No chapters yet.</p>
+          ) : (
+            chapters.map((chapter) => {
+              const selected = selectedIds.includes(chapter.id);
+
+              return (
+                <button
+                  key={chapter.id}
+                  type="button"
+                  className={`multi-select-option ${
+                    selected ? "selected" : ""
+                  }`}
+                  onClick={() => toggleChapter(chapter.id)}
+                >
+                  <span>{chapter.title}</span>
+
+                  {selected && (
+                    <span className="multi-select-check">✓</span>
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
-      </div>
-
-      <div className="row-actions">
-        <IconButton title="Edit event" onClick={onEdit}>
-          <Pencil size={14} />
-        </IconButton>
-        <IconButton title="Delete event" danger onClick={onRemove}>
-          <Trash2 size={14} />
-        </IconButton>
-      </div>
+      )}
     </div>
   );
 }
@@ -97,7 +198,7 @@ function EventFormModal({
     description: string;
     eventDate: StoryDate;
     location: string;
-    chapterId: string;
+    chapterIds: string[];
     characterIds: string[];
   }) => void;
 }) {
@@ -107,13 +208,19 @@ function EventFormModal({
     initial ? storyDateToInputValue(initial.eventDate) : ""
   );
   const [location, setLocation] = useState(initial?.location ?? "");
-  const [chapterId, setChapterId] = useState(initial?.chapterId ?? project.chapters[0]?.id ?? "");
+  const [chapterIds, setChapterIds] = useState<string[]>(initial?.chapterIds ?? []);
   const [characterIds, setCharacterIds] = useState<string[]>(initial?.characterIds ?? []);
 
+  // When selecting a character, add if this character is not selected, otherwise, remove it
   const toggleCharacter = (id: string) => {
-    setCharacterIds((list) => (list.includes(id) ? list.filter((c) => c !== id) : [...list, id]));
+    setCharacterIds((list) =>
+      list.includes(id)
+        ? list.filter((c) => c !== id)
+        : [...list, id]
+    );
   };
 
+  // The minimum event information required before saving
   const handleSave = () => {
     if (!title.trim() || !dateInput) return;
     onSave({
@@ -121,7 +228,7 @@ function EventFormModal({
       description,
       eventDate: parseStoryDateInput(dateInput),
       location,
-      chapterId,
+      chapterIds,
       characterIds,
     });
     onClose();
@@ -147,17 +254,13 @@ function EventFormModal({
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
         </Field>
 
-        <div className="form-grid">
-          <Field label="Linked chapter">
-            <select value={chapterId} onChange={(e) => setChapterId(e.target.value)}>
-              {project.chapters.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
+        <Field label="Linked chapters" full>
+          <ChapterMultiSelect
+            chapters={project.chapters}
+            selectedIds={chapterIds}
+            onChange={setChapterIds}
+          />
+        </Field>
 
         <Field label="Characters affected" full>
           <div className="character-checkbox-list">
