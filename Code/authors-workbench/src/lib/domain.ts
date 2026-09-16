@@ -1,3 +1,5 @@
+import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
+
 // A single chapter within a project.
 export interface Chapter {
   id: string;
@@ -13,7 +15,7 @@ export interface WritingProject {
   title: string;
   targetWordCount: number;
   averageChapterLength: number;
-  storyStructure: string;
+  storyStructure: StoryStructureId;
   chapters: Chapter[];
   characters: Character[];
   events: StoryEvent[];
@@ -42,7 +44,7 @@ export function createProject(input: {
   title: string;
   targetWordCount: number;
   averageChapterLength: number;
-  storyStructure: string;
+  storyStructure: StoryStructureId;
 }): WritingProject {
   const stamp = Date.now();
   return {
@@ -74,31 +76,31 @@ export interface StoryDate {
 //a story event or milestone tied to a specific chapter
 export interface StoryEvent {
   id: string;
-  chapterId: string;
+  chapterIds: string[]; // Allow multiple chapter linkage
   title: string;
   description: string;
-  eventDate: StoryDate; //the in-story year this event takes place
+  eventDate: StoryDate; // The in-story year this event takes place
   characterIds?: string[]
   location: string
 }
 
-//a character in the story
+//A character in the story
 export interface Character{
   id: string;
   name: string;
-  birthday?: StoryDate;
+  birthday: StoryDate;
   description?: string;
   location?: string;
   role?: string;
   gender?: string;
 }
 
-//build a new character with the provided info
+// Build a new character with the provided info
 export function makeCharacter(input:{
     firstName: string;
     lastName?: string;
     middleName?: string;
-    birthday?: StoryDate;
+    birthday: StoryDate;
     description?: string;
     location?: string;
     role?: string;
@@ -118,23 +120,23 @@ export function makeCharacter(input:{
   };
 }
 
-//build a new string event tied to a chapter
-export function makeStoryEvent(input:{
-  chapterId:string;
+// Build a new story event tied to chapters
+export function makeStoryEvent(input: {
+  chapterIds: string[];
   title: string;
   description?: string;
-  characterIds?: string[]
+  characterIds?: string[];
   eventDate: StoryDate;
-  location: string
-}): StoryEvent{
+  location: string;
+}): StoryEvent {
   return {
     id: makeId(),
-    chapterId: input.chapterId,
+    chapterIds: input.chapterIds,
     title: input.title,
     description: input.description ?? "",
     characterIds: input.characterIds,
     eventDate: input.eventDate,
-    location: input.location
+    location: input.location,
   };
 }
 
@@ -144,11 +146,11 @@ export function characterAgeAtYear(birth: StoryDate, reference: StoryDate): numb
 
   const bothHaveMonth = birth.month !== undefined && reference.month !== undefined;
   if (bothHaveMonth) {
-    if(reference.month! < birth.month!) {
+    if (reference.month! < birth.month!) {
       age--;
     } else if (reference.month === birth.month) {
       const bothHaveDay = birth.day !== undefined && reference.day !== undefined;
-      if (bothHaveDay && reference.day! < birth.day!){
+      if (bothHaveDay && reference.day! < birth.day!) {
         age--;
       }
     }
@@ -156,7 +158,7 @@ export function characterAgeAtYear(birth: StoryDate, reference: StoryDate): numb
   return age;
 }
 
-//formats a StoryDate for display, matching whaterver precision was recorded
+// Formats a StoryDate for display, matching whaterver precision was recorded
 export function formatStoryDate(date: StoryDate): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   if (date.month !== undefined && date.day !== undefined) {

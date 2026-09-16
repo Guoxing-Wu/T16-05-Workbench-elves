@@ -45,7 +45,7 @@ export function CharactersPage({
            
           <div key={character.id} className="settings-card character-card">
             <strong>{character.name}</strong>
-
+            
             {character.birthday && (
               <p>
                 Birthday: {character.birthday.year}
@@ -145,6 +145,7 @@ export function CharactersPage({
           />
         ) : (
           <div className="workbench-form">
+            
             {selectedCharacter.birthday && (
               <p>
                 Birthday:{" "}
@@ -157,7 +158,7 @@ export function CharactersPage({
                   .join("-")}
               </p>
             )}
-
+          
             <p>Location: {selectedCharacter.location || "—"}</p>
             <p>Gender: {selectedCharacter.gender || "—"}</p>
             <p>Role: {selectedCharacter.role || "—"}</p>

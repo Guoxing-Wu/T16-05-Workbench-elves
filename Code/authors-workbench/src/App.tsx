@@ -7,7 +7,6 @@ import {
   MapPin,
   Network,
   Settings,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import { WorkbenchProvider, useWorkbench } from "./lib/store";
@@ -20,6 +19,7 @@ import { RightSidebar } from "./components/RightSidebar";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import { EventsPage } from "./components/EventsPage";
 import { CharactersPage } from "./components/CharactersPage";
+import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
 
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
@@ -41,19 +41,12 @@ const PLACEHOLDER_CONFIG: Record<
     description:
       "Map out your story's acts, beats and plot points. Drag, rearrange and connect the structural pillars of your narrative.",
   },
-  visualPlan: {
-    title: "Visual Plan",
-    icon: TrendingUp,
-    eyebrow: "MANUSCRIPT",
-    description:
-      "Visualise your story arc, tension curves and pacing across chapters to keep your narrative rhythm on track.",
-  },
-  chaptersNotes: {
-    title: "Chapters & Notes",
+  chapterPlan: {
+    title: "Chapter Plan",
     icon: BookOpen,
     eyebrow: "MANUSCRIPT",
     description:
-      "Write and organise chapter drafts alongside research notes, outlines and reference material.",
+      "Plan chapter titles, status and notes.",
   },
   characters: {
     title: "Characters",
@@ -112,6 +105,25 @@ function CurrentView() {
     );
   }
 
+  // Story structure displays the template selected for the active project.
+  if (activeView === "storyStructure") {
+    // A project must be open before its story structure can be displayed.
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Story Structure"
+          icon={PLACEHOLDER_CONFIG.storyStructure.icon}
+          description="Open a project first to view its story structure."
+        />
+      );
+    }
+
+    return <StoryStructurePage project={activeProject} />;
+  }
+
+
+
   // Events needs an active project to know which project's events to show.
   if (activeView === "events") {
     if (!activeProject) {
@@ -145,7 +157,9 @@ function CurrentView() {
     />;
   }
   
-  // Every other view renders a friendly placeholder for now.
+
+
+ // Every other view renders a friendly placeholder for now.
   const config = PLACEHOLDER_CONFIG[activeView];
   return (
     <PlaceholderPage

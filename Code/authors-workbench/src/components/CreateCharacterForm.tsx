@@ -9,11 +9,12 @@ type Props = {
     firstName: string;
     middleName?: string;
     lastName?: string;
-    birthday?: StoryDate;
+    birthday: StoryDate;
     description?: string;
     location?: string;
     role?: string;
     gender?: string;
+
   }) => void; 
 };
 // Form for creating a new character, with fields for name, birthday, description, and location.
@@ -33,19 +34,20 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!firstName.trim()) {
+    if (!firstName.trim() || !birthYear) {
       return;
     }
 
-    let birthday: StoryDate | undefined;
-
-    if (birthYear) {
-      birthday = {
-        year: Number(birthYear),
-        month: birthMonth ? Number(birthMonth) : undefined,
-        day: birthDay ? Number(birthDay) : undefined,
-      };
+    const year = Number(birthYear);
+    if (!Number.isInteger(year)) {
+      return;
     }
+
+    const birthday: StoryDate = {
+      year,
+      month: birthMonth ? Number(birthMonth) : undefined,
+      day: birthDay ? Number(birthDay) : undefined,
+    };
 
     onCreate({
       firstName: firstName.trim(),
