@@ -3,7 +3,7 @@ import { useWorkbench } from "../lib/store";
 
 // The top bar shown above the main content: project info on the left, actions on the right.
 export function TopBar() {
-  const { activeProject, activeView } = useWorkbench();
+  const { activeProject } = useWorkbench();
 
   // Title shows the open project's name, or a default when no project is open.
   const title = activeProject ? activeProject.title : "Hi, there!";

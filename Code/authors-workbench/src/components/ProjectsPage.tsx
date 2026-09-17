@@ -5,13 +5,21 @@ import { EmptyState, Field, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
 
+import {
+  DEFAULT_STORY_STRUCTURE_ID,
+  STORY_STRUCTURE_OPTIONS,
+} from "../features/story-structure/storyStructureTemplate";
+
+import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
+
 // "New project" modal with title, target word count, average chapter length and story structure.
 function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const { createProject } = useWorkbench();
   const [title, setTitle] = useState("Untitled Story");
   const [targetWordCount, setTargetWordCount] = useState(0);
   const [averageChapterLength, setAverageChapterLength] = useState(0);
-  const [storyStructure, setStoryStructure] = useState("Three-Act Structure");
+  const [storyStructure, setStoryStructure] =
+    useState<StoryStructureId>(DEFAULT_STORY_STRUCTURE_ID);
   const canCreate = title.trim().length > 0 && targetWordCount > 0 && averageChapterLength > 0;
 
   // Estimate how many chapters the plan will have.
@@ -53,14 +61,15 @@ function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: (
           <Field label="Story structure" full>
             <select
               value={storyStructure}
-              onChange={(event) => setStoryStructure(event.target.value)}
+              onChange={(event) =>
+                setStoryStructure(event.target.value as StoryStructureId)
+              }
             >
-              <option value="Three-Act Structure">Three-Act Structure</option>
-              <option value="Hero's Journey">Hero's Journey</option>
-              <option value="Five-Act Structure">Five-Act Structure</option>
-              <option value="Freytag's Pyramid">Freytag's Pyramid</option>
-              <option value="Save the Cat">Save the Cat</option>
-              <option value="No structure">No structure</option>
+              {STORY_STRUCTURE_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
             </select>
           </Field>
         </div>

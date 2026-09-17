@@ -4,6 +4,7 @@ import { useWorkbench } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
 import type { Chapter, WritingProject } from "../lib/domain";
 
+
 // One editable row in the chapter list: order, editable title, target/actual word count 
 // and the move/delete controls.
 function ChapterRow({
@@ -75,7 +76,7 @@ function ChapterRow({
 // The detail view for one project: editable project settings up top, 
 // a statistics/progress summary, and the full chapter list below it.
 export function ProjectDetailPage({ project, onBack }: { project: WritingProject; onBack: () => void }) {
-  const { updateProject, addChapter, updateChapter, removeChapter, moveChapter } = useWorkbench();
+  const { updateProject, addChapter, updateChapter, removeChapter, moveChapter, } = useWorkbench();
   const chapters = project.chapters || [];
   const written = wordsWritten(project);
   const target = project.targetWordCount || 0;
@@ -100,7 +101,7 @@ export function ProjectDetailPage({ project, onBack }: { project: WritingProject
       />
 
       {/* Project-level settings: title and target word count */}
-      <section className="settings-card workbench-form">
+      <section className="workbench-form">
         <div className="form-grid">
           <label className="form-field full">
             <span>Project title</span>
@@ -161,6 +162,6 @@ export function ProjectDetailPage({ project, onBack }: { project: WritingProject
         ))}
         {chapters.length === 0 && <p className="muted-copy">No chapters yet.</p>}
       </div>
-    </div>
+    </div>    
   );
 }

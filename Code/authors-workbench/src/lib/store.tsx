@@ -2,14 +2,14 @@ import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryDate } from "./domain";
+import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
 
-//左边导航栏的内容
+//left 
 export type WorkbenchView =
   | "projects"
   | "overview"
   | "storyStructure"
-  | "visualPlan"
-  | "chaptersNotes"
+  | "chapterPlan"
   | "characters"
   | "locations"
   | "events"
@@ -21,13 +21,15 @@ export type WorkbenchView =
 interface WorkbenchStoreValue {
   projects: WritingProject[];
   // The project currently open, or null when on the projects overview.
-  activeProject: WritingProject | null; 
+  activeProject: WritingProject | null;
   activeProjectId: string | null;
-  setActiveProjectId: (id: string | null) => void; 
+  setActiveProjectId: (id: string | null) => void;
   activeView: WorkbenchView;
   setActiveView: (view: WorkbenchView) => void;
-  createProject: (input: { title: string; targetWordCount: number;averageChapterLength: number;
-    storyStructure: string; }) => WritingProject;
+  createProject: (input: {
+    title: string; targetWordCount: number; averageChapterLength: number;
+    storyStructure: StoryStructureId;
+  }) => WritingProject;
   deleteProject: (id: string) => void;
   updateProject: (id: string, updater: (project: WritingProject) => WritingProject) => void;
   addChapter: (projectId: string) => void;
@@ -36,12 +38,12 @@ interface WorkbenchStoreValue {
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
 
   // Character operations
-  addCharacter: (projectId: string, input: { name: string; birthday: StoryDate; description?: string; location: string }) => void;
+  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string ; role?: string; gender?: string }) => void;
   updateCharacter: (projectId: string, characterId: string, patch: Partial<Character>) => void;
   removeCharacter: (projectId: string, characterId: string) => void;
 
   // Story event operations
-  addStoryEvent: (projectId: string, input: { chapterId: string; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[] }) => void;
+  addStoryEvent: (projectId: string, input: { chapterIds: string[]; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[] }) => void;
   updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
   removeStoryEvent: (projectId: string, eventId: string) => void;
 
@@ -61,7 +63,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const activeProject = projects.find((p) => p.id === activeProjectId) || null;
 
   // Creates a project, adds it to the top of the list and opens it immediately.
-    const createProject: WorkbenchStoreValue["createProject"] = ({
+  const createProject: WorkbenchStoreValue["createProject"] = ({
     title,
     targetWordCount,
     averageChapterLength,
