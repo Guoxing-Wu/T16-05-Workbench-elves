@@ -21,6 +21,7 @@ import { EventsPage } from "./components/EventsPage";
 import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
 import { ChapterPage } from "./components/ChapterPage";
 import { CharactersPage } from "./components/CharactersPage";
+import { OverviewPage } from "./components/OverviewPage";
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
@@ -165,6 +166,13 @@ function CurrentView() {
     }
     return <CharactersPage project={activeProject} onBack={() => setActiveProjectId(null)} />;
   }
+
+  // Navigate to the overview page.
+  if (activeView === "overview") {
+    
+    return <OverviewPage />;
+  }
+
 
   // Every other view renders a friendly placeholder for now.
   const config = PLACEHOLDER_CONFIG[activeView];
