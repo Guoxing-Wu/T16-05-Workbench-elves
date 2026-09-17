@@ -1,13 +1,12 @@
-import { Field, PageHeader } from "../../components/primitives";
+import { PageHeader } from "../../components/primitives";
 import { useWorkbench } from "../../lib/store";
 import type { WritingProject } from "../../lib/domain";
 
-import {
-    getStoryStructureOption,
-    STORY_STRUCTURE_OPTIONS,
-} from "./storyStructureTemplate";
-
+import { StoryTemplatePicker } from "./StoryTemplatePicker";
+import { getStoryStructureOption } from "./storyStructureTemplate";
 import type { StoryStructureId } from "./storyStructureTemplate";
+import "./storyStructure.css";
+
 
 // Data that must be provided when StoryStructurePage is displayed
 type StoryStructurePageProps = {
@@ -29,7 +28,7 @@ export function StoryStructurePage({
     const changeTemplate = (templateId: StoryStructureId) => {
         updateProject(project.id, (currentProject) => {
             return {
-                // duplicate the title, words, chapters of all original project information, avoid cover other fields.
+                // Remain other project fields and change only the template ID.
                 ...currentProject,
                 storyStructure: templateId,
             };
@@ -43,27 +42,20 @@ export function StoryStructurePage({
                 title="Story Structure"
                 count="Choose the planning structure for this project."
             />
+            {/* Show template cards and connect them to the project */}
+            <StoryTemplatePicker
+                value={project.storyStructure}
+                onChange={changeTemplate}
+            />
 
-            <article className="project-card">
-                <Field label="Selected template">
-                    <select
-                        value={project.storyStructure}
-                        onChange={(event) => {
-                            changeTemplate(
-                                event.target.value as StoryStructureId
-                            );
-                        }}
-                    >
-                        {STORY_STRUCTURE_OPTIONS.map((option) => (
-                            <option key={option.id} value={option.id}>
-                                {option.name}
-                            </option>
-                        ))}
-                    </select>
-                </Field>
+            {/* Show name and description of the selected template */}
+            <section
+                className="story-template-detail"
+                aria-live="polite"
+            >
                 <h2>{selectedTemplate.name}</h2>
                 <p>{selectedTemplate.description}</p>
-            </article>
+            </section>
         </div>
     );
 }
