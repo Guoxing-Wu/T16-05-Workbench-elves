@@ -371,7 +371,91 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   flex: 0 0 auto; padding: 10px; border-top: 1px solid var(--divider-warm);
   display: flex; flex-direction: column; gap: 2px;
 }
+/* ===== characters ===== */
+/* create character*/
+.create-character-action {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+/* character form actions */
+.character-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 24px;
+}
 
+/* character list */
+.character-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.character-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 28px;
+  overflow-wrap: anywhere;
+}
+
+/* the action buttons container */
+.character-card-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+/* buttons*/
+.character-card-actions > button {
+  display: inline-flex;
+  align-items:center;
+  justify-content: center;
+  gap: 8px;
+  width: auto;
+  margin: 0;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* character */
+.character-card-actions .view-character-link {
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.character-card-actions .view-character-link:hover {
+  color: var(--coral);
+}
+
+/* bin */
+.character-card-actions .delete-character-button {
+  margin-left: auto;
+  color: #b94a48;
+   
+}
+
+.character-card-actions .delete-character-button:hover {
+  color: #913735;
+}
+
+/* small screens */
+@media (max-width: 700px) {
+  .character-list {
+    grid-template-columns: 1fr;
+  }
+}
 /* ===== placeolder, delete when not needed ===== */
 .placeholder-hero {
   padding: 56px 40px; display: grid; place-items: center; align-content: center; gap: 14px;
@@ -609,4 +693,44 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
     display: none;
   }
 }
+/* ===== Chapter Plan ===== */
+.chapter-plan-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+.act-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.act-tab { min-height: 32px; padding: 6px 13px; border: 1px solid var(--border-warm); border-radius: 16px; background: var(--surface); color: var(--ink-soft); font-size: 11px; font-weight: 600; cursor: pointer; }
+.act-tab:hover { border-color: #cfc4b8; }
+.act-tab.active { background: var(--coral-soft); border-color: var(--coral-soft); color: var(--coral-dark); }
+
+.view-toggle { display: flex; border: 1px solid var(--border-warm); border-radius: 7px; overflow: hidden; background: var(--surface); }
+.view-toggle button { width: 38px; height: 34px; display: grid; place-items: center; border: 0; background: transparent; color: var(--text-muted); cursor: pointer; }
+.view-toggle button + button { border-left: 1px solid var(--border-warm); }
+.view-toggle button.active { background: var(--blue-soft); color: var(--blue); }
+
+.chapter-plan-layout { display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 20px; align-items: start; }
+.chapter-plan-main { min-width: 0; }
+
+.chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 10px; }
+.chapter-plan-card { min-height: 96px; padding: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; border: 1px solid var(--border-warm); border-radius: 8px; background: var(--surface); cursor: pointer; text-align: left; }
+.chapter-plan-card:hover { border-color: #cfc4b8; background: #fff; }
+.chapter-plan-card.selected { border-color: var(--coral); box-shadow: 0 0 0 2px var(--coral-soft); }
+.chapter-plan-card-num { color: var(--coral-dark); font-size: 9px; letter-spacing: .1em; }
+.chapter-plan-card strong { font: 600 14px var(--serif); color: var(--ink); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chapter-plan-card-meta { color: var(--text-muted); font-size: 10.5px; }
+
+.chapter-plan-row { width: 100%; padding: 13px 15px; display: grid; grid-template-columns: 120px minmax(0,1fr) auto; gap: 14px; align-items: center; border: 1px solid var(--border-warm); border-radius: 7px; background: var(--surface); cursor: pointer; text-align: left; }
+.chapter-plan-row:hover { border-color: #cfc4b8; background: #fff; }
+.chapter-plan-row-num { color: var(--text-muted); font-size: 9px; letter-spacing: .12em; }
+.chapter-plan-row strong { font: 600 14px var(--serif); }
+.chapter-plan-row-status { color: var(--text-muted); font-size: 11px; }
+
+.chapter-plan-editor { position: sticky; top: 20px; padding: 20px; border: 1px solid var(--border-warm); border-radius: 8px; background: var(--surface); display: grid; gap: 14px; }
+.chapter-plan-editor > header { display: flex; align-items: center; justify-content: space-between; }
+.chapter-plan-editor h2 { margin: 0; font: 600 20px var(--serif); }
+.chapter-plan-editor-meta { margin: 0; color: var(--ink-soft); font-family: var(--mono); font-size: 12px; }
+
+@media (max-width: 980px) {
+  .chapter-plan-layout { grid-template-columns: minmax(0,1fr); }
+  .chapter-plan-editor { position: static; }
+}
+
 
