@@ -4,7 +4,7 @@ import { createProject as createProjectRecord, makeChapter, makeCharacter, makeS
 import type { Chapter, WritingProject, Character, StoryEvent, StoryDate } from "./domain";
 import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
 
-//左边导航栏的内容
+//left 
 export type WorkbenchView =
   | "projects"
   | "overview"
@@ -38,7 +38,7 @@ interface WorkbenchStoreValue {
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
 
   // Character operations
-  addCharacter: (projectId: string, input: { name: string; birthday: StoryDate; description?: string; location?: string }) => void;
+  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string ; role?: string; gender?: string }) => void;
   updateCharacter: (projectId: string, characterId: string, patch: Partial<Character>) => void;
   removeCharacter: (projectId: string, characterId: string) => void;
 

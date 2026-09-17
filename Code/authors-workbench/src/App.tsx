@@ -18,7 +18,9 @@ import { TopBar } from "./components/Topbar";
 import { RightSidebar } from "./components/RightSidebar";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import { EventsPage } from "./components/EventsPage";
+import { CharactersPage } from "./components/CharactersPage";
 import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
+
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
@@ -136,8 +138,28 @@ function CurrentView() {
     }
     return <EventsPage project={activeProject} />;
   }
+  // Characters needs an active project.
+  if (activeView === "characters") {
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Characters"
+          icon={PLACEHOLDER_CONFIG.characters.icon}
+          description="Open a project first to see and manage its characters."
+        />
+      );
+    }
 
-  // Every other view renders a friendly placeholder for now.
+    return <CharactersPage 
+    project={activeProject} 
+    onBack={() => setActiveProjectId("projects")}
+    />;
+  }
+  
+
+
+ // Every other view renders a friendly placeholder for now.
   const config = PLACEHOLDER_CONFIG[activeView];
   return (
     <PlaceholderPage

@@ -2,7 +2,6 @@ import { ArrowDown, ArrowLeft, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { IconButton, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
-import CreateCharacterForm from "./CreateCharacterForm";
 import type { Chapter, WritingProject } from "../lib/domain";
 
 
@@ -77,9 +76,8 @@ function ChapterRow({
 // The detail view for one project: editable project settings up top, 
 // a statistics/progress summary, and the full chapter list below it.
 export function ProjectDetailPage({ project, onBack }: { project: WritingProject; onBack: () => void }) {
-  const { updateProject, addChapter, updateChapter, removeChapter, moveChapter, addCharacter, } = useWorkbench();
+  const { updateProject, addChapter, updateChapter, removeChapter, moveChapter, } = useWorkbench();
   const chapters = project.chapters || [];
-  const characters = project.characters || [];
   const written = wordsWritten(project);
   const target = project.targetWordCount || 0;
   // Percentage toward the target capped at 100%.
@@ -103,7 +101,7 @@ export function ProjectDetailPage({ project, onBack }: { project: WritingProject
       />
 
       {/* Project-level settings: title and target word count */}
-      <section className="settings-card workbench-form">
+      <section className="workbench-form">
         <div className="form-grid">
           <label className="form-field full">
             <span>Project title</span>
@@ -164,50 +162,6 @@ export function ProjectDetailPage({ project, onBack }: { project: WritingProject
         ))}
         {chapters.length === 0 && <p className="muted-copy">No chapters yet.</p>}
       </div>
-      <PageHeader
-  eyebrow="STORY"
-  title="Characters"
-  count={`${characters.length} characters`}
-/>
-<div className="character-list">
-  {characters.map((character) => (
-    <div key={character.id} className="settings-card">
-      <strong>{character.name}</strong>
-
-      {character.birthday && (
-        <p>
-          Birthday: {character.birthday.year}
-          {character.birthday.month
-            ? `-${character.birthday.month}`
-            : ""}
-          {character.birthday.day
-            ? `-${character.birthday.day}`
-            : ""}
-        </p>
-      )}
-
-      {character.location && (
-        <p>Location: {character.location}</p>
-      )}
-
-      {character.description && (
-        <p>{character.description}</p>
-      )}
-    </div>
-  ))}
-
-  {characters.length === 0 && (
-    <p className="muted-copy">No characters yet.</p>
-  )}
-</div>
-
-<CreateCharacterForm
-  onCreate={(input) =>
-    addCharacter(project.id, input)
-  }
-/>
-        
-    </div>
-    
+    </div>    
   );
 }
