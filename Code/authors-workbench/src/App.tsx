@@ -118,11 +118,23 @@ function CurrentView() {
         />
       );
     }
-
     return <StoryStructurePage project={activeProject} />;
   }
 
-
+  // Chapter Plan needs an active project to know which project's chapters to show.
+  if (activeView === "chapterPlan") {
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Chapter Plan"
+          icon={PLACEHOLDER_CONFIG.chapterPlan.icon}
+          description="Open a project first to view its chapter plan."
+        />
+      );
+    }
+    return <ChapterPage project={activeProject} />;
+  }
 
   // Events needs an active project to know which project's events to show.
   if (activeView === "events") {
@@ -139,18 +151,7 @@ function CurrentView() {
     return <EventsPage project={activeProject} />;
   }
 
-
-  // Chpater Plan needs an active project to know which project's chapter to show.
-  if (activeView === "chapterPlan") {
-  // Characters needs an active project.
-    title="Chapter Plan"
-          icon={PLACEHOLDER_CONFIG.chapterPlan.icon}
-          description="Open a project first to view its chapter plan."
-        />
-      );
-    }
-    return <ChapterPage project={activeProject} />;
-  }
+  // Characters needs an active project to know which project's characters to show.
   if (activeView === "characters") {
     if (!activeProject) {
       return (
@@ -162,12 +163,10 @@ function CurrentView() {
         />
       );
     }
-
-    return <CharactersPage 
-    project={activeProject} 
-    onBack={() => setActiveProjectId("projects")}
-    />;
+    return <CharactersPage project={activeProject} onBack={() => setActiveProjectId(null)} />;
   }
+
+  // Every other view renders a friendly placeholder for now.
   const config = PLACEHOLDER_CONFIG[activeView];
   return (
     <PlaceholderPage
@@ -204,49 +203,3 @@ export default function App() {
     </WorkbenchProvider>
   );
 }
-
-
-/*
-// Static top bar with the website name, shown on every screen
-function TopHeader() {
-  return (
-    <header className="top-header">
-      <div className="header-greeting">
-        <div className="brand-mark">
-          <Feather size={18} strokeWidth={1.6} />
-        </div>
-        <div>
-          <p>Author’s Workbench</p>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-// The website currently has two screens: the projects overview and the detail page for whichever project is open. 
-// A project's open is driven entirely by activeProject from the store.
-function WorkbenchApp() {
-  const { activeProject, setActiveProjectId } = useWorkbench();
-
-  return (
-    <div className="workbench-shell">
-      <TopHeader />
-      <main className="main-workspace" id="main-content">
-        {activeProject ? (
-          <ProjectDetailPage project={activeProject} onBack={() => setActiveProjectId(null)} />
-        ) : (
-          <ProjectsPage onOpen={setActiveProjectId} />
-        )}
-      </main>
-    </div>
-  );
-}
-
-
-export default function App() {
-  return (
-    <WorkbenchProvider>
-      <WorkbenchApp />
-    </WorkbenchProvider>
-  );
-}*/
