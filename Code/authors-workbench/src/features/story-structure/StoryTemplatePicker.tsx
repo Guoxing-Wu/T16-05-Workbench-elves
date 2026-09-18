@@ -1,4 +1,8 @@
-import { STORY_STRUCTURE_OPTIONS } from "./storyStructureTemplate";
+import {
+    STORY_STRUCTURE_OPTIONS,
+    getStoryBeatCount,
+} from "./storyStructureTemplate";
+
 import type { StoryStructureId } from "./storyStructureTemplate";
 
 // Receive data and functions from StoryStructurePage.
@@ -25,7 +29,6 @@ export function StoryTemplatePicker({
                     <h2>Select a planning framework</h2>
                 </div>
 
-                <p>Click a template to choose your story structure.</p>
             </header>
 
             {/* Keep the template buttons in one named group. */}
@@ -57,7 +60,7 @@ export function StoryTemplatePicker({
                             </span>
 
                             <span className="story-template-summary">
-                                {option.summary}
+                                {option.acts.length} acts · {getStoryBeatCount(option)} story beats
                             </span>
                         </button>
                     );

@@ -10,6 +10,12 @@ export interface Chapter {
   notes: string;
 }
 
+// Author can write notes for the template
+export interface StoryTemplateNotes {
+  actNotes: Record<string, string>;
+  beatNotes: Record<string, string>;
+}
+
 // A writing project shows up as a card in the overview and as the detail page once opened.
 export interface WritingProject {
   id: string;
@@ -17,6 +23,7 @@ export interface WritingProject {
   targetWordCount: number;
   averageChapterLength: number;
   storyStructure: StoryStructureId;
+  storyStructureNotes?: Record<string, StoryTemplateNotes>;
   chapters: Chapter[];
   characters: Character[];
   events: StoryEvent[];
@@ -56,9 +63,9 @@ export function createProject(input: {
   const chapters: Chapter[] =
     estimate > 0
       ? Array.from({ length: estimate }, (_, i) => makeChapter(i, i + 1)).map((c) => ({
-          ...c,
-          targetWordCount: input.averageChapterLength,
-        }))
+        ...c,
+        targetWordCount: input.averageChapterLength,
+      }))
       : [];
   return {
     id: makeId(),
@@ -66,6 +73,8 @@ export function createProject(input: {
     targetWordCount: input.targetWordCount,
     averageChapterLength: input.averageChapterLength,
     storyStructure: input.storyStructure,
+    // New projects start without story structure notes
+    storyStructureNotes: {},
     chapters,
     characters: [],
     events: [],
@@ -98,7 +107,7 @@ export interface StoryEvent {
 }
 
 //A character in the story
-export interface Character{
+export interface Character {
   id: string;
   name: string;
   birthday: StoryDate;
@@ -109,24 +118,24 @@ export interface Character{
 }
 
 // Build a new character with the provided info
-export function makeCharacter(input:{
-    firstName: string;
-    lastName?: string;
-    middleName?: string;
-    birthday: StoryDate;
-    description?: string;
-    location?: string;
-    role?: string;
-    gender?: string;
-}): Character{
-  return{
+export function makeCharacter(input: {
+  firstName: string;
+  lastName?: string;
+  middleName?: string;
+  birthday: StoryDate;
+  description?: string;
+  location?: string;
+  role?: string;
+  gender?: string;
+}): Character {
+  return {
     id: makeId(),
     name: [input.firstName, input.middleName, input.lastName]
       .map((part) => part?.trim())
       .filter(Boolean)
       .join(" "),
     birthday: input.birthday,
-    description: input.description??"",
+    description: input.description ?? "",
     location: input.location ?? "",
     role: input.role ?? "",
     gender: input.gender ?? ""
