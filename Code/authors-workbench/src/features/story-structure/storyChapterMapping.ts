@@ -1,11 +1,18 @@
 import type {
     StoryAct,
     StoryBeat,
+    StoryStructureTemplate,
 } from "./storyStructureTemplate";
 
 export type ChapterRange = {
     start: number;
     end: number;
+};
+
+export type StoryBeatChapterMapping = {
+    storyBeatId: string;
+    storyBeatName: string;
+    chapterRange: ChapterRange;
 };
 
 export function getProjectedChapterCount(
@@ -118,4 +125,41 @@ export function getPercentRangeLabel(
     }
 
     return start + "%–" + end + "%";
+}
+
+// Gets the chapter (range) of the storybeats base on given structure and chapter
+export function getStoryBeatChapterMappings(
+    template: StoryStructureTemplate,
+    chapterCount: number
+): StoryBeatChapterMapping[] {
+    const actRanges = getActChapterRanges(
+        template.acts,
+        chapterCount
+    );
+
+    if (actRanges.length !== template.acts.length) {
+        return [];
+    }
+
+    const mappings: StoryBeatChapterMapping[] = [];
+
+    template.acts.forEach((act, index) => {
+        const actRange = actRanges[index];
+
+        for (const beat of act.storyBeats) {
+            const chapterRange = getBeatChapterRange(
+                beat,
+                actRange,
+                chapterCount
+            );
+
+            mappings.push({
+                storyBeatId: beat.id,
+                storyBeatName: beat.name,
+                chapterRange,
+            });
+        }
+    });
+
+    return mappings;
 }
