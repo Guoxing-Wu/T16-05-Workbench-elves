@@ -29,10 +29,10 @@ export interface WritingProject {
   events: StoryEvent[];
   createdAt: number;
   updatedAt: number;
+  lastOpenedAt: number;
 }
 
 // Local-only id generator.
-//export const makeId = () => `local-${crypto.randomUUID()}`;
 export const makeId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 
@@ -80,6 +80,7 @@ export function createProject(input: {
     events: [],
     createdAt: stamp,
     updatedAt: stamp,
+    lastOpenedAt: stamp
   };
 }
 

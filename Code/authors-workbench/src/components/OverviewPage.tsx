@@ -13,6 +13,7 @@ import { useWorkbench } from "../lib/store";
 import type { WorkbenchView } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
 import { getStoryStructureOption } from "../features/story-structure/storyStructureTemplate";
+import { useState } from "react";
 
 // One clickable dashboard module: an icon, a label and the view it opens.
 interface ModuleCard {
@@ -63,10 +64,10 @@ const MODULES: ModuleCard[] = [
 
 // The overview page shows details of the most recently opened project with clickable submodules. 
 export function OverviewPage() {
-  const { projects, setActiveView, setActiveProjectId } = useWorkbench();
+  const { projects, setActiveView, setActiveProjectId, updateProject} = useWorkbench();
 
-
-  const featured = [...projects].sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null;
+  // Shows the project was opened most recently.
+  const featured = [...projects].sort((a, b) => b.lastOpenedAt - a.lastOpenedAt)[0] ?? null;
 
   // Making sure the featured project is active firstly to open mudules.
   const openModule = (view: WorkbenchView) => {
@@ -74,7 +75,29 @@ export function OverviewPage() {
     setActiveView(view);
   };
 
+// Double-click to rename the title of a project on overview page.
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
 
+  const startEditingTitle = () => {
+    if (!featured) return;
+    setTitleDraft(featured.title);
+    setIsEditingTitle(true);
+  };
+
+  const commitTitle = () => {
+    if (!featured) {
+      setIsEditingTitle(false);
+      return;
+    }
+    const next = titleDraft.trim();
+    if (next && next !== featured.title) {
+      updateProject(featured.id, (project) => ({ ...project, title: next }));
+    }
+    setIsEditingTitle(false);
+  };
+
+  const cancelEditingTitle = () => setIsEditingTitle(false);
 
   if (!featured) {
     return (
@@ -107,8 +130,24 @@ export function OverviewPage() {
           <span className="section-kicker">CURRENT MANUSCRIPT</span>
         </div>
 
-        {/* Project title */}
-        <h2>{featured.title}</h2>
+        {/* Project title: double-click to rename */}
+        {isEditingTitle ? (
+          <input
+            className="overview-title-input"
+            value={titleDraft}
+            autoFocus
+            onChange={(event) => setTitleDraft(event.target.value)}
+            onBlur={commitTitle}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") commitTitle();
+              if (event.key === "Escape") cancelEditingTitle();
+            }}
+          />
+        ) : (
+          <h2 onDoubleClick={startEditingTitle} title="Double-click to rename">
+            {featured.title}
+          </h2>
+        )}
 
         {/* Progress */}
         <div className="progress-track compact">

@@ -740,6 +740,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .overview-current { display: grid; gap: 10px; }
 .overview-current-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .overview-current h2 { margin: 2px 0 0; font: 600 26px var(--serif); color: var(--ink); }
+.overview-title-input {
+  width: 100%; margin: 2px 0 0; padding: 0 0 2px; border: 0; border-bottom: 1px solid var(--blue);
+  background: transparent; font: 600 26px var(--serif); color: var(--ink);
+}
 .overview-current-structure { margin: 0; color: var(--text-muted); font-size: 11px; }
 .overview-current-meta { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
 .overview-current-meta b { color: var(--coral-dark); }
