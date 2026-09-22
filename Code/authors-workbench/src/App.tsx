@@ -21,6 +21,7 @@ import { StoryStructurePage } from "./features/story-structure/StoryStructurePag
 import { ChapterPage } from "./components/ChapterPage";
 import { CharactersPage } from "./components/CharactersPage";
 import { OverviewPage } from "./components/OverviewPage";
+import { LocationsPage } from "./components/LocationPage";
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
@@ -152,6 +153,22 @@ function CurrentView() {
     }
     return <EventsPage project={activeProject} />;
   }
+
+  // Locations groups story events by place for the active project.
+  if (activeView === "locations") {
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Locations"
+          icon={PLACEHOLDER_CONFIG.locations.icon}
+          description="Open a project first to see its character locations."
+        />
+      );
+    }
+    return <LocationsPage project={activeProject} />;
+  }
+
 
   // Characters needs an active project to know which project's characters to show.
   if (activeView === "characters") {

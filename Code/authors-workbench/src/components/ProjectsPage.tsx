@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { ChevronRight, FolderOpen, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, FolderOpen, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { EmptyState, Field, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
+import type { WritingProject } from "../lib/domain";
 
 import {
   DEFAULT_STORY_STRUCTURE_ID,
@@ -13,39 +14,64 @@ import {
 import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
 
 // "New project" modal with title, target word count, average chapter length and story structure.
-function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const { createProject } = useWorkbench();
-  const [title, setTitle] = useState("Untitled Story");
-  const [targetWordCount, setTargetWordCount] = useState(0);
-  const [averageChapterLength, setAverageChapterLength] = useState(0);
+function ProjectForm({
+  initial,
+  onClose,
+  onCreated,
+}: {
+  initial?: WritingProject;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const { createProject, updateProject } = useWorkbench();
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [targetWordCount, setTargetWordCount] = useState<number | "">(initial?.targetWordCount ?? "");
+  const [averageChapterLength, setAverageChapterLength] = useState<number | "">(initial?.averageChapterLength ?? "");
   const [storyStructure, setStoryStructure] =
-    useState<StoryStructureId>(DEFAULT_STORY_STRUCTURE_ID);
-  const canCreate = title.trim().length > 0 && targetWordCount > 0 && averageChapterLength > 0;
+    useState<StoryStructureId>(initial?.storyStructure ?? DEFAULT_STORY_STRUCTURE_ID);
+  const canCreate =
+    title.trim().length > 0 &&
+    typeof targetWordCount === "number" && targetWordCount > 0 &&
+    typeof averageChapterLength === "number" && averageChapterLength > 0;
 
   // Estimate how many chapters the plan will have.
-  const estimatedChapters =
-    averageChapterLength > 0 ? Math.round(targetWordCount / averageChapterLength) : 0;
+  const wordCount = typeof targetWordCount === "number" ? targetWordCount : 0;
+  const chapterLength = typeof averageChapterLength === "number" ? averageChapterLength : 0;
+  const estimatedChapters = chapterLength > 0 ? Math.round(wordCount / chapterLength) : 0;
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!canCreate) return;
-    createProject({ title: title.trim(), targetWordCount, averageChapterLength, storyStructure });
+    const input = {
+      title: title.trim(),
+      targetWordCount: typeof targetWordCount === "number" ? targetWordCount : 0,
+      averageChapterLength: typeof averageChapterLength === "number" ? averageChapterLength : 0,
+      storyStructure,
+    };
+    if (initial) {
+      // Edit mode: patch the existing project in place.
+      updateProject(initial.id, (project) => ({ ...project, ...input }));
+    } else {
+      // Create mode: make a brand-new project.
+      createProject(input);
+    }
     onCreated();
   };
 
   return (
-    <Modal title="Create a writing project" onClose={onClose}>
+    <Modal title={initial ? "Edit writing project" : "Create a writing project"} onClose={onClose}>
       <form className="workbench-form" onSubmit={submit}>
         <div className="form-grid">
           <Field label="Project title" full>
-            <input value={title} onChange={(event) => setTitle(event.target.value)} required autoFocus />
+            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Untitled Story" required autoFocus />
           </Field>
           <Field label="Target word count">
             <input
               type="number"
               min={1}
               value={targetWordCount}
-              onChange={(event) => setTargetWordCount(Number(event.target.value))}
+              onChange={(event) => setTargetWordCount(event.target.value === "" ? "" : Number(event.target.value))}
+              placeholder="0"
               required
             />
           </Field>
@@ -54,7 +80,8 @@ function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: (
               type="number"
               min={1}
               value={averageChapterLength}
-              onChange={(event) => setAverageChapterLength(Number(event.target.value))}
+              onChange={(event) => setAverageChapterLength(event.target.value === "" ? "" : Number(event.target.value))}
+              placeholder="0"
               required
             />
           </Field>
@@ -86,7 +113,7 @@ function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: (
         <div className="modal-actions">
           <ToolButton onClick={onClose}>Cancel</ToolButton>
           <ToolButton primary type="submit" disabled={!canCreate}>
-            <Plus size={15} /> Create project
+            {initial ? <Save size={15} /> : <Plus size={15} />} {initial ? "Save changes" : "Create project"}
           </ToolButton>
         </div>
       </form>
@@ -98,6 +125,7 @@ function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: (
 export function ProjectsPage({ onOpen }: { onOpen: (id: string) => void }) {
   const { projects, deleteProject } = useWorkbench();
   const [creating, setCreating] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Confirm before delete one project while there is no undo once a project is deleted.
   const remove = (id: string, title: string) => {
@@ -152,13 +180,22 @@ export function ProjectsPage({ onOpen }: { onOpen: (id: string) => void }) {
                   <button className="section-link" onClick={() => onOpen(project.id)}>
                     Open project <ChevronRight size={14} />
                   </button>
-                  <button
-                    className="icon-button delete-icon"
-                    onClick={() => remove(project.id, project.title)}
-                    aria-label={`Delete ${project.title}`}
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  <div className="project-card-actions">
+                    <button
+                      className="icon-button edit-icon"
+                      onClick={() => setEditingId(project.id)}
+                      aria-label={`Edit ${project.title}`}
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      className="icon-button delete-icon"
+                      onClick={() => remove(project.id, project.title)}
+                      aria-label={`Delete ${project.title}`}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </footer>
               </article>
             );
@@ -168,6 +205,13 @@ export function ProjectsPage({ onOpen }: { onOpen: (id: string) => void }) {
 
       {creating && (
         <ProjectForm onClose={() => setCreating(false)} onCreated={() => setCreating(false)} />
+      )}
+      {editingId && (
+        <ProjectForm
+          initial={projects.find((p) => p.id === editingId) ?? undefined}
+          onClose={() => setEditingId(null)}
+          onCreated={() => setEditingId(null)}
+        />
       )}
     </div>
   );
