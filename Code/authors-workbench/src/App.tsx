@@ -12,7 +12,6 @@ import {
 import { WorkbenchProvider, useWorkbench } from "./lib/store";
 import type { WorkbenchView } from "./lib/store";
 import { ProjectsPage } from "./components/ProjectsPage";
-import { ProjectDetailPage } from "./components/ProjectDetailPage";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/Topbar";
 import { RightSidebar } from "./components/RightSidebar";
@@ -21,6 +20,7 @@ import { EventsPage } from "./components/EventsPage";
 import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
 import { ChapterPage } from "./components/ChapterPage";
 import { CharactersPage } from "./components/CharactersPage";
+import { OverviewPage } from "./components/OverviewPage";
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
@@ -94,14 +94,16 @@ const PLACEHOLDER_CONFIG: Record<
 
 // Decides which component to render in the main area based on the active view.
 function CurrentView() {
-  const { activeView, activeProject, setActiveProjectId } = useWorkbench();
+  const { activeView, activeProject, setActiveProjectId, setActiveView} = useWorkbench();
 
-  // "projects" is special: it shows either the list or the open project's detail page.
+  // Project page always shows the project list. Opening a project jumps to its Overview dashboard. 
   if (activeView === "projects") {
-    return activeProject ? (
-      <ProjectDetailPage project={activeProject} onBack={() => setActiveProjectId(null)} />
-    ) : (
-      <ProjectsPage onOpen={setActiveProjectId} />
+    const openProject = (id: string) => {
+      setActiveProjectId(id);
+      setActiveView("overview");
+    };
+    return (
+      <ProjectsPage onOpen={openProject} />
     );
   }
 
@@ -165,6 +167,13 @@ function CurrentView() {
     }
     return <CharactersPage project={activeProject} onBack={() => setActiveProjectId(null)} />;
   }
+
+  // Navigate to the overview page.
+  if (activeView === "overview") {
+    
+    return <OverviewPage />;
+  }
+
 
   // Every other view renders a friendly placeholder for now.
   const config = PLACEHOLDER_CONFIG[activeView];

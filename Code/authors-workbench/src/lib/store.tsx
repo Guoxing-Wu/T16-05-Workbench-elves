@@ -55,12 +55,24 @@ const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 // Holds all states in memory
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<WritingProject[]>([]);
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
 
   const [activeView, setActiveView] = useState<WorkbenchView>("projects");
 
   // Get the project matches the active id.
   const activeProject = projects.find((p) => p.id === activeProjectId) || null;
+
+  // Sets the active project and its last opening date 
+  // to ensure overview page can show the most recently opened project.
+  const setActiveProjectId = (id: string | null) => {
+    setActiveProjectIdState(id);
+    if (id) {
+      setProjects((list) =>
+        list.map((p) => (p.id === id ? { ...p, lastOpenedAt: Date.now() } : p))
+      );
+    }
+  };
+
 
   // Creates a project, adds it to the top of the list and opens it immediately.
   const createProject: WorkbenchStoreValue["createProject"] = ({
@@ -79,7 +91,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   // Removes a project, go back to the projects overview if the project was opening.
   const deleteProject = (id: string) => {
     setProjects((list) => list.filter((p) => p.id !== id));
-    setActiveProjectId((current) => (current === id ? null : current));
+    setActiveProjectIdState((current) => (current === id ? null : current));
   };
 
   // Find the project by id, update it and set date of update.
