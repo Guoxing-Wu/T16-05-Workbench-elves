@@ -3,6 +3,9 @@ import { MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";import { Fiel
 import { useWorkbench } from "../lib/store";
 import { characterAgeAtYear } from "../lib/domain";
 import type { StoryDate, StoryEvent, WritingProject } from "../lib/domain";
+import { getStoryBeatChapterMappings,} from "../features/story-structure/storyChapterMapping";
+
+import { getStoryStructureOption,} from "../features/story-structure/storyStructureTemplate";
 
 // Parses a "YYYY-MM-DD" (or "YYYY-MM", or "YYYY") input value into a StoryDate.
 function parseStoryDateInput(value: string): StoryDate {
@@ -49,7 +52,7 @@ function EventRow({
     );
 
   // Chapter-linked events get a coral accent; standalone beats get blue.
-  const accent = linkedChapter.length > 0 ? "coral" : "blue";
+  const accent = event.isStoryBeat ? "coral" : "blue";
 
   return (
     // UI design for event row
@@ -64,6 +67,12 @@ function EventRow({
   {linkedChapter.length > 0 && (
     <p className="event-tag">
       CHAPTER · {linkedChapter.map((c) => c.title).join(", ")}
+    </p>
+  )}
+
+  {event.isStoryBeat && (
+    <p className="event-tag">
+      STORY BEAT{event.storyBeatName ? ` · ${event.storyBeatName}` : ""}
     </p>
   )}
 
@@ -115,12 +124,21 @@ function ChapterMultiSelect({
   chapters,
   selectedIds,
   onChange,
+  availableChapterOrders,
 }: {
   chapters: WritingProject["chapters"];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
+  availableChapterOrders?: number[];
 }) {
   const [open, setOpen] = useState(false);
+
+  // Only the available chapters can be selected
+  const availableChapters = availableChapterOrders
+  ? chapters.filter((chapter) =>
+      availableChapterOrders.includes(chapter.order)
+    )
+  : chapters;
 
   // When selecting a chapter, add the chapter if it is not selected; otherwise remove it.
   const toggleChapter = (id: string) => {
@@ -156,10 +174,10 @@ function ChapterMultiSelect({
 
       {open && (
         <div className="multi-select-menu">
-          {chapters.length === 0 ? (
+          {availableChapters.length === 0 ? (
             <p className="muted-copy">No chapters yet.</p>
           ) : (
-            chapters.map((chapter) => {
+            availableChapters.map((chapter) => {
               const selected = selectedIds.includes(chapter.id);
 
               return (
@@ -203,6 +221,9 @@ function EventFormModal({
     location: string;
     chapterIds: string[];
     characterIds: string[];
+    isStoryBeat: boolean;
+    storyBeatId?: string;
+    storyBeatName?: string;
   }) => void;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -213,7 +234,32 @@ function EventFormModal({
   const [location, setLocation] = useState(initial?.location ?? "");
   const [chapterIds, setChapterIds] = useState<string[]>(initial?.chapterIds ?? []);
   const [characterIds, setCharacterIds] = useState<string[]>(initial?.characterIds ?? []);
+  const [isStoryBeat, setIsStoryBeat] = useState( initial?.isStoryBeat ?? false);
 
+  const structure = getStoryStructureOption(project.storyStructure);
+
+  const storyBeatMappings = getStoryBeatChapterMappings(
+    structure,
+    project.chapters.length
+  );
+
+  const storyBeatChapterOrders = Array.from(
+    new Set(
+      storyBeatMappings.flatMap((mapping) => {
+        const orders: number[] = [];
+
+        for (
+          let order = mapping.chapterRange.start;
+          order <= mapping.chapterRange.end;
+          order++
+        ) {
+          orders.push(order);
+        }
+
+        return orders;
+      })
+    )
+  );
   // When selecting a character, add if this character is not selected, otherwise, remove it
   const toggleCharacter = (id: string) => {
     setCharacterIds((list) =>
@@ -233,6 +279,7 @@ function EventFormModal({
       location,
       chapterIds,
       characterIds,
+      isStoryBeat,
     });
     onClose();
   };
@@ -257,11 +304,25 @@ function EventFormModal({
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
         </Field>
 
+        <Field label="Story Beat" full>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={isStoryBeat}
+              onChange={(e) => setIsStoryBeat(e.target.checked)}
+            />
+            <span>This event is a Story Beat</span>
+          </label>
+        </Field>
+
         <Field label="Linked chapters" full>
           <ChapterMultiSelect
             chapters={project.chapters}
             selectedIds={chapterIds}
             onChange={setChapterIds}
+            availableChapterOrders={
+              isStoryBeat ? storyBeatChapterOrders : undefined
+            }
           />
         </Field>
 
