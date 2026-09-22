@@ -105,6 +105,9 @@ export interface StoryEvent {
   eventDate: StoryDate; // The in-story year this event takes place
   characterIds?: string[]
   location: string
+  isStoryBeat: boolean;
+  storyBeatId?: string;
+  storyBeatName?: string;
 }
 
 //A character in the story
@@ -151,6 +154,9 @@ export function makeStoryEvent(input: {
   characterIds?: string[];
   eventDate: StoryDate;
   location: string;
+  isStoryBeat: boolean;
+  storyBeatId?: string;
+  storyBeatName?: string;
 }): StoryEvent {
   return {
     id: makeId(),
@@ -160,6 +166,10 @@ export function makeStoryEvent(input: {
     characterIds: input.characterIds,
     eventDate: input.eventDate,
     location: input.location,
+
+    isStoryBeat: input.isStoryBeat,
+    storyBeatId: input.storyBeatId,
+    storyBeatName: input.storyBeatName,
   };
 }
 

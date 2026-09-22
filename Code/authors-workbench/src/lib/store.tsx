@@ -43,7 +43,7 @@ interface WorkbenchStoreValue {
   removeCharacter: (projectId: string, characterId: string) => void;
 
   // Story event operations
-  addStoryEvent: (projectId: string, input: { chapterIds: string[]; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[] }) => void;
+  addStoryEvent: (projectId: string, input: { chapterIds: string[]; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[];isStoryBeat: boolean;storyBeatId?: string;storyBeatName?: string; }) => void;
   updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
   removeStoryEvent: (projectId: string, eventId: string) => void;
 
