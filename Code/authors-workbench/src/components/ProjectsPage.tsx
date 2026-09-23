@@ -14,7 +14,7 @@ import type { StoryStructureId } from "../features/story-structure/storyStructur
 
 // "New project" modal with title, target word count, average chapter length and story structure.
 function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const { createProject } = useWorkbench();
+  const { createProject, customStoryStructures, } = useWorkbench();
   const [title, setTitle] = useState("Untitled Story");
   const [targetWordCount, setTargetWordCount] = useState(0);
   const [averageChapterLength, setAverageChapterLength] = useState(0);
@@ -60,16 +60,36 @@ function ProjectForm({ onClose, onCreated }: { onClose: () => void; onCreated: (
           </Field>
           <Field label="Story structure" full>
             <select
-              value={storyStructure}
-              onChange={(event) =>
-                setStoryStructure(event.target.value as StoryStructureId)
-              }
+                value={storyStructure}
+                onChange={(event) =>
+                    setStoryStructure(
+                        event.target.value as StoryStructureId
+                    )
+                }
             >
-              {STORY_STRUCTURE_OPTIONS.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
+                <optgroup label="Built-in Structures">
+                    {STORY_STRUCTURE_OPTIONS.map((option) => (
+                        <option
+                            key={option.id}
+                            value={option.id}
+                        >
+                            {option.name}
+                        </option>
+                    ))}
+                </optgroup>
+
+                {customStoryStructures.length > 0 && (
+                    <optgroup label="Custom Structures">
+                        {customStoryStructures.map((structure) => (
+                            <option
+                                key={structure.id}
+                                value={structure.id}
+                            >
+                                {structure.name}
+                            </option>
+                        ))}
+                    </optgroup>
+                )}
             </select>
           </Field>
         </div>

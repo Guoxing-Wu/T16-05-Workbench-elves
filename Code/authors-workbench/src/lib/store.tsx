@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryDate } from "./domain";
-import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
+import type { StoryStructureId, StoryStructureTemplate,} from "../features/story-structure/storyStructureTemplate";
 
 //left 
 export type WorkbenchView =
@@ -47,6 +47,23 @@ interface WorkbenchStoreValue {
   updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
   removeStoryEvent: (projectId: string, eventId: string) => void;
 
+  // Global custom story structure templates
+  customStoryStructures: StoryStructureTemplate[];
+  // Story structure operation
+  addCustomStoryStructure: (
+      structure: StoryStructureTemplate
+  ) => void;
+
+  updateCustomStoryStructure: (
+      structureId: string,
+      update: (
+          structure: StoryStructureTemplate
+      ) => StoryStructureTemplate
+  ) => void;
+
+  deleteCustomStoryStructure: (
+      structureId: string
+  ) => void;
 }
 
 
@@ -55,6 +72,9 @@ const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 // Holds all states in memory
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<WritingProject[]>([]);
+  
+  const [customStoryStructures, setCustomStoryStructures] = useState<StoryStructureTemplate[]>([]);
+
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
   const [activeView, setActiveView] = useState<WorkbenchView>("projects");
@@ -175,6 +195,42 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  // Create a custom story structure
+  const addCustomStoryStructure = (
+      structure: StoryStructureTemplate
+  ) => {
+      setCustomStoryStructures((list) => [
+          ...list,
+          structure,
+      ]);
+  };
+
+  // Update a custom story structure
+  const updateCustomStoryStructure = (
+      structureId: string,
+      update: (
+          structure: StoryStructureTemplate
+      ) => StoryStructureTemplate
+  ) => {
+      setCustomStoryStructures((list) =>
+          list.map((structure) =>
+              structure.id === structureId
+                  ? update(structure)
+                  : structure
+          )
+      );
+  };
+
+  // Delete a custom Story Structure
+  const deleteCustomStoryStructure = (
+      structureId: string
+  ) => {
+      setCustomStoryStructures((list) =>
+          list.filter(
+              (structure) => structure.id !== structureId
+          )
+      );
+  };
   // Subcomponents will not re-render though this provider did unless the actual state changed.
   const value = useMemo<WorkbenchStoreValue>(
     () => ({
@@ -197,8 +253,12 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addStoryEvent,
       updateStoryEvent,
       removeStoryEvent,
+      customStoryStructures,
+      addCustomStoryStructure,
+      updateCustomStoryStructure,
+      deleteCustomStoryStructure,
     }),
-    [projects, activeProject, activeProjectId, activeView]
+    [projects, activeProject, activeProjectId, activeView, customStoryStructures]
   );
 
   return <WorkbenchStore.Provider value={value}>{children}</WorkbenchStore.Provider>;

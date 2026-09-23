@@ -204,6 +204,97 @@ function ChapterMultiSelect({
   );
 }
 
+function CharacterMultiSelect({
+  characters,
+  selectedIds,
+  onChange,
+}: {
+  characters: WritingProject["characters"];
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const toggleCharacter = (id: string) => {
+    onChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((characterId) => characterId !== id)
+        : [...selectedIds, id]
+    );
+  };
+
+  const selectedCharacters = characters.filter((character) =>
+    selectedIds.includes(character.id)
+  );
+
+  return (
+    <div className="multi-select">
+      <button
+        type="button"
+        className="multi-select-trigger"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span>
+          {selectedCharacters.length === 0
+            ? "Select characters"
+            : selectedCharacters.map((character) => character.name).join(", ")}
+        </span>
+
+        <span className="multi-select-arrow">
+          {open ? "▴" : "▾"}
+        </span>
+      </button>
+
+      {selectedCharacters.length > 0 && (
+        <div className="selected-items">
+          {selectedCharacters.map((character) => (
+            <span key={character.id} className="selected-item">
+              {character.name}
+
+              <button
+                type="button"
+                onClick={() => toggleCharacter(character.id)}
+                aria-label={`Remove ${character.name}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="multi-select-menu">
+          {characters.length === 0 ? (
+            <p className="muted-copy">No characters yet.</p>
+          ) : (
+            characters.map((character) => {
+              const selected = selectedIds.includes(character.id);
+
+              return (
+                <button
+                  key={character.id}
+                  type="button"
+                  className={`multi-select-option ${
+                    selected ? "selected" : ""
+                  }`}
+                  onClick={() => toggleCharacter(character.id)}
+                >
+                  <span>{character.name}</span>
+
+                  {selected && (
+                    <span className="multi-select-check">✓</span>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Modal form for creating or editing a story event.
 function EventFormModal({
   project,
@@ -305,14 +396,35 @@ function EventFormModal({
         </Field>
 
         <Field label="Story Beat" full>
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={isStoryBeat}
-              onChange={(e) => setIsStoryBeat(e.target.checked)}
-            />
-            <span>This event is a Story Beat</span>
-          </label>
+          <button
+            type="button"
+            className={`story-beat-toggle ${
+              isStoryBeat ? "active" : ""
+            }`}
+            onClick={() => setIsStoryBeat((value) => !value)}
+          >
+            <span className="story-beat-toggle-indicator">
+              {isStoryBeat ? "✓" : ""}
+            </span>
+
+            <span className="story-beat-toggle-content">
+              <strong>
+                {isStoryBeat ? "Story Beat" : "Mark as a Story Beat"}
+              </strong>
+
+              <span>
+                {isStoryBeat
+                  ? "This event is part of the story structure."
+                  : "Link this event to your story structure."}
+              </span>
+            </span>
+          </button>
+
+          {isStoryBeat && (
+            <p className="story-beat-hint">
+              Available chapters are based on the selected story structure.
+            </p>
+          )}
         </Field>
 
         <Field label="Linked chapters" full>
@@ -327,19 +439,11 @@ function EventFormModal({
         </Field>
 
         <Field label="Characters affected" full>
-          <div className="character-checkbox-list">
-            {project.characters.map((c) => (
-              <label key={c.id} className="character-checkbox">
-                <input
-                  type="checkbox"
-                  checked={characterIds.includes(c.id)}
-                  onChange={() => toggleCharacter(c.id)}
-                />
-                {c.name}
-              </label>
-            ))}
-            {project.characters.length === 0 && <p className="muted-copy">No characters yet.</p>}
-          </div>
+          <CharacterMultiSelect
+            characters={project.characters}
+            selectedIds={characterIds}
+            onChange={setCharacterIds}
+          />
         </Field>
 
         <div className="modal-actions">
