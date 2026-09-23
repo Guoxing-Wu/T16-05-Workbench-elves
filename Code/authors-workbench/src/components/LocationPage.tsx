@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { Field, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
-import type { Location, StoryEvent, WritingProject } from "../lib/domain";
+import type { Chapter, Location, StoryEvent, WritingProject } from "../lib/domain";
 
 // English month abbreviations, matching the design mock ("10 Jan 1992").
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -12,6 +12,23 @@ function formatDisplayDate(date: StoryEvent["eventDate"]): string {
   const day = date.day ? `${date.day} ` : "";
   const month = date.month ? `${MONTHS[date.month - 1]} ` : "";
   return `${day}${month}${date.year}`;
+}
+
+// One history line: date + event title + character names.
+function EventHistoryRow({ event, project }: { event: StoryEvent; project: WritingProject }) {
+  const names = (event.characterIds || [])
+    .map((id) => project.characters.find((c) => c.id === id)?.name)
+    .filter(Boolean)
+    .join(", ");
+  return (
+    <div className="location-history-row">
+      <span className="location-history-date">{formatDisplayDate(event.eventDate)}</span>
+      <div>
+        <strong>{event.title}</strong>
+        {names && <p>{names}</p>}
+      </div>
+    </div>
+  );
 }
 
 // A single location card with its linked events and a collapsible history.
@@ -52,6 +69,24 @@ function LocationCard({
     )
   );
 
+  // Group history by chapter: a chapter appears here either when it is
+  // referenced by this location's events, or when it links this location
+  // directly (even with no linked events). Groups are sorted by order;
+  // events without any chapter go into a trailing "No chapter" group.
+  const historyChapterIds = Array.from(
+    new Set([
+      ...events.flatMap((e) => e.chapterIds || []),
+      ...project.chapters
+        .filter((c) => (c.locationIds || []).includes(location.id))
+        .map((c) => c.id),
+    ])
+  );
+  const historyChapters = historyChapterIds
+    .map((id) => project.chapters.find((c) => c.id === id))
+    .filter((c): c is Chapter => Boolean(c))
+    .sort((a, b) => a.order - b.order);
+  const unassignedEvents = events.filter((e) => (e.chapterIds || []).length === 0);
+
   const handleDelete = () => {
     if (!window.confirm(`Delete location "${location.name}"? Linked events will lose their location.`)) return;
     removeLocation(project.id, location.id);
@@ -80,8 +115,9 @@ function LocationCard({
       )}
 
       <div className="location-stats">
-        <span><strong>{events.length}</strong> records</span>
-        <span><strong>{characterNames.length}</strong> characters</span>
+        <span><strong>{historyChapters.length}</strong> {historyChapters.length === 1 ? "chapter" : "chapters"}</span>
+        <span><strong>{events.length}</strong> {events.length === 1 ? "event" : "events"}</span>
+        <span><strong>{characterNames.length}</strong> {characterNames.length === 1 ? "character" : "characters"}</span>
       </div>
 
       {characterNames.length > 0 && (
@@ -102,22 +138,34 @@ function LocationCard({
 
       {open && (
         <div className="location-history">
-          {events.length === 0 && <p className="muted-copy">No related events yet.</p>}
-          {events.map((event) => {
-            const names = (event.characterIds || [])
-              .map((id) => project.characters.find((c) => c.id === id)?.name)
-              .filter(Boolean)
-              .join(", ");
+          {events.length === 0 && historyChapters.length === 0 && (
+            <p className="muted-copy">No related events yet.</p>
+          )}
+          {historyChapters.map((chapter) => {
+            const chapterEvents = events.filter((e) => (e.chapterIds || []).includes(chapter.id));
             return (
-              <div key={event.id} className="location-history-row">
-                <span className="location-history-date">{formatDisplayDate(event.eventDate)}</span>
-                <div>
-                  <strong>{event.title}</strong>
-                  {names && <p>{names}</p>}
+              <section key={chapter.id} className="location-history-group">
+                <div className="location-history-group-head">
+                  <span className="group-num">Chapter {chapter.order + 1}</span>
+                  <span className="group-title">{chapter.title || `Chapter ${chapter.order + 1}`}</span>
                 </div>
-              </div>
+                {chapterEvents.map((event) => (
+                  <EventHistoryRow key={event.id} event={event} project={project} />
+                ))}
+              </section>
             );
           })}
+          {unassignedEvents.length > 0 && (
+            <section className="location-history-group no-chapter">
+              <div className="location-history-group-head">
+                <span className="group-num">No chapter</span>
+                <span className="group-title">Events outside any chapter</span>
+              </div>
+              {unassignedEvents.map((event) => (
+                <EventHistoryRow key={event.id} event={event} project={project} />
+              ))}
+            </section>
+          )}
         </div>
       )}
 
@@ -181,10 +229,6 @@ export function LocationsPage({ project }: { project: WritingProject }) {
   const [description, setDescription] = useState("");
 
   const locations = project.locations || [];
-  const recordCount = locations.reduce(
-    (sum, l) => sum + (project.events || []).filter((e) => e.locationId === l.id).length,
-    0
-  );
 
   const handleCreate = () => {
     if (!name.trim()) return;
@@ -199,7 +243,7 @@ export function LocationsPage({ project }: { project: WritingProject }) {
       <PageHeader
         eyebrow="MANUSCRIPT"
         title="Locations"
-        count={`${recordCount} records across ${locations.length} places`}
+        count={`${locations.length} ${locations.length === 1 ? "location has" : "locations have"} been mapped so far`}
       >
         <ToolButton primary onClick={() => setShowCreate(true)}>
           <Plus size={15} /> New location

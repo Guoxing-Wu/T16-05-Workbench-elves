@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { LayoutGrid, List, Plus, X } from "lucide-react";
+import { LayoutGrid, List, Plus, Trash2, X } from "lucide-react";
 import { Field, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
 import type { Chapter, Character, Location, StoryEvent, WritingProject } from "../lib/domain";
@@ -16,6 +16,7 @@ const toRoman = (n: number): string => {
   return out;
 };
 const ACT_COLORS = ["var(--mustard-soft)", "var(--blue-soft)", "var(--coral-soft)", "var(--sage-soft)"];
+const ACT_TEXT_COLORS = ["#8a6d1f", "var(--blue)", "var(--coral-dark)", "var(--sage)"];
 const fmtPct = (n: number) => String(Math.round(n * 10) / 10);
 const AVATAR_COLORS = ["#bd615d", "#55748a", "#7a8a6b", "#a68a5b", "#8a6b8a", "#5b8a8a"]; const avatarColor = (name: string) => {   let h = 0;   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;   return AVATAR_COLORS[h % AVATAR_COLORS.length]; };
 
@@ -87,7 +88,7 @@ function ChapterEditor({
   onChange: (patch: Partial<Chapter>) => void;
   onClose: () => void;
 }) {
-  const { addCharacter, addLocation, addStoryEvent, updateStoryEvent } = useWorkbench();
+  const { addCharacter, addLocation, addStoryEvent, removeChapter, updateStoryEvent } = useWorkbench();
 
   const chapterId = chapter.id;
   const myChars = new Set(chapter.characterIds ?? []);
@@ -114,7 +115,7 @@ function ChapterEditor({
       chapterIds: has ? ev.chapterIds.filter((c) => c !== chapterId) : [...ev.chapterIds, chapterId],
     });
   };
-  const [createKind, setCreateKind] = useState<null | "character" | "location" | "event">(null);   const [nameDraft, setNameDraft] = useState("");   const openCreate = (kind: "character" | "location" | "event") => {     setNameDraft("");     setCreateKind(kind);   };   const submitCreate = () => {     if (createKind === "character") newCharacter(nameDraft);     else if (createKind === "location") newLocation(nameDraft);     else if (createKind === "event") newEvent(nameDraft);     setCreateKind(null);   };
+  const [openMenu, setOpenMenu] = useState<null | "char" | "loc" | "evt">(null);   const [createKind, setCreateKind] = useState<null | "character" | "location" | "event">(null);   const [nameDraft, setNameDraft] = useState("");   const openCreate = (kind: "character" | "location" | "event") => {     setNameDraft("");     setCreateKind(kind);   };   const submitCreate = () => {     if (createKind === "character") newCharacter(nameDraft);     else if (createKind === "location") newLocation(nameDraft);     else if (createKind === "event") newEvent(nameDraft);     setCreateKind(null);   };
 
   const newCharacter = (name: string) => {
     const trimmed = name.trim();
@@ -144,13 +145,23 @@ function ChapterEditor({
     <aside className="chapter-plan-editor">
       <header>
         <h2>Chapter {chapter.order + 1}</h2>
-        <button type="button" className="icon-button" onClick={onClose} title="Close">
-          <X size={16} />
-        </button>
+        <span className="head-actions">
+          <button
+            type="button"
+            className="icon-button delete-icon"
+            onClick={() => removeChapter(project.id, chapter.id)}
+            title="Delete chapter"
+          >
+            <Trash2 size={16} />
+          </button>
+          <button type="button" className="icon-button" onClick={onClose} title="Close">
+            <X size={16} />
+          </button>
+        </span>
       </header>
       <p className="chapter-plan-editor-meta">
         {chapter.targetWordCount
-          ? `1 - ${chapter.targetWordCount.toLocaleString()}`
+          ? `${chapter.targetWordCount.toLocaleString()} words`
           : "No word target yet"}
       </p>
 
@@ -162,7 +173,7 @@ function ChapterEditor({
       </Field>
 
       <Field label="Characters" full>
-        <div className="chip-row">
+        <div className="chip-row" onClick={(e) => e.preventDefault()}>
           {project.characters.filter((c) => myChars.has(c.id)).map((c) => (
             <span className="chip chip-char" key={c.id}>
               <span className="chip-avatar">{c.name.slice(0, 2).toUpperCase()}</span>
@@ -170,70 +181,116 @@ function ChapterEditor({
               <span className="chip-x" onClick={() => toggleCharacter(c.id)}>&times;</span>
             </span>
           ))}
-          <select
-            className="chip-add"
-            value=""
-            onChange={(e) => {
-              if (e.target.value === "__new") openCreate("character");
-              else if (e.target.value) toggleCharacter(e.target.value);
+          <div
+            className="add-wrap"
+            tabIndex={-1}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpenMenu(null);
             }}
           >
-            <option value=""></option>
-            {project.characters.filter((c) => !myChars.has(c.id)).map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-            <option value="__new">+ Create new character...</option>
-          </select>
+            <button type="button" className="chip-add" onClick={() => setOpenMenu(openMenu === "char" ? null : "char")}>
+              + Add
+            </button>
+            {openMenu === "char" && (
+              <div className="add-menu">
+                {project.characters.filter((c) => !myChars.has(c.id)).map((c) => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    className="add-opt"
+                    onClick={() => { toggleCharacter(c.id); setOpenMenu(null); }}
+                  >
+                    <span className="chip-avatar">{c.name.slice(0, 2).toUpperCase()}</span>
+                    {c.name}
+                  </button>
+                ))}
+                <div className="add-sep" />
+                <button type="button" className="add-opt create" onClick={() => { openCreate("character"); setOpenMenu(null); }}>
+                  + Create new character...
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </Field>
 
       <Field label="Locations" full>
-        <div className="chip-row">
+        <div className="chip-row" onClick={(e) => e.preventDefault()}>
           {project.locations.filter((l) => myLocs.has(l.id)).map((l) => (
             <span className="chip chip-loc" key={l.id}>
               {l.name}
               <span className="chip-x" onClick={() => toggleLocation(l.id)}>&times;</span>
             </span>
           ))}
-          <select
-            className="chip-add"
-            value=""
-            onChange={(e) => {
-              if (e.target.value === "__new") openCreate("location");
-              else if (e.target.value) toggleLocation(e.target.value);
+          <div
+            className="add-wrap"
+            tabIndex={-1}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpenMenu(null);
             }}
           >
-            <option value=""></option>
-            {project.locations.filter((l) => !myLocs.has(l.id)).map((l) => (
-              <option key={l.id} value={l.id}>{l.name}</option>
-            ))}
-            <option value="__new">+ Create new location...</option>
-          </select>
+            <button type="button" className="chip-add" onClick={() => setOpenMenu(openMenu === "loc" ? null : "loc")}>
+              + Add
+            </button>
+            {openMenu === "loc" && (
+              <div className="add-menu">
+                {project.locations.filter((l) => !myLocs.has(l.id)).map((l) => (
+                  <button
+                    type="button"
+                    key={l.id}
+                    className="add-opt"
+                    onClick={() => { toggleLocation(l.id); setOpenMenu(null); }}
+                  >
+                    {l.name}
+                  </button>
+                ))}
+                <div className="add-sep" />
+                <button type="button" className="add-opt create" onClick={() => { openCreate("location"); setOpenMenu(null); }}>
+                  + Create new location...
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </Field>
 
       <Field label="Events" full>
-        <div className="chip-row">
+        <div className="chip-row" onClick={(e) => e.preventDefault()}>
           {myEvents.map((ev) => (
             <span className="chip chip-evt" key={ev.id}>
               {ev.title}
               <span className="chip-x" onClick={() => toggleEvent(ev.id)}>&times;</span>
             </span>
           ))}
-          <select
-            className="chip-add"
-            value=""
-            onChange={(e) => {
-              if (e.target.value === "__new") openCreate("event");
-              else if (e.target.value) toggleEvent(e.target.value);
+          <div
+            className="add-wrap"
+            tabIndex={-1}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpenMenu(null);
             }}
           >
-            <option value=""></option>
-            {project.events.filter((e) => !e.chapterIds.includes(chapterId)).map((e) => (
-              <option key={e.id} value={e.id}>{e.title}</option>
-            ))}
-            <option value="__new">+ Create new event...</option>
-          </select>
+            <button type="button" className="chip-add" onClick={() => setOpenMenu(openMenu === "evt" ? null : "evt")}>
+              + Add
+            </button>
+            {openMenu === "evt" && (
+              <div className="add-menu">
+                {project.events.filter((e) => !e.chapterIds.includes(chapterId)).map((e) => (
+                  <button
+                    type="button"
+                    key={e.id}
+                    className="add-opt"
+                    onClick={() => { toggleEvent(e.id); setOpenMenu(null); }}
+                  >
+                    {e.title}
+                  </button>
+                ))}
+                <div className="add-sep" />
+                <button type="button" className="add-opt create" onClick={() => { openCreate("event"); setOpenMenu(null); }}>
+                  + Create new event...
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </Field>
 
@@ -308,8 +365,12 @@ export function ChapterPage({ project }: { project: WritingProject }) {
               {template.acts.map((act, index) => (
                 <div
                   key={act.id}
-                  className={`act-band-segment act-${index + 1}`}
-                  style={{ flexGrow: act.endPercent - act.startPercent }}
+                  className="act-band-segment"
+                  style={{
+                    flexGrow: act.endPercent - act.startPercent,
+                    background: ACT_COLORS[index % ACT_COLORS.length],
+                    color: ACT_TEXT_COLORS[index % ACT_TEXT_COLORS.length],
+                  }}
                 >
                   <strong>Act {toRoman(index + 1)}</strong>
                   <span>{fmtPct(act.startPercent)}–{fmtPct(act.endPercent)}%</span>
@@ -341,7 +402,7 @@ export function ChapterPage({ project }: { project: WritingProject }) {
                   <button
                     key={c.id}
                     type="button"
-                    className={`chapter-plan-row${ai > 0 ? " act-bar" : ""}`}
+                    className={`chapter-plan-row${ai > 0 ? " act-bar" : ""}${selectedId === c.id ? " selected" : ""}`}
                     style={aiColor ? { borderLeftColor: aiColor } : undefined}
                     onClick={() => setSelectedId(c.id)}
                   >
