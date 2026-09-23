@@ -183,7 +183,7 @@ function CurrentView() {
         />
       );
     }
-    return <CharactersPage project={activeProject} onBack={() => setActiveProjectId(null)} />;
+    return <CharactersPage project={activeProject} onBack={() => setActiveView("overview")} />;
   }
   //Timeline needs an active project to know which project's events to show.
   if (activeView === "timeline") {

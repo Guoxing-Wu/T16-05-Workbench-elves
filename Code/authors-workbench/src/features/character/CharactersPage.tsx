@@ -1,14 +1,89 @@
 import CreateCharacterForm from "./CreateCharacterForm";
 import { useWorkbench } from "../../lib/store";
-import {useState } from "react";
+import { useState } from "react";
 import { Modal, PageHeader, ToolButton } from "../../components/primitives";
 import type { Character, WritingProject } from "../../lib/domain";
-import { ChevronRight, Trash2 } from "lucide-react";
+import { ChevronRight, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import "./character.css";
+import {characterAgeAtYear} from "../../lib/domain";
+import type { StoryDate } from "../../lib/domain";
 
+function formatStoryDate(date: StoryDate): string {
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
 
+  if (date.month === undefined) {
+    return String(date.year);
+  }
 
+  const month = months[date.month - 1];
 
-// Page showing the list of characters in a project, with a form to add new ones.
+  return date.day === undefined
+    ? `${month} ${date.year}`
+    : `${date.day} ${month} ${date.year}`;
+}
+
+function compareDates(a: StoryDate, b: StoryDate): number {
+  return (
+    a.year - b.year ||
+    (a.month ?? 1) - (b.month ?? 1) ||
+    (a.day ?? 1) - (b.day ?? 1)
+  );
+}
+
+function getInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
+}
+
+function formatBirthday(birthday: Character["birthday"]): string {
+  if (!birthday) return "—";
+
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+
+  if (birthday.month === undefined) {
+    return String(birthday.year);
+  }
+
+  const month = months[birthday.month - 1];
+
+  return birthday.day === undefined
+    ? `${month} ${birthday.year}`
+    : `${birthday.day} ${month} ${birthday.year}`;
+}
+
+function getAgeToday(birthday: Character["birthday"]): string {
+  if (!birthday) return "—";
+
+  // A complete date is needed to calculate an exact age.
+  if (birthday.month === undefined || birthday.day === undefined) {
+    return "Full date needed";
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - birthday.year;
+
+  const birthdayHasPassed =
+    today.getMonth() + 1 > birthday.month ||
+    (today.getMonth() + 1 === birthday.month &&
+      today.getDate() >= birthday.day);
+
+  if (!birthdayHasPassed) age -= 1;
+
+  return age < 0 ? "Not yet born" : String(age);
+}
+
 export function CharactersPage({
   project,
   onBack,
@@ -17,99 +92,320 @@ export function CharactersPage({
   onBack: () => void;
 }) {
   const { addCharacter, updateCharacter, removeCharacter } = useWorkbench();
-  const characters = project.characters || [];
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const characters = project.characters ?? [];
 
-  const selectedCharacter = characters.find(
-  (character) => character.id === selectedCharacterId
-);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedCharacterId, setSelectedCharacterId] =
+    useState<string | null>(null);
+
+  // Keeping the editing ID separate prevents another character's form
+  // from opening if the selected character is removed.
+  const [editingCharacterId, setEditingCharacterId] =
+    useState<string | null>(null);
+
+  const selectedCharacter =
+    characters.find((character) => character.id === selectedCharacterId) ??
+    characters[0];
+
+  const characterEvents = selectedCharacter
+  ? (project.events ?? [])
+      .filter((event) =>
+        event.characterIds?.includes(selectedCharacter.id)
+      )
+      .sort((a, b) => compareDates(a.eventDate, b.eventDate))
+  : [];
+
+
+  const editingCharacter = characters.find(
+    (character) => character.id === editingCharacterId
+  );
+
+  function handleDelete(character: Character) {
+    if (!window.confirm(`Delete "${character.name}"?`)) return;
+
+    removeCharacter(project.id, character.id);
+
+    if (selectedCharacterId === character.id) {
+      setSelectedCharacterId(null);
+    }
+
+    if (editingCharacterId === character.id) {
+      setEditingCharacterId(null);
+    }
+  }
+
   return (
-    <div className="page-stack core-page">
+    <div className="page-stack core-page characters-page">
       <button
+        type="button"
         className="text-link back-link"
         onClick={onBack}
       >
         Back
       </button>
 
-      <PageHeader
-        eyebrow="STORY"
-        title="Characters"
-        count={`${characters.length} characters`}
-      />
+      <div className="characters-page-heading">
+        <PageHeader
+          eyebrow="AUTHOR’S WORKBENCH"
+          title="Characters"
+          count={`${characters.length} saved ${
+            characters.length === 1 ? "profile" : "profiles"
+          }`}
+        />
 
-      <div className="character-list">
-        {characters.map((character) => (
-           
-          <div key={character.id} className="settings-card character-card">
-            <strong>{character.name}</strong>
-            
-            {character.birthday && (
-              <p>
-                Birthday: {character.birthday.year}
-                {character.birthday.month
-                  ? `-${character.birthday.month}`
-                  : ""}
-                {character.birthday.day
-                  ? `-${character.birthday.day}`
-                  : ""}
-              </p>
-            )}
-
-            {character.location && (
-              <p>Location: {character.location}</p>
-            )}
-
-            {character.description && (
-              <p>{character.description}</p>
-            )}
-            <div className="character-card-actions">
-              <button
-                  type="button"
-                  className="view-character-link"
-                  onClick={() => {
-                    setSelectedCharacterId(character.id);
-                    setIsEditing(false);
-                  }}
-                >
-                  View character <ChevronRight size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="delete-character-button"
-                  aria-label={`Delete ${character.name}`}
-                  onClick={() => {
-                    if (!window.confirm(`Delete "${character.name}"?`)) return;
-                    removeCharacter(project.id, character.id);
-                  }}
-                >
-                  <Trash2 size={15} />
-                </button>
-
-                
-              </div>
-             
-          </div>
-        ))}
-
-        {characters.length === 0 && (
-          <p className="muted-copy">No characters yet.</p>
-        )}
-      </div>
-
-      {/* Create character action */}
-      <div className="create-character-action">
         <button
-          className="toolbar-button primary-button"
+          type="button"
+          className="toolbar-button primary-button characters-add-button"
           onClick={() => setShowCreateForm(true)}
         >
-          + Add new character
+          <Plus size={18} />
+          Add character
         </button>
       </div>
 
-      {/* Pop-up Window*/}
+      {characters.length > 0 && selectedCharacter ? (
+        <div className="characters-layout">
+          {/* Left: character selection */}
+          <nav
+            className="characters-sidebar"
+            aria-label="Character profiles"
+          >
+            {characters.map((character, index) => {
+              const isSelected =
+                character.id === selectedCharacter.id;
+
+              return (
+                <button
+                  key={character.id}
+                  type="button"
+                  className={`character-list-item ${
+                    isSelected ? "is-selected" : ""
+                  }`}
+                  aria-current={isSelected ? "true" : undefined}
+                  onClick={() => setSelectedCharacterId(character.id)}
+                >
+                  <span
+                    className={`character-avatar character-avatar-${
+                      index % 3
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {getInitials(character.name)}
+                  </span>
+
+                  <span className="character-list-copy">
+                    <strong>{character.name}</strong>
+                    <span>{character.role || "Character"}</span>
+                  </span>
+
+                  <ChevronRight
+                    size={18}
+                    className="character-list-chevron"
+                    aria-hidden="true"
+                  />
+                </button>
+              );
+            })}
+          </nav>
+          
+          {/* Right: selected character */}
+          <section
+            className="character-detail-panel"
+            aria-labelledby="character-detail-name"
+          >
+            <div className="character-detail-header">
+              <span
+                className={`character-avatar character-avatar-large
+                  character-avatar-${
+                    characters.findIndex(
+                      (character) =>
+                        character.id === selectedCharacter.id
+                    ) % 3
+                  }`}
+                aria-hidden="true"
+              >
+                {getInitials(selectedCharacter.name)}
+              </span>
+
+              <div className="character-detail-heading">
+                <p className="character-section-label">
+                  {selectedCharacter.role || "Character"}
+                </p>
+                <h2 id="character-detail-name">
+                  {selectedCharacter.name}
+                </h2>
+              </div>
+
+              <div className="character-detail-actions">
+                <button
+                  type="button"
+                  className="character-outline-button"
+                  onClick={() =>
+                    setEditingCharacterId(selectedCharacter.id)
+                  }
+                >
+                  <Pencil size={16} />
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  className="character-icon-button character-delete-button"
+                  aria-label={`Delete ${selectedCharacter.name}`}
+                  onClick={() => handleDelete(selectedCharacter)}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+
+
+            <p className="character-detail-description">
+              {selectedCharacter.description || "No description yet."}
+            </p>
+
+            <dl className="character-detail-stats">
+              <div>
+                <dt>Date of birth</dt>
+                <dd>{formatBirthday(selectedCharacter.birthday)}</dd>
+              </div>
+
+              <div>
+                <dt>Age today</dt>
+                <dd>{getAgeToday(selectedCharacter.birthday)}</dd>
+              </div>
+
+              <div>
+                <dt>Gender</dt>
+                <dd>{selectedCharacter.gender || "—"}</dd>
+              </div>
+
+              <div>
+                <dt>Role</dt>
+                <dd>{selectedCharacter.role || "—"}</dd>
+              </div>
+            </dl>
+
+            <section className="character-location-section">
+              <p className="character-section-label">Location</p>
+              <h3>Where {selectedCharacter.name} is in the story</h3>
+
+              {selectedCharacter.location ? (
+                <div className="character-current-location">
+                  <MapPin size={20} aria-hidden="true" />
+                  <span>{selectedCharacter.location}</span>
+
+                  <button
+                    type="button"
+                    className="character-icon-button"
+                    aria-label={`Edit ${selectedCharacter.name}'s location`}
+                    onClick={() =>
+                      setEditingCharacterId(selectedCharacter.id)
+                    }
+                  >
+                    <Pencil size={16} />
+                  </button>
+                </div>
+              ) : (
+                <p className="character-empty-copy">
+                  No location recorded. Edit this character to add one.
+                </p>
+              )}
+            </section>
+            <section className="character-journey">
+            <p className="character-section-label">Story journey</p>
+            <h3>Age, places and events in chronological order</h3>
+
+            {characterEvents.length === 0 ? (
+              <p className="character-empty-copy">
+                No events linked to this character yet.
+                Add this character to an event to start their journey.
+              </p>
+            ) : (
+              <ol className="character-journey-list">
+                {characterEvents.map((event) => {
+                  const location = event.locationId
+                    ? (project.locations ?? []).find(
+                        (item) => item.id === event.locationId
+                      )
+                    : undefined;
+
+                  const age = selectedCharacter.birthday
+                    ? characterAgeAtYear(
+                        selectedCharacter.birthday,
+                        event.eventDate
+                      )
+                    : undefined;
+
+                  const chapters = (event.chapterIds ?? [])
+                    .map((id) =>
+                      (project.chapters ?? []).find(
+                        (chapter) => chapter.id === id
+                      )
+                    )
+                    .filter(
+                      (chapter): chapter is NonNullable<typeof chapter> =>
+                        chapter !== undefined
+                    );
+
+                  return (
+                    <li key={event.id} className="character-journey-item">
+                      <div className="character-journey-date">
+                        <span>{formatStoryDate(event.eventDate)}</span>
+
+                        {age != null && (
+                          <small>
+                            {age < 0 ? "Before birth" : `Age ${age}`}
+                          </small>
+                        )}
+                      </div>
+
+                      <span
+                        className="character-journey-track"
+                        aria-hidden="true"
+                      />
+
+                      <div className="character-journey-content">
+                        <p className="character-journey-kind">Event</p>
+                        <h4>{event.title}</h4>
+
+                        {event.description && (
+                          <p className="character-journey-description">
+                            {event.description}
+                          </p>
+                        )}
+
+                        {location && (
+                          <p className="character-journey-location">
+                            <MapPin size={14} aria-hidden="true" />
+                            {location.name}
+                          </p>
+                        )}
+
+                        {chapters.length > 0 && (
+                          <p className="character-journey-chapters">
+                            {chapters
+                              .map((chapter) => chapter.title)
+                              .join(" · ")}
+                          </p>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </section>
+          </section>
+          
+        </div>
+      ) : (
+        <div className="characters-empty-state">
+          <h2>No characters yet</h2>
+          <p>Add your first character to start building their profile.</p>
+        </div>
+      )}
+
       {showCreateForm && (
         <Modal
           title="Create character"
@@ -124,57 +420,23 @@ export function CharactersPage({
           />
         </Modal>
       )}
-      {/* Pop-up Window for viewing/editing a character */}
-      {selectedCharacter && (
-      <Modal
-        title={isEditing ? "Edit character" : selectedCharacter.name}
-        onClose={() => {
-          setSelectedCharacterId(null);
-          setIsEditing(false);
-        }}
-      >
-        {isEditing ? (
+
+      {editingCharacter && (
+        <Modal
+          title="Edit character"
+          onClose={() => setEditingCharacterId(null)}
+        >
           <EditCharacterForm
-            key={selectedCharacter.id}
-            character={selectedCharacter}
-            onCancel={() => setIsEditing(false)}
+            key={`${project.id}-${editingCharacter.id}`}
+            character={editingCharacter}
+            onCancel={() => setEditingCharacterId(null)}
             onSave={(patch) => {
-              updateCharacter(project.id, selectedCharacter.id, patch);
-              setIsEditing(false);
+              updateCharacter(project.id, editingCharacter.id, patch);
+              setEditingCharacterId(null);
             }}
           />
-        ) : (
-          <div className="workbench-form">
-            
-            {selectedCharacter.birthday && (
-              <p>
-                Birthday:{" "}
-                {[
-                  selectedCharacter.birthday.year,
-                  selectedCharacter.birthday.month,
-                  selectedCharacter.birthday.day,
-                ]
-                  .filter((value) => value !== undefined)
-                  .join("-")}
-              </p>
-            )}
-          
-            <p>Location: {selectedCharacter.location || "—"}</p>
-            <p>Gender: {selectedCharacter.gender || "—"}</p>
-            <p>Role: {selectedCharacter.role || "—"}</p>
-            <p>Description: {selectedCharacter.description || "—"}</p>
-
-            <div className="character-form-actions">
-
-                   
-              <ToolButton primary onClick={() => setIsEditing(true)}>
-                Edit character
-              </ToolButton>
-            </div>
-          </div>
-        )}
-      </Modal>
-    )}
+        </Modal>
+      )}
     </div>
   );
 }
