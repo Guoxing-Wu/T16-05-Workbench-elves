@@ -104,6 +104,12 @@ export function TimelinePage(
                 (character): character is NonNullable<typeof character> =>
                   character !== undefined
               );
+            const locations = (event.locationId ? [event.locationId] : [])
+              .map((id) => project.locations.find((l) => l.id === id))
+              .filter(
+                (location): location is NonNullable<typeof location> =>
+                  location !== undefined
+              );
 
             return (
               <li
@@ -132,10 +138,10 @@ export function TimelinePage(
                     </p>
                   )}
 
-                  {event.location && (
+                  {locations.length > 0 && (
                     <p className="chronological-location">
-                      <MapPin size={18} aria-hidden="true" />
-                      {event.location}
+                      <MapPin size={14} />
+                      {locations.map((location) => location.name).join(" · ")}
                     </p>
                   )}
 

@@ -12,7 +12,6 @@ import {
 import { WorkbenchProvider, useWorkbench } from "./lib/store";
 import type { WorkbenchView } from "./lib/store";
 import { ProjectsPage } from "./components/ProjectsPage";
-import { ProjectDetailPage } from "./components/ProjectDetailPage";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/Topbar";
 import { RightSidebar } from "./components/RightSidebar";
@@ -22,6 +21,9 @@ import { StoryStructurePage } from "./features/story-structure/StoryStructurePag
 import { ChapterPage } from "./components/ChapterPage";
 import { CharactersPage } from "./features/character/CharactersPage";
 import { TimelinePage } from "./features/TimeLine/timeLinePage";
+import { OverviewPage } from "./components/OverviewPage";
+import { LocationsPage } from "./components/LocationPage";
+
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
@@ -95,14 +97,15 @@ const PLACEHOLDER_CONFIG: Record<
 
 // Decides which component to render in the main area based on the active view.
 function CurrentView() {
-  const { activeView, activeProject, setActiveView, setActiveProjectId } = useWorkbench();
-
-  // "projects" is special: it shows either the list or the open project's detail page.
+  const { activeView, activeProject, setActiveProjectId, setActiveView} = useWorkbench();
+  // Project page always shows the project list. Opening a project jumps to its Overview dashboard. 
   if (activeView === "projects") {
-    return activeProject ? (
-      <ProjectDetailPage project={activeProject} onBack={() => setActiveProjectId(null)} />
-    ) : (
-      <ProjectsPage onOpen={setActiveProjectId} />
+    const openProject = (id: string) => {
+      setActiveProjectId(id);
+      setActiveView("overview");
+    };
+    return (
+      <ProjectsPage onOpen={openProject} />
     );
   }
 
@@ -152,6 +155,22 @@ function CurrentView() {
     return <EventsPage project={activeProject} />;
   }
 
+  // Locations groups story events by place for the active project.
+  if (activeView === "locations") {
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Locations"
+          icon={PLACEHOLDER_CONFIG.locations.icon}
+          description="Open a project first to see its character locations."
+        />
+      );
+    }
+    return <LocationsPage project={activeProject} />;
+  }
+
+
   // Characters needs an active project to know which project's characters to show.
   if (activeView === "characters") {
     if (!activeProject) {
@@ -179,6 +198,13 @@ function CurrentView() {
       );
     }
     return <TimelinePage project={activeProject} onManageEvents={() =>setActiveView("events")} onBack={() => setActiveProjectId(null)} />;
+  }
+
+
+  // Navigate to the overview page.
+  if (activeView === "overview") {
+    
+    return <OverviewPage />;
   }
 
 

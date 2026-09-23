@@ -8,6 +8,8 @@ export interface Chapter {
   targetWordCount: number;
   actualWordCount: number;
   notes: string;
+  characterIds?: string[];
+  locationIds?: string[];
 }
 
 // Author can write notes for the template
@@ -26,13 +28,14 @@ export interface WritingProject {
   storyStructureNotes?: Record<string, StoryTemplateNotes>;
   chapters: Chapter[];
   characters: Character[];
+  locations: Location[];
   events: StoryEvent[];
   createdAt: number;
   updatedAt: number;
+  lastOpenedAt: number;
 }
 
 // Local-only id generator.
-//export const makeId = () => `local-${crypto.randomUUID()}`;
 export const makeId = () => `local-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 
@@ -77,15 +80,33 @@ export function createProject(input: {
     storyStructureNotes: {},
     chapters,
     characters: [],
+    locations: [],
     events: [],
     createdAt: stamp,
     updatedAt: stamp,
+    lastOpenedAt: stamp
   };
 }
 
 // Calculates total words written so far which is the sum of every chapter's actual word count.
 export function wordsWritten(project: WritingProject): number {
   return project.chapters.reduce((sum, c) => sum + (c.actualWordCount || 0), 0);
+}
+
+// A named place in the story world. Events link to it by id.
+export interface Location {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+// Build a new location.
+export function makeLocation(input: { name: string; description?: string }): Location {
+  return {
+    id: makeId(),
+    name: input.name.trim(),
+    description: input.description?.trim() || "",
+  };
 }
 
 //internal date with flexible precision
@@ -103,7 +124,10 @@ export interface StoryEvent {
   description: string;
   eventDate: StoryDate; // The in-story year this event takes place
   characterIds?: string[]
-  location: string
+  locationId?: string;
+  isStoryBeat: boolean;
+  storyBeatId?: string;
+  storyBeatName?: string;
 }
 
 //A character in the story
@@ -149,7 +173,10 @@ export function makeStoryEvent(input: {
   description?: string;
   characterIds?: string[];
   eventDate: StoryDate;
-  location: string;
+  locationId?: string;
+  isStoryBeat: boolean;
+  storyBeatId?: string;
+  storyBeatName?: string;
 }): StoryEvent {
   return {
     id: makeId(),
@@ -158,7 +185,10 @@ export function makeStoryEvent(input: {
     description: input.description ?? "",
     characterIds: input.characterIds,
     eventDate: input.eventDate,
-    location: input.location,
+    locationId: input.locationId,
+    isStoryBeat: input.isStoryBeat,
+    storyBeatId: input.storyBeatId,
+    storyBeatName: input.storyBeatName,
   };
 }
 
