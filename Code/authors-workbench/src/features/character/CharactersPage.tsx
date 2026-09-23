@@ -1,8 +1,8 @@
 import CreateCharacterForm from "./CreateCharacterForm";
-import { useWorkbench } from "../lib/store";
+import { useWorkbench } from "../../lib/store";
 import {useState } from "react";
-import { Modal, PageHeader, ToolButton } from "./primitives";
-import type { Character, WritingProject } from "../lib/domain";
+import { Modal, PageHeader, ToolButton } from "../../components/primitives";
+import type { Character, WritingProject } from "../../lib/domain";
 import { ChevronRight, Trash2 } from "lucide-react";
 
 

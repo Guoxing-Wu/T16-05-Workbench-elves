@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { ToolButton } from "./primitives";
-import type { StoryDate } from "../lib/domain";
+import { ToolButton } from "../../components/primitives";
+import type { StoryDate } from "../../lib/domain";
 // Form for creating a new character, with fields for name, birthday, description, and location.
 type Props = {
   onCancel: () => void;
