@@ -20,7 +20,7 @@ import { EventsPage } from "./components/EventsPage";
 import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
 import { ChapterPage } from "./components/ChapterPage";
 import { CharactersPage } from "./features/character/CharactersPage";
-import { TimelinePage } from "./features/TimeLine/timeLinePage";
+import { TimelinePage } from "./features/TimeLine/TimeLinePage";
 import { OverviewPage } from "./components/OverviewPage";
 import { LocationsPage } from "./components/LocationPage";
 
@@ -111,18 +111,15 @@ function CurrentView() {
 
   // Story structure displays the template selected for the active project.
   if (activeView === "storyStructure") {
-    // A project must be open before its story structure can be displayed.
-    if (!activeProject) {
-      return (
-        <PlaceholderPage
-          eyebrow="MANUSCRIPT"
-          title="Story Structure"
-          icon={PLACEHOLDER_CONFIG.storyStructure.icon}
-          description="Open a project first to view its story structure."
+    // StoryStructurePage now supports both states:
+    // 1. A project is open -> show the project's story structure.
+    // 2. No project is open -> show the global custom structure manager.
+    return (
+        <StoryStructurePage
+            project={activeProject ?? undefined}
         />
-      );
-    }
-    return <StoryStructurePage project={activeProject} />;
+    );
+
   }
 
   // Chapter Plan needs an active project to know which project's chapters to show.

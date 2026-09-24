@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent, makeLocation } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryDate, Location } from "./domain";
-import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
+import type { StoryStructureId, StoryStructureTemplate,} from "../features/story-structure/storyStructureTemplate";
 
 //left 
 export type WorkbenchView =
@@ -47,19 +47,51 @@ interface WorkbenchStoreValue {
   updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
   removeStoryEvent: (projectId: string, eventId: string) => void;
 
+  // Global custom story structure templates
+  customStoryStructures: StoryStructureTemplate[];
+
+  // Story structure operations
+  addCustomStoryStructure: (
+    structure: StoryStructureTemplate
+  ) => void;
+
+  updateCustomStoryStructure: (
+    structureId: string,
+    update: (
+      structure: StoryStructureTemplate
+    ) => StoryStructureTemplate
+  ) => void;
+
+  deleteCustomStoryStructure: (
+    structureId: string
+  ) => void;
+
   // Location operations
-  addLocation: (projectId: string, input: { name: string; description?: string }) => Location;
-  removeLocation: (projectId: string, locationId: string) => void;
-  updateLocation: (projectId: string, locationId: string, input: { name: string; description?: string }) => void;
+  addLocation: (
+    projectId: string,
+    input: { name: string; description?: string }
+  ) => Location;
 
+  removeLocation: (
+    projectId: string,
+    locationId: string
+  ) => void;
+
+  updateLocation: (
+    projectId: string,
+    locationId: string,
+    input: { name: string; description?: string }
+  ) => void;
 }
-
 
 const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 
 // Holds all states in memory
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<WritingProject[]>([]);
+  
+  const [customStoryStructures, setCustomStoryStructures] = useState<StoryStructureTemplate[]>([]);
+
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
 
   const [activeView, setActiveView] = useState<WorkbenchView>("projects");
@@ -203,9 +235,49 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  // Create a custom story structure
+  const addCustomStoryStructure = (
+    structure: StoryStructureTemplate
+  ) => {
+    setCustomStoryStructures((list) => [
+      ...list,
+      structure,
+    ]);
+  };
+
+  // Update a custom story structure
+  const updateCustomStoryStructure = (
+    structureId: string,
+    update: (
+      structure: StoryStructureTemplate
+    ) => StoryStructureTemplate
+  ) => {
+    setCustomStoryStructures((list) =>
+      list.map((structure) =>
+        structure.id === structureId
+          ? update(structure)
+          : structure
+      )
+    );
+  };
+
+  // Delete a custom Story Structure
+  const deleteCustomStoryStructure = (
+    structureId: string
+  ) => {
+    setCustomStoryStructures((list) =>
+      list.filter(
+        (structure) => structure.id !== structureId
+      )
+    );
+  };
+
   // Adds a new location to the project and returns it, so callers can
   // immediately link the fresh id to a story event.
-  const addLocation: WorkbenchStoreValue["addLocation"] = (projectId, input) => {
+  const addLocation: WorkbenchStoreValue["addLocation"] = (
+    projectId,
+    input
+  ) => {
     const location = makeLocation(input);
     updateProject(projectId, (project) => ({
       ...project,
@@ -215,29 +287,43 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   };
 
   // Removes a location and clears the reference on events that used it.
-  const removeLocation: WorkbenchStoreValue["removeLocation"] = (projectId, locationId) => {
+  const removeLocation: WorkbenchStoreValue["removeLocation"] = (
+    projectId,
+    locationId
+  ) => {
     updateProject(projectId, (project) => ({
       ...project,
-      locations: (project.locations || []).filter((l) => l.id !== locationId),
+      locations: (project.locations || []).filter(
+        (l) => l.id !== locationId
+      ),
       events: (project.events || []).map((e) =>
-        e.locationId === locationId ? { ...e, locationId: undefined } : e
+        e.locationId === locationId
+          ? { ...e, locationId: undefined }
+          : e
       ),
     }));
   };
 
   // Updates the name/description of an existing location.
-  const updateLocation: WorkbenchStoreValue["updateLocation"] = (projectId, locationId, input) => {
+  const updateLocation: WorkbenchStoreValue["updateLocation"] = (
+    projectId,
+    locationId,
+    input
+  ) => {
     updateProject(projectId, (project) => ({
       ...project,
       locations: (project.locations || []).map((l) =>
         l.id === locationId
-          ? { ...l, name: input.name.trim(), description: input.description?.trim() || "" }
+          ? {
+              ...l,
+              name: input.name.trim(),
+              description: input.description?.trim() || "",
+            }
           : l
       ),
     }));
   };
-
-  // Subcomponents will not re-render though this provider did unless the actual state changed.
+    // Subcomponents will not re-render though this provider did unless the actual state changed.
   const value = useMemo<WorkbenchStoreValue>(
     () => ({
       projects,
@@ -259,11 +345,25 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addStoryEvent,
       updateStoryEvent,
       removeStoryEvent,
+
+      // Custom story structures
+      customStoryStructures,
+      addCustomStoryStructure,
+      updateCustomStoryStructure,
+      deleteCustomStoryStructure,
+
+      // Locations
       addLocation,
       removeLocation,
       updateLocation,
     }),
-    [projects, activeProject, activeProjectId, activeView]
+    [
+      projects,
+      activeProject,
+      activeProjectId,
+      activeView,
+      customStoryStructures,
+    ]
   );
 
   return <WorkbenchStore.Provider value={value}>{children}</WorkbenchStore.Provider>;

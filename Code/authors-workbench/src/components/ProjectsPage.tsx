@@ -23,80 +23,167 @@ function ProjectForm({
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const { createProject, updateProject } = useWorkbench();
-  const [title, setTitle] = useState(initial?.title ?? "");
-  const [targetWordCount, setTargetWordCount] = useState<number | "">(initial?.targetWordCount ?? "");
-  const [averageChapterLength, setAverageChapterLength] = useState<number | "">(initial?.averageChapterLength ?? "");
+  const { createProject, updateProject, customStoryStructures } = useWorkbench();
+
+  const [title, setTitle] = useState(
+    initial?.title ?? "Untitled Story"
+  );
+
+  const [targetWordCount, setTargetWordCount] = useState<number | "">(
+    initial?.targetWordCount ?? ""
+  );
+
+  const [averageChapterLength, setAverageChapterLength] = useState<
+    number | ""
+  >(initial?.averageChapterLength ?? "");
+
   const [storyStructure, setStoryStructure] =
-    useState<StoryStructureId>(initial?.storyStructure ?? DEFAULT_STORY_STRUCTURE_ID);
+    useState<StoryStructureId>(
+      initial?.storyStructure ?? DEFAULT_STORY_STRUCTURE_ID
+    );
+
   const canCreate =
     title.trim().length > 0 &&
-    typeof targetWordCount === "number" && targetWordCount > 0 &&
-    typeof averageChapterLength === "number" && averageChapterLength > 0;
+    typeof targetWordCount === "number" &&
+    targetWordCount > 0 &&
+    typeof averageChapterLength === "number" &&
+    averageChapterLength > 0;
 
   // Estimate how many chapters the plan will have.
-  const wordCount = typeof targetWordCount === "number" ? targetWordCount : 0;
-  const chapterLength = typeof averageChapterLength === "number" ? averageChapterLength : 0;
-  const estimatedChapters = chapterLength > 0 ? Math.round(wordCount / chapterLength) : 0;
+  const wordCount =
+    typeof targetWordCount === "number" ? targetWordCount : 0;
+
+  const chapterLength =
+    typeof averageChapterLength === "number"
+      ? averageChapterLength
+      : 0;
+
+  const estimatedChapters =
+    chapterLength > 0
+      ? Math.round(wordCount / chapterLength)
+      : 0;
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+
     if (!canCreate) return;
+
     const input = {
       title: title.trim(),
-      targetWordCount: typeof targetWordCount === "number" ? targetWordCount : 0,
-      averageChapterLength: typeof averageChapterLength === "number" ? averageChapterLength : 0,
+      targetWordCount:
+        typeof targetWordCount === "number"
+          ? targetWordCount
+          : 0,
+      averageChapterLength:
+        typeof averageChapterLength === "number"
+          ? averageChapterLength
+          : 0,
       storyStructure,
     };
+
     if (initial) {
       // Edit mode: patch the existing project in place.
-      updateProject(initial.id, (project) => ({ ...project, ...input }));
+      updateProject(initial.id, (project) => ({
+        ...project,
+        ...input,
+      }));
     } else {
       // Create mode: make a brand-new project.
       createProject(input);
     }
+
     onCreated();
   };
 
   return (
-    <Modal title={initial ? "Edit writing project" : "Create a writing project"} onClose={onClose}>
+    <Modal
+      title={
+        initial
+          ? "Edit writing project"
+          : "Create a writing project"
+      }
+      onClose={onClose}
+    >
       <form className="workbench-form" onSubmit={submit}>
         <div className="form-grid">
           <Field label="Project title" full>
-            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Untitled Story" required autoFocus />
+            <input
+              value={title}
+              onChange={(event) =>
+                setTitle(event.target.value)
+              }
+              placeholder="Untitled Story"
+              required
+              autoFocus
+            />
           </Field>
+
           <Field label="Target word count">
             <input
               type="number"
               min={1}
               value={targetWordCount}
-              onChange={(event) => setTargetWordCount(event.target.value === "" ? "" : Number(event.target.value))}
+              onChange={(event) =>
+                setTargetWordCount(
+                  event.target.value === ""
+                    ? ""
+                    : Number(event.target.value)
+                )
+              }
               placeholder="0"
               required
             />
           </Field>
+
           <Field label="Average chapter length">
             <input
               type="number"
               min={1}
               value={averageChapterLength}
-              onChange={(event) => setAverageChapterLength(event.target.value === "" ? "" : Number(event.target.value))}
+              onChange={(event) =>
+                setAverageChapterLength(
+                  event.target.value === ""
+                    ? ""
+                    : Number(event.target.value)
+                )
+              }
               placeholder="0"
               required
             />
           </Field>
+
           <Field label="Story structure" full>
             <select
               value={storyStructure}
               onChange={(event) =>
-                setStoryStructure(event.target.value as StoryStructureId)
+                setStoryStructure(
+                  event.target.value as StoryStructureId
+                )
               }
             >
-              {STORY_STRUCTURE_OPTIONS.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
+              <optgroup label="Built-in Structures">
+                {STORY_STRUCTURE_OPTIONS.map((option) => (
+                  <option
+                    key={option.id}
+                    value={option.id}
+                  >
+                    {option.name}
+                  </option>
+                ))}
+              </optgroup>
+
+              {customStoryStructures.length > 0 && (
+                <optgroup label="Custom Structures">
+                  {customStoryStructures.map((structure) => (
+                    <option
+                      key={structure.id}
+                      value={structure.id}
+                    >
+                      {structure.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </Field>
         </div>
@@ -105,15 +192,31 @@ function ProjectForm({
         <div className="form-hint">
           <span className="form-hint-icon">📓</span>
           <p>
-            This plan will contain approximately <strong>{estimatedChapters} chapters</strong>. Act boundaries
-            and story beats are mapped automatically.
+            This plan will contain approximately{" "}
+            <strong>{estimatedChapters} chapters</strong>.
+            Act boundaries and story beats are mapped
+            automatically.
           </p>
         </div>
 
         <div className="modal-actions">
-          <ToolButton onClick={onClose}>Cancel</ToolButton>
-          <ToolButton primary type="submit" disabled={!canCreate}>
-            {initial ? <Save size={15} /> : <Plus size={15} />} {initial ? "Save changes" : "Create project"}
+          <ToolButton onClick={onClose}>
+            Cancel
+          </ToolButton>
+
+          <ToolButton
+            primary
+            type="submit"
+            disabled={!canCreate}
+          >
+            {initial ? (
+              <Save size={15} />
+            ) : (
+              <Plus size={15} />
+            )}{" "}
+            {initial
+              ? "Save changes"
+              : "Create project"}
           </ToolButton>
         </div>
       </form>
