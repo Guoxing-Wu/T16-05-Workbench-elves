@@ -126,13 +126,18 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
 
   // Deletes a chapter and reorder the rest.
   const removeChapter = (projectId: string, chapterId: string) => {
-    updateProject(projectId, (project) => ({
+  updateProject(projectId, (project) => {
+    const chapters = (project.chapters || []).filter((c) => c.id !== chapterId);
+    const perChapter =
+      project.targetWordCount > 0 && chapters.length > 0
+        ? Math.round(project.targetWordCount / chapters.length)
+        : 0;
+    return {
       ...project,
-      chapters: (project.chapters || [])
-        .filter((c) => c.id !== chapterId)
-        .map((c, i) => ({ ...c, order: i })),
-    }));
-  };
+      chapters: chapters.map((c, i) => ({ ...c, order: i, targetWordCount: perChapter })),
+    };
+  });
+};
 
   // Swaps a chapter with its neighbour if it is not beyond the end of the list.
   const moveChapter = (projectId: string, chapterId: string, direction: -1 | 1) => {
