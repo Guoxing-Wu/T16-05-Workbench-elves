@@ -19,9 +19,11 @@ import { PlaceholderPage } from "./components/PlaceholderPage";
 import { EventsPage } from "./components/EventsPage";
 import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
 import { ChapterPage } from "./components/ChapterPage";
-import { CharactersPage } from "./components/CharactersPage";
+import { CharactersPage } from "./features/character/CharactersPage";
+import { TimelinePage } from "./features/TimeLine/timeLinePage";
 import { OverviewPage } from "./components/OverviewPage";
 import { LocationsPage } from "./components/LocationPage";
+
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
@@ -96,7 +98,6 @@ const PLACEHOLDER_CONFIG: Record<
 // Decides which component to render in the main area based on the active view.
 function CurrentView() {
   const { activeView, activeProject, setActiveProjectId, setActiveView} = useWorkbench();
-
   // Project page always shows the project list. Opening a project jumps to its Overview dashboard. 
   if (activeView === "projects") {
     const openProject = (id: string) => {
@@ -182,8 +183,23 @@ function CurrentView() {
         />
       );
     }
-    return <CharactersPage project={activeProject} onBack={() => setActiveProjectId(null)} />;
+    return <CharactersPage project={activeProject} onBack={() => setActiveView("overview")} />;
   }
+  //Timeline needs an active project to know which project's events to show.
+  if (activeView === "timeline") {
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Timeline"
+          icon={PLACEHOLDER_CONFIG.timeline.icon}
+          description="Open a project first to see and manage its story timeline."
+        />
+      );
+    }
+    return <TimelinePage project={activeProject} onManageEvents={() =>setActiveView("events")} onBack={() => setActiveProjectId(null)} />;
+  }
+
 
   // Navigate to the overview page.
   if (activeView === "overview") {
