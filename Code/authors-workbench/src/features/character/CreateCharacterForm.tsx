@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { ToolButton } from "./primitives";
-import type { StoryDate } from "../lib/domain";
+import { ToolButton } from "../../components/primitives";
+import type { StoryDate } from "../../lib/domain";
+
 // Form for creating a new character, with fields for name, birthday, description, and location.
 type Props = {
   onCancel: () => void;
@@ -74,7 +75,7 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
   
   return (
     <form
-      className="settings-card workbench-form"
+      className="workbench-form"
       onSubmit={handleSubmit}
     >
       <div className="form-grid">
@@ -82,6 +83,7 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
         <label className="form-field">
           <span>First name</span>
           <input
+            required
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
             placeholder="First name"
@@ -109,6 +111,7 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
         <label className="form-field">
           <span>Birth year</span>
           <input
+            required
             type="number"
             value={birthYear}
             onChange={(event) => setBirthYear(event.target.value)}
@@ -122,6 +125,7 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
             type="number"
             min={1}
             max={12}
+            required={Boolean(birthDay)}
             value={birthMonth}
             onChange={(event) => setBirthMonth(event.target.value)}
             placeholder="Month"

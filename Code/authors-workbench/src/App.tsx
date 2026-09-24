@@ -19,8 +19,11 @@ import { PlaceholderPage } from "./components/PlaceholderPage";
 import { EventsPage } from "./components/EventsPage";
 import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
 import { ChapterPage } from "./components/ChapterPage";
-import { CharactersPage } from "./components/CharactersPage";
+import { CharactersPage } from "./features/character/CharactersPage";
+import { TimelinePage } from "./features/TimeLine/TimeLinePage";
 import { OverviewPage } from "./components/OverviewPage";
+import { LocationsPage } from "./components/LocationPage";
+
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
@@ -95,7 +98,6 @@ const PLACEHOLDER_CONFIG: Record<
 // Decides which component to render in the main area based on the active view.
 function CurrentView() {
   const { activeView, activeProject, setActiveProjectId, setActiveView} = useWorkbench();
-
   // Project page always shows the project list. Opening a project jumps to its Overview dashboard. 
   if (activeView === "projects") {
     const openProject = (id: string) => {
@@ -109,18 +111,15 @@ function CurrentView() {
 
   // Story structure displays the template selected for the active project.
   if (activeView === "storyStructure") {
-    // A project must be open before its story structure can be displayed.
-    if (!activeProject) {
-      return (
-        <PlaceholderPage
-          eyebrow="MANUSCRIPT"
-          title="Story Structure"
-          icon={PLACEHOLDER_CONFIG.storyStructure.icon}
-          description="Open a project first to view its story structure."
+    // StoryStructurePage now supports both states:
+    // 1. A project is open -> show the project's story structure.
+    // 2. No project is open -> show the global custom structure manager.
+    return (
+        <StoryStructurePage
+            project={activeProject ?? undefined}
         />
-      );
-    }
-    return <StoryStructurePage project={activeProject} />;
+    );
+
   }
 
   // Chapter Plan needs an active project to know which project's chapters to show.
@@ -153,6 +152,22 @@ function CurrentView() {
     return <EventsPage project={activeProject} />;
   }
 
+  // Locations groups story events by place for the active project.
+  if (activeView === "locations") {
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Locations"
+          icon={PLACEHOLDER_CONFIG.locations.icon}
+          description="Open a project first to see its character locations."
+        />
+      );
+    }
+    return <LocationsPage project={activeProject} />;
+  }
+
+
   // Characters needs an active project to know which project's characters to show.
   if (activeView === "characters") {
     if (!activeProject) {
@@ -167,6 +182,21 @@ function CurrentView() {
     }
     return <CharactersPage project={activeProject} onBack={() => setActiveProjectId("overview")} />;
   }
+  //Timeline needs an active project to know which project's events to show.
+  if (activeView === "timeline") {
+    if (!activeProject) {
+      return (
+        <PlaceholderPage
+          eyebrow="MANUSCRIPT"
+          title="Timeline"
+          icon={PLACEHOLDER_CONFIG.timeline.icon}
+          description="Open a project first to see and manage its story timeline."
+        />
+      );
+    }
+    return <TimelinePage project={activeProject} onManageEvents={() =>setActiveView("events")} onBack={() => setActiveProjectId(null)} />;
+  }
+
 
   // Navigate to the overview page.
   if (activeView === "overview") {

@@ -1,8 +1,8 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent } from "./domain";
-import type { Chapter, WritingProject, Character, StoryEvent, StoryDate } from "./domain";
-import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
+import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent, makeLocation } from "./domain";
+import type { Chapter, WritingProject, Character, StoryEvent, StoryDate, Location } from "./domain";
+import type { StoryStructureId, StoryStructureTemplate,} from "../features/story-structure/storyStructureTemplate";
 
 //left 
 export type WorkbenchView =
@@ -38,23 +38,60 @@ interface WorkbenchStoreValue {
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
 
   // Character operations
-  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string ; role?: string; gender?: string }) => void;
+  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string ; role?: string; gender?: string }) => Character;
   updateCharacter: (projectId: string, characterId: string, patch: Partial<Character>) => void;
   removeCharacter: (projectId: string, characterId: string) => void;
 
   // Story event operations
-  addStoryEvent: (projectId: string, input: { chapterIds: string[]; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[];isStoryBeat: boolean;storyBeatId?: string;storyBeatName?: string; }) => void;
+  addStoryEvent: (projectId: string, input: { chapterIds: string[]; title: string; description?: string; eventDate: StoryDate; locationId?: string; characterIds?: string[];isStoryBeat: boolean;storyBeatId?: string;storyBeatName?: string; }) => StoryEvent;
   updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
   removeStoryEvent: (projectId: string, eventId: string) => void;
 
-}
+  // Global custom story structure templates
+  customStoryStructures: StoryStructureTemplate[];
 
+  // Story structure operations
+  addCustomStoryStructure: (
+    structure: StoryStructureTemplate
+  ) => void;
+
+  updateCustomStoryStructure: (
+    structureId: string,
+    update: (
+      structure: StoryStructureTemplate
+    ) => StoryStructureTemplate
+  ) => void;
+
+  deleteCustomStoryStructure: (
+    structureId: string
+  ) => void;
+
+  // Location operations
+  addLocation: (
+    projectId: string,
+    input: { name: string; description?: string }
+  ) => Location;
+
+  removeLocation: (
+    projectId: string,
+    locationId: string
+  ) => void;
+
+  updateLocation: (
+    projectId: string,
+    locationId: string,
+    input: { name: string; description?: string }
+  ) => void;
+}
 
 const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 
 // Holds all states in memory
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<WritingProject[]>([]);
+  
+  const [customStoryStructures, setCustomStoryStructures] = useState<StoryStructureTemplate[]>([]);
+
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
 
   const [activeView, setActiveView] = useState<WorkbenchView>("projects");
@@ -104,8 +141,10 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   // Appends a new blank chapter to the end of the manuscript.
   const addChapter = (projectId: string) => {
     updateProject(projectId, (project) => {
-      const chapters = project.chapters || [];
-      return { ...project, chapters: [...chapters, makeChapter(chapters.length, chapters.length + 1)] };
+      const chapters = [...(project.chapters || []), makeChapter((project.chapters || []).length, (project.chapters || []).length + 1)];
+      // Evenly split the project total word target across every chapter.
+      const perChapter = project.targetWordCount > 0 ? Math.round(project.targetWordCount / chapters.length) : 0;
+      return { ...project, chapters: chapters.map((c) => ({ ...c, targetWordCount: perChapter })) };
     });
   };
 
@@ -119,13 +158,18 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
 
   // Deletes a chapter and reorder the rest.
   const removeChapter = (projectId: string, chapterId: string) => {
-    updateProject(projectId, (project) => ({
+  updateProject(projectId, (project) => {
+    const chapters = (project.chapters || []).filter((c) => c.id !== chapterId);
+    const perChapter =
+      project.targetWordCount > 0 && chapters.length > 0
+        ? Math.round(project.targetWordCount / chapters.length)
+        : 0;
+    return {
       ...project,
-      chapters: (project.chapters || [])
-        .filter((c) => c.id !== chapterId)
-        .map((c, i) => ({ ...c, order: i })),
-    }));
-  };
+      chapters: chapters.map((c, i) => ({ ...c, order: i, targetWordCount: perChapter })),
+    };
+  });
+};
 
   // Swaps a chapter with its neighbour if it is not beyond the end of the list.
   const moveChapter = (projectId: string, chapterId: string, direction: -1 | 1) => {
@@ -141,10 +185,12 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   };
   // Adds a new character to the project.
   const addCharacter: WorkbenchStoreValue["addCharacter"] = (projectId, input) => {
+    const character = makeCharacter(input);
     updateProject(projectId, (project) => ({
       ...project,
-      characters: [...(project.characters || []), makeCharacter(input)],
+      characters: [...(project.characters || []), character],
     }));
+    return character;
   };
 
   // Patches one character's fields.
@@ -165,10 +211,12 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
 
   // Adds a new story event to the project.
   const addStoryEvent: WorkbenchStoreValue["addStoryEvent"] = (projectId, input) => {
+    const ev = makeStoryEvent(input);
     updateProject(projectId, (project) => ({
       ...project,
-      events: [...(project.events || []), makeStoryEvent(input)],
+      events: [...(project.events || []), ev],
     }));
+    return ev;
   };
 
   // Patches one story event's fields.
@@ -187,7 +235,95 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  // Subcomponents will not re-render though this provider did unless the actual state changed.
+  // Create a custom story structure
+  const addCustomStoryStructure = (
+    structure: StoryStructureTemplate
+  ) => {
+    setCustomStoryStructures((list) => [
+      ...list,
+      structure,
+    ]);
+  };
+
+  // Update a custom story structure
+  const updateCustomStoryStructure = (
+    structureId: string,
+    update: (
+      structure: StoryStructureTemplate
+    ) => StoryStructureTemplate
+  ) => {
+    setCustomStoryStructures((list) =>
+      list.map((structure) =>
+        structure.id === structureId
+          ? update(structure)
+          : structure
+      )
+    );
+  };
+
+  // Delete a custom Story Structure
+  const deleteCustomStoryStructure = (
+    structureId: string
+  ) => {
+    setCustomStoryStructures((list) =>
+      list.filter(
+        (structure) => structure.id !== structureId
+      )
+    );
+  };
+
+  // Adds a new location to the project and returns it, so callers can
+  // immediately link the fresh id to a story event.
+  const addLocation: WorkbenchStoreValue["addLocation"] = (
+    projectId,
+    input
+  ) => {
+    const location = makeLocation(input);
+    updateProject(projectId, (project) => ({
+      ...project,
+      locations: [...(project.locations || []), location],
+    }));
+    return location;
+  };
+
+  // Removes a location and clears the reference on events that used it.
+  const removeLocation: WorkbenchStoreValue["removeLocation"] = (
+    projectId,
+    locationId
+  ) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      locations: (project.locations || []).filter(
+        (l) => l.id !== locationId
+      ),
+      events: (project.events || []).map((e) =>
+        e.locationId === locationId
+          ? { ...e, locationId: undefined }
+          : e
+      ),
+    }));
+  };
+
+  // Updates the name/description of an existing location.
+  const updateLocation: WorkbenchStoreValue["updateLocation"] = (
+    projectId,
+    locationId,
+    input
+  ) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      locations: (project.locations || []).map((l) =>
+        l.id === locationId
+          ? {
+              ...l,
+              name: input.name.trim(),
+              description: input.description?.trim() || "",
+            }
+          : l
+      ),
+    }));
+  };
+    // Subcomponents will not re-render though this provider did unless the actual state changed.
   const value = useMemo<WorkbenchStoreValue>(
     () => ({
       projects,
@@ -209,8 +345,25 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addStoryEvent,
       updateStoryEvent,
       removeStoryEvent,
+
+      // Custom story structures
+      customStoryStructures,
+      addCustomStoryStructure,
+      updateCustomStoryStructure,
+      deleteCustomStoryStructure,
+
+      // Locations
+      addLocation,
+      removeLocation,
+      updateLocation,
     }),
-    [projects, activeProject, activeProjectId, activeView]
+    [
+      projects,
+      activeProject,
+      activeProjectId,
+      activeView,
+      customStoryStructures,
+    ]
   );
 
   return <WorkbenchStore.Provider value={value}>{children}</WorkbenchStore.Provider>;
