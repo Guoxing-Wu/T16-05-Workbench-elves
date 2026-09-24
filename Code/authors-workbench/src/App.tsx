@@ -165,7 +165,7 @@ function CurrentView() {
         />
       );
     }
-    return <CharactersPage project={activeProject} onBack={() => setActiveProjectId(null)} />;
+    return <CharactersPage project={activeProject} onBack={() => setActiveProjectId("overview")} />;
   }
 
   // Navigate to the overview page.
