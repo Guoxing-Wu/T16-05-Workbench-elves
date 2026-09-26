@@ -335,3 +335,322 @@
     font-size: 16px;
     resize: vertical;
 }
+
+/* =========================================================
+   Story Structure — Structure Library
+   Used when no project is selected
+   ========================================================= */
+
+.story-structure-library {
+    display: grid;
+    gap: 18px;
+}
+
+.story-structure-library-header {
+    padding: 22px 24px;
+    border: 1px solid var(--border-warm);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.story-structure-library-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.story-structure-library-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue);
+}
+
+.story-section-eyebrow {
+    color: var(--coral-dark);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+}
+
+.story-structure-library-header h2 {
+    margin: 6px 0 5px;
+    font: 600 20px/1.35 var(--serif);
+    color: var(--ink);
+}
+
+.story-structure-library-header p {
+    max-width: 600px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+
+/* ===== Custom structure manager ===== */
+
+.custom-structure-manager {
+    display: grid;
+    gap: 14px;
+}
+
+.custom-structure-manager-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.custom-structure-manager-header > div {
+    min-width: 0;
+}
+
+.custom-structure-manager-header h2 {
+    margin: 5px 0 3px;
+    font: 600 19px/1.35 var(--serif);
+    color: var(--ink);
+}
+
+.custom-structure-manager-header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    line-height: 1.5;
+}
+
+
+/* ===== Empty state ===== */
+
+.custom-structure-manager-empty {
+    min-height: 230px;
+    padding: 38px 30px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 9px;
+
+    border: 1px dashed #d7cec4;
+    border-radius: 8px;
+    background: rgba(255, 253, 252, .52);
+    text-align: center;
+}
+
+.custom-structure-manager-empty-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 3px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue);
+}
+
+.custom-structure-manager-empty h3 {
+    margin: 0;
+    font: 600 18px/1.35 var(--serif);
+    color: var(--ink);
+}
+
+.custom-structure-manager-empty p {
+    max-width: 410px;
+    margin: 0 0 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+
+/* ===== Custom structure cards ===== */
+
+.custom-structure-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.custom-structure-card {
+    min-width: 0;
+    min-height: 175px;
+    padding: 19px 20px;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid var(--border-warm);
+    border-radius: 8px;
+    background: var(--surface);
+
+    transition:
+        border-color .15s ease,
+        box-shadow .15s ease,
+        transform .15s ease;
+}
+
+.custom-structure-card:hover {
+    border-color: #d5c9bc;
+    box-shadow: 0 6px 18px rgba(41, 39, 37, .07);
+    transform: translateY(-1px);
+}
+
+.custom-structure-card-main {
+    min-width: 0;
+}
+
+.custom-structure-card-eyebrow {
+    color: var(--coral-dark);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .11em;
+}
+
+.custom-structure-card h3 {
+    margin: 6px 0 5px;
+    color: var(--ink);
+    font: 600 17px/1.35 var(--serif);
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-structure-card p {
+    min-height: 33px;
+    margin: 0;
+
+    color: var(--text-muted);
+    font-size: 10.5px;
+    line-height: 1.55;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.custom-structure-card-stats {
+    margin-top: 14px;
+    padding: 10px 0;
+
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    border-top: 1px solid var(--divider-warm);
+}
+
+.custom-structure-card-stats span {
+    color: var(--text-muted);
+    font-size: 9px;
+}
+
+.custom-structure-card-stats strong {
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
+}
+
+
+/* ===== Card actions ===== */
+
+.custom-structure-actions {
+    margin-top: auto;
+    padding-top: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px;
+}
+
+
+/* ===== Project placeholder ===== */
+
+.story-project-placeholder {
+    min-height: 125px;
+    padding: 22px 24px;
+
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    border: 1px dashed #d7cec4;
+    border-radius: 8px;
+    background: rgba(255, 253, 252, .52);
+}
+
+.story-project-placeholder-icon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    background: var(--sage-soft);
+    color: var(--sage);
+}
+
+.story-project-placeholder-content {
+    min-width: 0;
+}
+
+.story-project-placeholder h2 {
+    margin: 5px 0 4px;
+    color: var(--ink);
+    font: 600 17px/1.35 var(--serif);
+}
+
+.story-project-placeholder p {
+    max-width: 600px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    line-height: 1.55;
+}
+
+
+/* ===== Responsive ===== */
+
+@media (max-width: 700px) {
+    .custom-structure-manager-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .custom-structure-list {
+        grid-template-columns: 1fr;
+    }
+
+    .story-project-placeholder {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .story-structure-library-header {
+        padding: 18px;
+    }
+
+    .story-structure-library-heading {
+        gap: 11px;
+    }
+
+    .story-structure-library-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .story-project-placeholder {
+        padding: 18px;
+    }
+}

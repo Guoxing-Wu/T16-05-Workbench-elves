@@ -9,7 +9,7 @@ import { StoryActList } from "./StoryActList";
 import "./storyStructure.css";
 import { getProjectedChapterCount, } from "./storyChapterMapping";
 import { CustomStructureManager } from "./CustomStructureManager";
-import { Network } from "lucide-react";
+import { Library, Network } from "lucide-react";
 
 // Data that must be provided when StoryStructurePage is displayed
 type StoryStructurePageProps = {
@@ -30,34 +30,61 @@ export function StoryStructurePage({
 // Display custom story structure if no project is selected
 if (!project) {
         return (
-            <div className="page-stack core-page">
+            <div className="page-stack core-page story-structure-page">
                 <PageHeader
                     eyebrow="MANUSCRIPT"
                     title="Story Structure"
-                    count="Manage your custom planning structures."
+                    count="Create reusable structures for your story planning."
                 />
 
-                <CustomStructureManager
-                    structures={customStoryStructures}
-                />
+                <section className="story-structure-library">
+                    <header className="story-structure-library-header">
+                        <div className="story-structure-library-heading">
+                            <div className="story-structure-library-icon">
+                                <Library size={20} />
+                            </div>
 
-                <div className="story-project-placeholder">
+                            <div>
+                                <span className="story-section-eyebrow">
+                                    STRUCTURE LIBRARY
+                                </span>
+
+                                <h2>Build your own story framework</h2>
+
+                                <p>
+                                    Create reusable planning structures with
+                                    your own acts and story beats.
+                                </p>
+                            </div>
+                        </div>
+                    </header>
+
+                    <CustomStructureManager
+                        structures={customStoryStructures}
+                    />
+                </section>
+
+                <section className="story-project-placeholder">
                     <div className="story-project-placeholder-icon">
-                        <Network size={24} />
+                        <Network size={22} />
                     </div>
 
-                    <div>
-                        <h2>Open a project to view its story structure</h2>
+                    <div className="story-project-placeholder-content">
+                        <span className="story-section-eyebrow">
+                            PROJECT STRUCTURE
+                        </span>
+
+                        <h2>Open a project to start planning</h2>
+
                         <p>
-                            Select a project first to view and edit its story
-                            structure.
+                            Select a project to choose a story structure and
+                            work through its acts, beats, and chapter plan.
                         </p>
                     </div>
-                </div>
+                </section>
             </div>
         );
     }
-
     // Use the saved template ID to find its name and description
     // When project is selected, show the built in and customised structure
     const selectedTemplate = getStoryStructureOption(
