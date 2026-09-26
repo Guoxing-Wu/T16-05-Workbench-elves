@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 
-import type { StoryStructureTemplate } from "./storyStructureTemplate";
+import type {
+    StoryStructureId,
+    StoryStructureTemplate,
+} from "./storyStructureTemplate";
 import { getStoryBeatCount } from "./storyStructureTemplate";
 
 import { useWorkbench } from "../../lib/store";
@@ -9,10 +12,21 @@ import { CustomStructureEditor } from "./CustomStructureEditor";
 
 type CustomStructureManagerProps = {
     structures: StoryStructureTemplate[];
+
+    // Used by the project view.
+    compact?: boolean;
+
+    // When provided, custom structures can also be selected
+    // for the current project.
+    selectedStructureId?: StoryStructureId;
+    onSelect?: (structureId: StoryStructureId) => void;
 };
 
 export function CustomStructureManager({
     structures,
+    compact = false,
+    selectedStructureId,
+    onSelect,
 }: CustomStructureManagerProps) {
     const {
         addCustomStoryStructure,
@@ -50,6 +64,9 @@ export function CustomStructureManager({
         setEditingStructure(structure);
     };
 
+    /*
+     * Delete a custom structure after confirmation.
+     */
     const handleDelete = (
         structure: StoryStructureTemplate
     ) => {
@@ -89,46 +106,66 @@ export function CustomStructureManager({
         setEditingStructure(null);
     };
 
+    /*
+     * When compact mode is used inside a project,
+     * show the editor without the larger library header.
+     */
+    if (compact && isEditorOpen) {
+        return (
+            <section className="custom-structure-manager compact">
+                <CustomStructureEditor
+                    structure={
+                        editingStructure ?? undefined
+                    }
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                />
+            </section>
+        );
+    }
+
     return (
-        <section className="custom-structure-manager">
+        <section
+            className={
+                compact
+                    ? "custom-structure-manager compact"
+                    : "custom-structure-manager"
+            }
+        >
             {!isEditorOpen && (
                 <>
-                    <header className="custom-structure-manager-header">
-                        <div>
-                            <span className="story-template-eyebrow">
-                                CUSTOM STRUCTURES
-                            </span>
+                    {!compact && (
+                        <header className="custom-structure-manager-header">
+                            <div>
+                                <span className="story-template-eyebrow">
+                                    CUSTOM STRUCTURES
+                                </span>
 
-                            <h2>Your Story Structures</h2>
+                                <h2>Your Story Structures</h2>
 
-                            <p>
-                                Reusable frameworks available across
-                                your projects.
-                            </p>
-                        </div>
-
-                        <button
-                            type="button"
-                            className="toolbar-button primary-button"
-                            onClick={handleCreate}
-                        >
-                            <Plus size={15} />
-                            Create Structure
-                        </button>
-                    </header>
-
-                    {structures.length === 0 ? (
-                        <div className="custom-structure-manager-empty">
-                            <div className="custom-structure-manager-empty-icon">
-                                <LibraryIcon />
+                                <p>
+                                    Reusable frameworks available across
+                                    your projects.
+                                </p>
                             </div>
 
-                            <h3>No custom structures yet</h3>
+                            <button
+                                type="button"
+                                className="toolbar-button primary-button"
+                                onClick={handleCreate}
+                            >
+                                <Plus size={15} />
+                                Create Structure
+                            </button>
+                        </header>
+                    )}
 
-                            <p>
-                                Create your first custom story structure
-                                to define your own acts and story beats.
-                            </p>
+                    {compact && (
+                        <div className="custom-structure-compact-toolbar">
+                            <span>
+                                Reusable structures available across
+                                your projects.
+                            </span>
 
                             <button
                                 type="button"
@@ -136,94 +173,143 @@ export function CustomStructureManager({
                                 onClick={handleCreate}
                             >
                                 <Plus size={14} />
-                                Create Your First Structure
+                                Create Structure
                             </button>
                         </div>
-                    ) : (
-                        <div className="custom-structure-list">
-                            {structures.map((structure) => (
-                                <article
-                                    key={structure.id}
-                                    className="custom-structure-card"
+                    )}
+
+                    {structures.length === 0 ? (
+                        compact ? (
+                            <div className="custom-structure-compact-empty">
+                                <p>
+                                    No custom story structures yet.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="custom-structure-manager-empty">
+                                <div className="custom-structure-manager-empty-icon">
+                                    <LibraryIcon />
+                                </div>
+
+                                <h3>No custom structures yet</h3>
+
+                                <p>
+                                    Create your first custom story structure
+                                    to define your own acts and story beats.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    className="toolbar-button primary-button"
+                                    onClick={handleCreate}
                                 >
-                                    <div className="custom-structure-card-main">
-                                        <span className="custom-structure-card-eyebrow">
-                                            CUSTOM STRUCTURE
-                                        </span>
+                                    <Plus size={14} />
+                                    Create Your First Structure
+                                </button>
+                            </div>
+                        )
+                    ) : (
+                        <div
+                            className={
+                                compact
+                                    ? "custom-structure-list compact"
+                                    : "custom-structure-list"
+                            }
+                        >
+                            {structures.map((structure) => {
+                                const isSelected =
+                                    structure.id ===
+                                    selectedStructureId;
 
-                                        <h3>
-                                            {structure.name}
-                                        </h3>
-
-                                        <p>
-                                            {structure.description ||
-                                                "No description provided."}
-                                        </p>
-
-                                        <div className="custom-structure-card-stats">
-                                            <span>
-                                                <strong>
-                                                    {structure.acts.length}
-                                                </strong>
-                                                {" "}
-                                                {structure.acts.length === 1
-                                                    ? "act"
-                                                    : "acts"}
+                                return (
+                                    <article
+                                        key={structure.id}
+                                        className={
+                                            isSelected
+                                                ? "custom-structure-card compact is-selected"
+                                                : "custom-structure-card compact"
+                                        }
+                                        onClick={() => onSelect?.(structure.id)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Enter" || event.key === " ") {
+                                                event.preventDefault();
+                                                onSelect?.(structure.id);
+                                            }
+                                        }}
+                                    >
+                                        <div className="custom-structure-card-main">
+                                            <span className="custom-structure-card-eyebrow">
+                                                CUSTOM STRUCTURE
                                             </span>
 
-                                            <span>
-                                                <strong>
-                                                    {getStoryBeatCount(
-                                                        structure
-                                                    )}
-                                                </strong>
-                                                {" "}
-                                                {getStoryBeatCount(
-                                                    structure
-                                                ) === 1
-                                                    ? "beat"
-                                                    : "beats"}
-                                            </span>
+                                            <h3>
+                                                {structure.name}
+                                            </h3>
+
+                                            <p>
+                                                {structure.description ||
+                                                    "No description provided."}
+                                            </p>
+
+                                            <div className="custom-structure-card-stats">
+                                                <span>
+                                                    <strong>
+                                                        {structure.acts.length}
+                                                    </strong>{" "}
+                                                    {structure.acts.length === 1
+                                                        ? "act"
+                                                        : "acts"}
+                                                </span>
+
+                                                <span>
+                                                    <strong>
+                                                        {getStoryBeatCount(structure)}
+                                                    </strong>{" "}
+                                                    {getStoryBeatCount(structure) === 1
+                                                        ? "beat"
+                                                        : "beats"}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="custom-structure-actions">
-                                        <button
-                                            type="button"
-                                            className="icon-button edit-icon"
-                                            onClick={() =>
-                                                handleEdit(
-                                                    structure
-                                                )
-                                            }
-                                            aria-label={`Edit ${structure.name}`}
-                                            title="Edit structure"
-                                        >
-                                            <Pencil size={15} />
-                                        </button>
+                                        <div className="custom-structure-actions">
+                                            <button
+                                                type="button"
+                                                className="icon-button edit-icon"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleEdit(structure);
+                                                }}
+                                                aria-label={`Edit ${structure.name}`}
+                                                title="Edit structure"
+                                            >
+                                                <Pencil size={15} />
+                                            </button>
 
-                                        <button
-                                            type="button"
-                                            className="icon-button delete-icon"
-                                            onClick={() =>
-                                                handleDelete(
-                                                    structure
-                                                )
-                                            }
-                                            aria-label={`Delete ${structure.name}`}
-                                            title="Delete structure"
-                                        >
-                                            <Trash2 size={15} />
-                                        </button>
-                                    </div>
-                                </article>
-                            ))}
+                                            <button
+                                                type="button"
+                                                className="icon-button delete-icon"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleDelete(structure);
+                                                }}
+                                                aria-label={`Delete ${structure.name}`}
+                                                title="Delete structure"
+                                            >
+                                                <Trash2 size={15} />
+                                            </button>
+                                        </div>
+                                    </article>
+                                );
+                            })}
                         </div>
                     )}
                 </>
             )}
 
-            {isEditorOpen && (
+            {!compact && isEditorOpen && (
                 <CustomStructureEditor
                     structure={
                         editingStructure ?? undefined
@@ -236,10 +322,6 @@ export function CustomStructureManager({
     );
 }
 
-/*
- * Small local icon wrapper for the empty state.
- * Keeping this separate avoids introducing another dependency.
- */
 function LibraryIcon() {
     return (
         <svg

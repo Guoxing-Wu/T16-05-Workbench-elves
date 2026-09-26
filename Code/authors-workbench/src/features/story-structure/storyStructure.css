@@ -501,10 +501,6 @@
     transform: translateY(-1px);
 }
 
-.custom-structure-card-main {
-    min-width: 0;
-}
-
 .custom-structure-card-eyebrow {
     color: var(--coral-dark);
     font-size: 8px;
@@ -652,5 +648,164 @@
 
     .story-project-placeholder {
         padding: 18px;
+    }
+}
+/* ---------------------------------------------------------
+   Custom structures inside the selected-project view
+   --------------------------------------------------------- */
+
+.story-custom-structures-section {
+    margin-top: 24px;
+}
+
+.story-custom-structures-header {
+    margin-bottom: 12px;
+}
+
+.story-custom-structures-header h3 {
+    margin: 0;
+    font: 500 17px/1.4 var(--serif);
+    color: var(--ink);
+}
+
+.story-custom-structures-header p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.custom-structure-manager.compact {
+    display: grid;
+    gap: 10px;
+}
+
+.custom-structure-compact-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-warm);
+    border-radius: 7px;
+    background: var(--paper-light);
+}
+
+.custom-structure-compact-toolbar > span {
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.custom-structure-list.compact {
+    display: grid;
+    gap: 8px;
+}
+
+.custom-structure-card.compact {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--border-warm);
+    border-radius: 7px;
+    background: var(--surface);
+}
+
+.custom-structure-card.compact.is-selected {
+    border-color: var(--coral);
+    background: var(--coral-soft);
+}
+
+
+.custom-structure-card-main {
+    flex: 1;
+    min-width: 0;
+    padding: 18px 24px;
+}
+
+.custom-structure-card-eyebrow {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    font: 10px/1.4 var(--mono);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.custom-structure-card-main h3 {
+    margin: 0;
+    font: 500 16px/1.35 var(--serif);
+    color: var(--ink);
+}
+
+.custom-structure-card-main p {
+    margin: 4px 0 9px;
+    max-width: 680px;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-structure-card-stats {
+    display: flex;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 10px;
+}
+
+.custom-structure-card-stats strong {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.custom-structure-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 10px 0 0;
+}
+
+.custom-structure-compact-empty {
+    padding: 14px 15px;
+    border: 1px dashed var(--border-warm);
+    border-radius: 7px;
+    background: var(--paper-light);
+}
+
+.custom-structure-compact-empty p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* Keep the compact manager's editor separated from the picker. */
+.custom-structure-manager.compact
+    .custom-structure-editor {
+    margin-top: 0;
+}
+
+@media (max-width: 700px) {
+    .custom-structure-compact-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .custom-structure-card.compact {
+        flex-direction: column;
+    }
+
+    .custom-structure-actions {
+        justify-content: flex-end;
+        padding: 0 10px 10px;
+    }
+
+    .custom-structure-card-main p {
+        white-space: normal;
     }
 }

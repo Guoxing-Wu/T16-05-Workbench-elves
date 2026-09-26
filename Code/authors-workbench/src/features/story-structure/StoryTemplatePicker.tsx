@@ -8,6 +8,8 @@ import type {
     StoryStructureTemplate,
 } from "./storyStructureTemplate";
 
+import { CustomStructureManager } from "./CustomStructureManager";
+
 type StoryTemplatePickerProps = {
     value: StoryStructureId;
     onChange: (templateId: StoryStructureId) => void;
@@ -71,50 +73,24 @@ export function StoryTemplatePicker({
                 </div>
             </section>
 
-            <section>
-                <h3>Custom Structures</h3>
+            <section className="story-custom-structures-section">
+                <div className="story-custom-structures-header">
+                    <div>
+                        <h3>Custom Structures</h3>
 
-                {customStructures.length === 0 ? (
-                    <p>
-                        No custom story structures available.
-                    </p>
-                ) : (
-                    <div
-                        className="story-template-grid"
-                        role="group"
-                        aria-label="Custom story structure templates"
-                    >
-                        {customStructures.map((structure) => {
-                            const isSelected =
-                                structure.id === value;
-
-                            return (
-                                <button
-                                    key={structure.id}
-                                    type="button"
-                                    className={
-                                        isSelected
-                                            ? "story-template-option is-selected"
-                                            : "story-template-option"
-                                    }
-                                    aria-pressed={isSelected}
-                                    onClick={() =>
-                                        onChange(structure.id)
-                                    }
-                                >
-                                    <span className="story-template-name">
-                                        {structure.name}
-                                    </span>
-
-                                    <span className="story-template-summary">
-                                        {structure.acts.length} acts ·{" "}
-                                        {getStoryBeatCount(structure)} story beats
-                                    </span>
-                                </button>
-                            );
-                        })}
+                        <p>
+                            Create and reuse your own story planning
+                            frameworks.
+                        </p>
                     </div>
-                )}
+                </div>
+
+                <CustomStructureManager
+                    structures={customStructures}
+                    compact
+                    selectedStructureId={value}
+                    onSelect={onChange}
+                />
             </section>
         </section>
     );
