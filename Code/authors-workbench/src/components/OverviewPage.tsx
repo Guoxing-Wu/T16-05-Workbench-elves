@@ -8,7 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { PageHeader, EmptyState } from "./primitives";
+import { PageHeader, EmptyState,  ToolButton} from "./primitives";
 import { useWorkbench } from "../lib/store";
 import type { WorkbenchView } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
@@ -64,14 +64,13 @@ const MODULES: ModuleCard[] = [
 
 // The overview page shows details of the most recently opened project with clickable submodules. 
 export function OverviewPage() {
-  const { projects, setActiveView, setActiveProjectId, updateProject} = useWorkbench();
+  const {setActiveView, activeProject, updateProject} = useWorkbench();
 
   // Shows the project was opened most recently.
-  const featured = [...projects].sort((a, b) => b.lastOpenedAt - a.lastOpenedAt)[0] ?? null;
+  const featured = activeProject;
 
   // Making sure the featured project is active firstly to open mudules.
   const openModule = (view: WorkbenchView) => {
-    if (featured) setActiveProjectId(featured.id);
     setActiveView(view);
   };
 
@@ -106,7 +105,12 @@ export function OverviewPage() {
 
         <EmptyState
           title="Nothing to show yet"
-          copy="Create a writing project to see your progress here."
+          copy="Open a project to see your progress here."
+          action={
+            <ToolButton primary onClick={() => setActiveView("projects")}>
+              Go to Projects
+            </ToolButton>
+          }
         />
       </div>
     );

@@ -226,7 +226,7 @@ function ProjectForm({
 
 // The projects overview shows every project as a card.
 export function ProjectsPage({ onOpen }: { onOpen: (id: string) => void }) {
-  const { projects, deleteProject } = useWorkbench();
+  const { projects, deleteProject, activeProjectId} = useWorkbench();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -262,11 +262,13 @@ export function ProjectsPage({ onOpen }: { onOpen: (id: string) => void }) {
           {projects.map((project) => {
             const written = wordsWritten(project);
             return (
-              <article key={project.id} className="project-card">
+              <article key={project.id} 
+                className={`project-card ${project.id === activeProjectId ? "active" : ""}`}
+                >
                 <div className="project-card-icon">
                   <FolderOpen size={22} />
                 </div>
-                <span>WRITING PROJECT</span>
+                <span>{project.id === activeProjectId ? "CURRENT PROJECT" : ""}</span>
                 <h2>{project.title}</h2>
                 <p>
                   {written.toLocaleString()} of {(project.targetWordCount || 0).toLocaleString()} words written
