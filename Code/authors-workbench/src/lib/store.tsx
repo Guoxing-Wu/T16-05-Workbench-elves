@@ -1,8 +1,14 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+<<<<<<< HEAD
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryDate } from "./domain";
 import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
+=======
+import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent, makeStoryScene, makeLocation } from "./domain";
+import type { Chapter, WritingProject, Character, StoryEvent, StoryScene, StoryDate, Location } from "./domain";
+import type { StoryStructureId, StoryStructureTemplate,} from "../features/story-structure/storyStructureTemplate";
+>>>>>>> f9f6cdd (feat: Implement story event date, adjusted UI)
 
 //left 
 export type WorkbenchView =
@@ -43,10 +49,65 @@ interface WorkbenchStoreValue {
   removeCharacter: (projectId: string, characterId: string) => void;
 
   // Story event operations
+<<<<<<< HEAD
   addStoryEvent: (projectId: string, input: { chapterIds: string[]; title: string; description?: string; eventDate: StoryDate; location: string; characterIds?: string[];isStoryBeat: boolean;storyBeatId?: string;storyBeatName?: string; }) => void;
   updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
   removeStoryEvent: (projectId: string, eventId: string) => void;
 
+=======
+  addStoryEvent: (projectId: string, input: { chapterIds: string[]; title: string; description?: string; startDate: StoryDate; endDate: StoryDate; locationId?: string; characterIds?: string[];isStoryBeat: boolean;storyBeatId?: string;storyBeatName?: string; }) => StoryEvent;
+  updateStoryEvent: (projectId: string, eventId: string, patch: Partial<StoryEvent>) => void;
+  removeStoryEvent: (projectId: string, eventId: string) => void;
+
+  // Story Scene operations
+  addStoryScene: (projectId: string, input: { title: string; description?: string; date: StoryDate; eventId?: string; chapterIds: string[]; characterIds?: string[], locationId?: string;}) => StoryScene;
+
+  updateStoryScene: (
+    projectId: string,
+    sceneId: string,
+    patch: Partial<StoryScene>
+  ) => void;
+
+  removeStoryScene: (
+    projectId: string,
+    sceneId: string
+  ) => void;
+  // Global custom story structure templates
+  customStoryStructures: StoryStructureTemplate[];
+
+  // Story structure operations
+  addCustomStoryStructure: (
+    structure: StoryStructureTemplate
+  ) => void;
+
+  updateCustomStoryStructure: (
+    structureId: string,
+    update: (
+      structure: StoryStructureTemplate
+    ) => StoryStructureTemplate
+  ) => void;
+
+  deleteCustomStoryStructure: (
+    structureId: string
+  ) => void;
+
+  // Location operations
+  addLocation: (
+    projectId: string,
+    input: { name: string; description?: string }
+  ) => Location;
+
+  removeLocation: (
+    projectId: string,
+    locationId: string
+  ) => void;
+
+  updateLocation: (
+    projectId: string,
+    locationId: string,
+    input: { name: string; description?: string }
+  ) => void;
+>>>>>>> f9f6cdd (feat: Implement story event date, adjusted UI)
 }
 
 
@@ -175,28 +236,189 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+<<<<<<< HEAD
   // Subcomponents will not re-render though this provider did unless the actual state changed.
+=======
+  // Add a story Scene
+  const addStoryScene: WorkbenchStoreValue["addStoryScene"] = (
+    projectId,
+    input
+  ) => {
+    const scene = makeStoryScene(input);
+
+    updateProject(projectId, (project) => ({
+      ...project,
+      scenes: [...(project.scenes || []), scene],
+    }));
+
+    return scene;
+  };
+
+  // Update(edit) a story scene
+  const updateStoryScene: WorkbenchStoreValue["updateStoryScene"] = (
+    projectId,
+    sceneId,
+    patch
+  ) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      scenes: (project.scenes || []).map((scene) =>
+        scene.id === sceneId
+          ? { ...scene, ...patch }
+          : scene
+      ),
+    }));
+  };
+
+  // Remove a story scene
+  const removeStoryScene: WorkbenchStoreValue["removeStoryScene"] = (
+    projectId,
+    sceneId
+  ) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      scenes: (project.scenes || []).filter(
+        (scene) => scene.id !== sceneId
+      ),
+    }));
+  };
+
+  // Create a custom story structure
+  const addCustomStoryStructure = (
+    structure: StoryStructureTemplate
+  ) => {
+    setCustomStoryStructures((list) => [
+      ...list,
+      structure,
+    ]);
+  };
+
+  // Update a custom story structure
+  const updateCustomStoryStructure = (
+    structureId: string,
+    update: (
+      structure: StoryStructureTemplate
+    ) => StoryStructureTemplate
+  ) => {
+    setCustomStoryStructures((list) =>
+      list.map((structure) =>
+        structure.id === structureId
+          ? update(structure)
+          : structure
+      )
+    );
+  };
+
+  // Delete a custom Story Structure
+  const deleteCustomStoryStructure = (
+    structureId: string
+  ) => {
+    setCustomStoryStructures((list) =>
+      list.filter(
+        (structure) => structure.id !== structureId
+      )
+    );
+  };
+
+  // Adds a new location to the project and returns it, so callers can
+  // immediately link the fresh id to a story event.
+  const addLocation: WorkbenchStoreValue["addLocation"] = (
+    projectId,
+    input
+  ) => {
+    const location = makeLocation(input);
+    updateProject(projectId, (project) => ({
+      ...project,
+      locations: [...(project.locations || []), location],
+    }));
+    return location;
+  };
+
+  // Removes a location and clears the reference on events that used it.
+  const removeLocation: WorkbenchStoreValue["removeLocation"] = (
+    projectId,
+    locationId
+  ) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      locations: (project.locations || []).filter(
+        (l) => l.id !== locationId
+      ),
+      events: (project.events || []).map((e) =>
+        e.locationId === locationId
+          ? { ...e, locationId: undefined }
+          : e
+      ),
+    }));
+  };
+
+  // Updates the name/description of an existing location.
+  const updateLocation: WorkbenchStoreValue["updateLocation"] = (
+    projectId,
+    locationId,
+    input
+  ) => {
+    updateProject(projectId, (project) => ({
+      ...project,
+      locations: (project.locations || []).map((l) =>
+        l.id === locationId
+          ? {
+              ...l,
+              name: input.name.trim(),
+              description: input.description?.trim() || "",
+            }
+          : l
+      ),
+    }));
+  };
+    // Subcomponents will not re-render though this provider did unless the actual state changed.
+>>>>>>> f9f6cdd (feat: Implement story event date, adjusted UI)
   const value = useMemo<WorkbenchStoreValue>(
     () => ({
+      // Project
       projects,
       activeProject,
       activeProjectId,
       setActiveProjectId,
+      // Active View
       activeView,
       setActiveView,
       createProject,
       deleteProject,
       updateProject,
+      // Chapter
       addChapter,
       updateChapter,
       removeChapter,
       moveChapter,
+
+      // Character
       addCharacter,
       updateCharacter,
       removeCharacter,
+      // Story Events
       addStoryEvent,
       updateStoryEvent,
       removeStoryEvent,
+<<<<<<< HEAD
+=======
+
+      // Story Scene
+      addStoryScene,
+      updateStoryScene,
+      removeStoryScene,
+
+      // Custom story structures
+      customStoryStructures,
+      addCustomStoryStructure,
+      updateCustomStoryStructure,
+      deleteCustomStoryStructure,
+
+      // Locations
+      addLocation,
+      removeLocation,
+      updateLocation,
+>>>>>>> f9f6cdd (feat: Implement story event date, adjusted UI)
     }),
     [projects, activeProject, activeProjectId, activeView]
   );

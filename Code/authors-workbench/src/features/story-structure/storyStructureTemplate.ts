@@ -366,13 +366,22 @@ export function getStoryBeatCount(template: StoryStructureTemplate) {
 
 
 // Finds and returns the Story Structure that matches the supplied ID
-export function getStoryStructureOption(id: StoryStructureId) {
-    for (const option of STORY_STRUCTURE_OPTIONS) {
-        if (option.id === id) {
-            return option;
-        }
+// from either the built-in or custom structures.
+export function getStoryStructureOption(
+  id: StoryStructureId,
+  customStructures: StoryStructureTemplate[] = []
+): StoryStructureTemplate {
+  for (const option of STORY_STRUCTURE_OPTIONS) {
+    if (option.id === id) {
+      return option;
     }
+  }
 
-    // Return the first template if no matching ID is found.
-    return STORY_STRUCTURE_OPTIONS[0];
+  for (const option of customStructures) {
+    if (option.id === id) {
+      return option;
+    }
+  }
+
+  return STORY_STRUCTURE_OPTIONS[0];
 }

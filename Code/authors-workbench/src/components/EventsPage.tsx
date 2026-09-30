@@ -1,28 +1,69 @@
 import { useState } from "react";
-import { MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";import { Field, IconButton, Modal, PageHeader, ToolButton } from "./primitives";
+
+import { MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
+import {
+  Field,
+  IconButton,
+  Modal,
+  PageHeader,
+  ToolButton,
+} from "./primitives";
+
 import { useWorkbench } from "../lib/store";
-import { characterAgeAtYear } from "../lib/domain";
-import type { StoryDate, StoryEvent, WritingProject } from "../lib/domain";
-import { getStoryBeatChapterMappings,} from "../features/story-structure/storyChapterMapping";
 
-import { getStoryStructureOption,} from "../features/story-structure/storyStructureTemplate";
+import type {
+  StoryDate,
+  StoryEvent,
+  WritingProject,
+} from "../lib/domain";
 
-// Parses a "YYYY-MM-DD" (or "YYYY-MM", or "YYYY") input value into a StoryDate.
+import {
+  characterAgeAtYear,
+  formatStoryDate,
+} from "../lib/domain";
+
+import { getStoryBeatChapterMappings } from "../features/story-structure/storyChapterMapping";
+
+import { getStoryStructureOption } from "../features/story-structure/storyStructureTemplate";
+
+// Parses a "YYYY-MM-DD" input value into a StoryDate.
 function parseStoryDateInput(value: string): StoryDate {
   const [yearStr, monthStr, dayStr] = value.split("-");
+
   const year = Number(yearStr) || 0;
   const month = monthStr ? Number(monthStr) : undefined;
   const day = dayStr ? Number(dayStr) : undefined;
+
   return { year, month, day };
 }
 
-// Converts a StoryDate back into a "YYYY-MM-DD" string for the <input type="date">.
+// Converts a StoryDate back into a "YYYY-MM-DD" string for the date input.
 function storyDateToInputValue(date: StoryDate): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   const year = String(date.year).padStart(4, "0");
-  if (date.month && date.day) return `${year}-${pad(date.month)}-${pad(date.day)}`;
-  if (date.month) return `${year}-${pad(date.month)}-01`;
+
+  if (date.month && date.day) {
+    return `${year}-${pad(date.month)}-${pad(date.day)}`;
+  }
+
+  if (date.month) {
+    return `${year}-${pad(date.month)}-01`;
+  }
+
   return `${year}-01-01`;
+}
+
+// Compare two StoryDate values chronologically.
+function compareStoryDates(a: StoryDate, b: StoryDate): number {
+  if (a.year !== b.year) {
+    return a.year - b.year;
+  }
+
+  if ((a.month ?? 0) !== (b.month ?? 0)) {
+    return (a.month ?? 0) - (b.month ?? 0);
+  }
+
+  return (a.day ?? 0) - (b.day ?? 0);
 }
 
 // One row in the event list.
@@ -37,84 +78,97 @@ function EventRow({
   onEdit: () => void;
   onRemove: () => void;
 }) {
-
-  // Resolve stored chapter IDs and character IDs to the current project entities
-  // so the event row can display their names and related information.
+  // Resolve stored chapter IDs and character IDs to the current project entities.
   const linkedChapter = (event.chapterIds || [])
-  .map((id) => project.chapters.find((c) => c.id === id))
-  .filter((c): c is NonNullable<typeof c> => Boolean(c));
+    .map((id) => project.chapters.find((c) => c.id === id))
+    .filter((c): c is NonNullable<typeof c> => Boolean(c));
 
   const affectedCharacters = (event.characterIds || [])
     .map((id) => project.characters.find((c) => c.id === id))
     .filter(
-        (c): c is NonNullable<typeof c> & { birthday: StoryDate } =>
-          c !== undefined && c.birthday !== undefined
+      (c): c is NonNullable<typeof c> & { birthday: StoryDate } =>
+        c !== undefined && c.birthday !== undefined
     );
+  
+  const locationName = event.locationId
+  ? project.locations.find(
+      (location) => location.id === event.locationId
+    )?.name
+  : undefined;
 
-  // Chapter-linked events get a coral accent; standalone beats get blue.
+  // Story beat events use a coral accent; regular events use blue.
   const accent = event.isStoryBeat ? "coral" : "blue";
 
   return (
-    // UI design for event row
     <div className={`event-card accent-${accent}`}>
       <div className="event-year">
-        <span>YEAR</span>
-        <strong>{event.eventDate.year}</strong>
+        <span>DATE</span>
+
+        <strong>
+          {formatStoryDate(event.startDate)}
+        </strong>
+
+        <small>
+          → {formatStoryDate(event.endDate)}
+        </small>
       </div>
-      
 
-<div className="event-body">
-  {linkedChapter.length > 0 && (
-    <p className="event-tag">
-      CHAPTER · {linkedChapter.map((c) => c.title).join(", ")}
-    </p>
-  )}
+      <div className="event-body">
+        {linkedChapter.length > 0 && (
+          <p className="event-tag">
+            CHAPTER · {linkedChapter.map((c) => c.title).join(", ")}
+          </p>
+        )}
 
-  {event.isStoryBeat && (
-    <p className="event-tag">
-      STORY BEAT{event.storyBeatName ? ` · ${event.storyBeatName}` : ""}
-    </p>
-  )}
+        {event.isStoryBeat && (
+          <p className="event-tag">
+            STORY BEAT
+            {event.storyBeatName ? ` · ${event.storyBeatName}` : ""}
+          </p>
+        )}
 
-  <h3 className="event-title">{event.title}</h3>
+        <h3 className="event-title">{event.title}</h3>
 
-  {event.description && (
-    <p className="event-description">{event.description}</p>
-  )}
-</div>
+        {event.description && (
+          <p className="event-description">
+            {event.description}
+          </p>
+        )}
+      </div>
 
-<div className="event-side">
-  {affectedCharacters.length > 0 && (
-    <span className="event-meta-item">
-      <Users size={12} />
-      {affectedCharacters
-        .map(
-          (c) =>
-            `${c.name} (${characterAgeAtYear(
-              c.birthday,
-              event.eventDate
-            )})`
-        )
-        .join(", ")}
-    </span>
-  )}
+      <div className="event-side">
+        {affectedCharacters.length > 0 && (
+          <span className="event-meta-item">
+            <Users size={12} />
 
-  {event.location && (
-    <span className="event-meta-item">
-      <MapPin size={12} /> {event.location}
-    </span>
-  )}
-</div>
+            {affectedCharacters
+              .map(
+                (character) =>
+                  `${character.name} (${characterAgeAtYear(
+                    character.birthday,
+                    event.startDate
+                  )})`
+              )
+              .join(", ")}
+          </span>
+        )}
 
-<div className="row-actions">
-  <IconButton title="Edit event" onClick={onEdit}>
-    <Pencil size={14} />
-  </IconButton>
+        {locationName && (
+          <span className="event-meta-item">
+            <MapPin size={12} /> {locationName}
+          </span>
+        )}
+      </div>
 
-  <IconButton title="Delete event" danger onClick={onRemove}>
-    <Trash2 size={14} />
-  </IconButton>
-</div>
+      <div className="row-actions">
+        <IconButton title="Edit event" onClick={onEdit}>
+          <Pencil size={14} />
+        </IconButton>
+
+        <IconButton title="Delete event" danger onClick={onRemove}>
+          <Trash2 size={14} />
+        </IconButton>
+      </div>
     </div>
   );
 }
@@ -125,22 +179,22 @@ function ChapterMultiSelect({
   selectedIds,
   onChange,
   availableChapterOrders,
+  chapterBeatNames,
 }: {
   chapters: WritingProject["chapters"];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   availableChapterOrders?: number[];
+  chapterBeatNames?: Record<number, string[]>;
 }) {
   const [open, setOpen] = useState(false);
 
-  // Only the available chapters can be selected
   const availableChapters = availableChapterOrders
-  ? chapters.filter((chapter) =>
-      availableChapterOrders.includes(chapter.order)
-    )
-  : chapters;
+    ? chapters.filter((chapter) =>
+        availableChapterOrders.includes(chapter.order)
+      )
+    : chapters;
 
-  // When selecting a chapter, add the chapter if it is not selected; otherwise remove it.
   const toggleChapter = (id: string) => {
     onChange(
       selectedIds.includes(id)
@@ -149,7 +203,6 @@ function ChapterMultiSelect({
     );
   };
 
-  // Keep the selected chapter objects for displaying their titles in the trigger.
   const selectedChapters = chapters.filter((chapter) =>
     selectedIds.includes(chapter.id)
   );
@@ -189,7 +242,13 @@ function ChapterMultiSelect({
                   }`}
                   onClick={() => toggleChapter(chapter.id)}
                 >
-                  <span>{chapter.title}</span>
+                  <span>
+                    {chapter.title}
+
+                    {chapterBeatNames?.[chapter.order]?.length
+                      ? ` · ${chapterBeatNames[chapter.order].join(" / ")}`
+                      : ""}
+                  </span>
 
                   {selected && (
                     <span className="multi-select-check">✓</span>
@@ -210,33 +269,70 @@ function EventFormModal({
   initial,
   onClose,
   onSave,
+  addLocation,
+  customStoryStructures,
 }: {
   project: WritingProject;
   initial?: StoryEvent;
   onClose: () => void;
+
   onSave: (input: {
     title: string;
     description: string;
-    eventDate: StoryDate;
-    location: string;
+    startDate: StoryDate;
+    endDate: StoryDate;
+    locationId?: string;
     chapterIds: string[];
     characterIds: string[];
     isStoryBeat: boolean;
     storyBeatId?: string;
     storyBeatName?: string;
   }) => void;
+
+  addLocation: (
+    projectId: string,
+    input: { name: string; description?: string }
+  ) => import("../lib/domain").Location;
+
+  customStoryStructures: import("../features/story-structure/storyStructureTemplate").StoryStructureTemplate[];
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [dateInput, setDateInput] = useState(
-    initial ? storyDateToInputValue(initial.eventDate) : ""
+  const [description, setDescription] = useState(
+    initial?.description ?? ""
   );
-  const [location, setLocation] = useState(initial?.location ?? "");
-  const [chapterIds, setChapterIds] = useState<string[]>(initial?.chapterIds ?? []);
-  const [characterIds, setCharacterIds] = useState<string[]>(initial?.characterIds ?? []);
-  const [isStoryBeat, setIsStoryBeat] = useState( initial?.isStoryBeat ?? false);
 
-  const structure = getStoryStructureOption(project.storyStructure);
+  const [startDateInput, setStartDateInput] = useState(
+    initial ? storyDateToInputValue(initial.startDate) : ""
+  );
+
+  const [endDateInput, setEndDateInput] = useState(
+    initial ? storyDateToInputValue(initial.endDate) : ""
+  );
+
+  const [locationId, setLocationId] = useState(
+    initial?.locationId ?? ""
+  );
+
+  const [newLocationName, setNewLocationName] = useState("");
+
+  const [chapterIds, setChapterIds] = useState<string[]>(
+    initial?.chapterIds ?? []
+  );
+
+  const [characterIds, setCharacterIds] = useState<string[]>(
+    initial?.characterIds ?? []
+  );
+
+  const [isStoryBeat, setIsStoryBeat] = useState(
+    initial?.isStoryBeat ?? false
+  );
+
+  const LOCATION_NEW = "__new__";
+
+  const structure = getStoryStructureOption(
+    project.storyStructure,
+    customStoryStructures
+  );
 
   const storyBeatMappings = getStoryBeatChapterMappings(
     structure,
@@ -260,7 +356,23 @@ function EventFormModal({
       })
     )
   );
-  // When selecting a character, add if this character is not selected, otherwise, remove it
+
+  const chapterBeatNames: Record<number, string[]> = {};
+
+  storyBeatMappings.forEach((mapping) => {
+    for (
+      let order = mapping.chapterRange.start;
+      order <= mapping.chapterRange.end;
+      order++
+    ) {
+      if (!chapterBeatNames[order]) {
+        chapterBeatNames[order] = [];
+      }
+
+      chapterBeatNames[order].push(mapping.storyBeatName);
+    }
+  });
+
   const toggleCharacter = (id: string) => {
     setCharacterIds((list) =>
       list.includes(id)
@@ -269,39 +381,126 @@ function EventFormModal({
     );
   };
 
-  // The minimum event information required before saving
   const handleSave = () => {
-    if (!title.trim() || !dateInput) return;
+    if (!title.trim() || !startDateInput || !endDateInput) {
+      return;
+    }
+
+    const startDate = parseStoryDateInput(startDateInput);
+    const endDate = parseStoryDateInput(endDateInput);
+
+    if (compareStoryDates(startDate, endDate) > 0) {
+      window.alert("End date cannot be earlier than start date.");
+      return;
+    }
+
+    let finalLocationId: string | undefined;
+
+    if (locationId === LOCATION_NEW) {
+      const name = newLocationName.trim();
+
+      if (name) {
+        const created = addLocation(project.id, { name });
+        finalLocationId = created.id;
+      }
+    } else if (locationId) {
+      finalLocationId = locationId;
+    }
+
     onSave({
       title: title.trim(),
       description,
-      eventDate: parseStoryDateInput(dateInput),
-      location,
+      startDate,
+      endDate,
+      locationId: finalLocationId,
       chapterIds,
       characterIds,
       isStoryBeat,
     });
+
     onClose();
   };
 
   return (
-    <Modal title={initial ? "Edit story event" : "Create a story event or milestone"} onClose={onClose} wide>
+    <Modal
+      title={
+        initial
+          ? "Edit story event"
+          : "Create a story event or milestone"
+      }
+      onClose={onClose}
+      wide
+    >
       <div className="workbench-form">
         <div className="form-grid">
           <Field label="Event title">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </Field>
-          <Field label="Story date">
-            <input type="date" value={dateInput} onChange={(e) => setDateInput(e.target.value)} />
+
+          <Field label="Start date">
+            <input
+              type="date"
+              value={startDateInput}
+              onChange={(e) =>
+                setStartDateInput(e.target.value)
+              }
+            />
+          </Field>
+
+          <Field label="End date">
+            <input
+              type="date"
+              value={endDateInput}
+              onChange={(e) =>
+                setEndDateInput(e.target.value)
+              }
+            />
           </Field>
         </div>
 
         <Field label="Location" full>
-          <input value={location} onChange={(e) => setLocation(e.target.value)} />
+          <select
+            value={locationId}
+            onChange={(e) => {
+              setLocationId(e.target.value);
+
+              if (e.target.value !== LOCATION_NEW) {
+                setNewLocationName("");
+              }
+            }}
+          >
+            <option value="">No location</option>
+
+            {project.locations.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.name}
+              </option>
+            ))}
+
+            <option value={LOCATION_NEW}>
+              + Create new location
+            </option>
+          </select>
+
+          {locationId === LOCATION_NEW && (
+            <input
+              value={newLocationName}
+              onChange={(e) =>
+                setNewLocationName(e.target.value)
+              }
+              placeholder="New location name"
+            />
+          )}
         </Field>
 
         <Field label="Description" full>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </Field>
 
         <Field label="Story Beat" full>
@@ -309,8 +508,11 @@ function EventFormModal({
             <input
               type="checkbox"
               checked={isStoryBeat}
-              onChange={(e) => setIsStoryBeat(e.target.checked)}
+              onChange={(e) =>
+                setIsStoryBeat(e.target.checked)
+              }
             />
+
             <span>This event is a Story Beat</span>
           </label>
         </Field>
@@ -321,29 +523,50 @@ function EventFormModal({
             selectedIds={chapterIds}
             onChange={setChapterIds}
             availableChapterOrders={
-              isStoryBeat ? storyBeatChapterOrders : undefined
+              isStoryBeat
+                ? storyBeatChapterOrders
+                : undefined
+            }
+            chapterBeatNames={
+              isStoryBeat
+                ? chapterBeatNames
+                : undefined
             }
           />
         </Field>
 
         <Field label="Characters affected" full>
           <div className="character-checkbox-list">
-            {project.characters.map((c) => (
-              <label key={c.id} className="character-checkbox">
+            {project.characters.map((character) => (
+              <label
+                key={character.id}
+                className="character-checkbox"
+              >
                 <input
                   type="checkbox"
-                  checked={characterIds.includes(c.id)}
-                  onChange={() => toggleCharacter(c.id)}
+                  checked={characterIds.includes(character.id)}
+                  onChange={() =>
+                    toggleCharacter(character.id)
+                  }
                 />
-                {c.name}
+
+                {character.name}
               </label>
             ))}
-            {project.characters.length === 0 && <p className="muted-copy">No characters yet.</p>}
+
+            {project.characters.length === 0 && (
+              <p className="muted-copy">
+                No characters yet.
+              </p>
+            )}
           </div>
         </Field>
 
         <div className="modal-actions">
-          <ToolButton onClick={onClose}>Cancel</ToolButton>
+          <ToolButton onClick={onClose}>
+            Cancel
+          </ToolButton>
+
           <ToolButton primary onClick={handleSave}>
             Save event
           </ToolButton>
@@ -353,17 +576,41 @@ function EventFormModal({
   );
 }
 
-// The Events page: lists all story events for the active project, sorted by story date.
-export function EventsPage({ project }: { project: WritingProject }) {
-  const { addStoryEvent, updateStoryEvent, removeStoryEvent } = useWorkbench();
-  const [modalState, setModalState] = useState<null | "create" | StoryEvent>(null);
+// The Events page: lists all story events for the active project,
+// sorted by their start date.
+export function EventsPage({
+  project,
+}: {
+  project: WritingProject;
+}) {
+  const {
+    addStoryEvent,
+    updateStoryEvent,
+    removeStoryEvent,
+    addLocation,
+    customStoryStructures,
+  } = useWorkbench();
 
-  const events = [...(project.events || [])].sort((a, b) => a.eventDate.year - b.eventDate.year);
+  const [modalState, setModalState] = useState<
+    null | "create" | StoryEvent
+  >(null);
+
+  const events = [...(project.events || [])].sort(
+    (a, b) =>
+      compareStoryDates(a.startDate, b.startDate)
+  );
 
   return (
     <div className="page-stack core-page">
-      <PageHeader eyebrow="MANUSCRIPT" title="Story Events" count={`${events.length} dated events and milestones`}>
-        <ToolButton primary onClick={() => setModalState("create")}>
+      <PageHeader
+        eyebrow="MANUSCRIPT"
+        title="Story Events"
+        count={`${events.length} dated events and milestones`}
+      >
+        <ToolButton
+          primary
+          onClick={() => setModalState("create")}
+        >
           <Plus size={15} /> Add event
         </ToolButton>
       </PageHeader>
@@ -375,22 +622,39 @@ export function EventsPage({ project }: { project: WritingProject }) {
             event={event}
             project={project}
             onEdit={() => setModalState(event)}
-            onRemove={() => removeStoryEvent(project.id, event.id)}
+            onRemove={() =>
+              removeStoryEvent(project.id, event.id)
+            }
           />
         ))}
-        {events.length === 0 && <p className="muted-copy">No events yet.</p>}
+
+        {events.length === 0 && (
+          <p className="muted-copy">
+            No events yet.
+          </p>
+        )}
       </div>
 
       {modalState && (
         <EventFormModal
           project={project}
-          initial={modalState === "create" ? undefined : modalState}
+          initial={
+            modalState === "create"
+              ? undefined
+              : modalState
+          }
           onClose={() => setModalState(null)}
+          addLocation={addLocation}
+          customStoryStructures={customStoryStructures}
           onSave={(input) => {
             if (modalState === "create") {
               addStoryEvent(project.id, input);
             } else {
-              updateStoryEvent(project.id, modalState.id, input);
+              updateStoryEvent(
+                project.id,
+                modalState.id,
+                input
+              );
             }
           }}
         />
