@@ -22,13 +22,13 @@ export function StoryStructurePage({
     project,
 }: StoryStructurePageProps) {
     const {
-    updateProject,
-    // Custom structures are global Workbench resources, therefore available even when no project is open.
-    customStoryStructures,
-} = useWorkbench();
+        updateProject,
+        // Custom structures are global Workbench resources, therefore available even when no project is open.
+        customStoryStructures,
+    } = useWorkbench();
 
-// Display custom story structure if no project is selected
-if (!project) {
+    // Display custom story structure if no project is selected
+    if (!project) {
         return (
             <div className="page-stack core-page">
                 <PageHeader
@@ -255,7 +255,7 @@ if (!project) {
 
             {/* Display the selected template has its own acts */}
             <StoryActList
-                acts={selectedTemplate.acts}
+                template={selectedTemplate}
                 chapterCount={chapterCount}
                 notes={selectedNotes}
                 onActNoteChange={changeActNote}
