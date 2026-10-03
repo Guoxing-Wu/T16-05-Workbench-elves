@@ -8,22 +8,61 @@ import type { StoryStructureId } from "./storyStructureTemplate";
 import { StoryActList } from "./StoryActList";
 import "./storyStructure.css";
 import { getProjectedChapterCount, } from "./storyChapterMapping";
-
+import { CustomStructureManager } from "./CustomStructureManager";
+import { Network } from "lucide-react";
 
 // Data that must be provided when StoryStructurePage is displayed
 type StoryStructurePageProps = {
-    project: WritingProject;
+    // The project is optional because custom story structures can be managed without an active writing project.
+    project?: WritingProject;
 };
 
 // Displays and updates the story structure selected for the current project
 export function StoryStructurePage({
     project,
 }: StoryStructurePageProps) {
-    const { updateProject } = useWorkbench();
+    const {
+    updateProject,
+    // Custom structures are global Workbench resources, therefore available even when no project is open.
+    customStoryStructures,
+} = useWorkbench();
+
+// Display custom story structure if no project is selected
+if (!project) {
+        return (
+            <div className="page-stack core-page">
+                <PageHeader
+                    eyebrow="MANUSCRIPT"
+                    title="Story Structure"
+                    count="Manage your custom planning structures."
+                />
+
+                <CustomStructureManager
+                    structures={customStoryStructures}
+                />
+
+                <div className="story-project-placeholder">
+                    <div className="story-project-placeholder-icon">
+                        <Network size={24} />
+                    </div>
+
+                    <div>
+                        <h2>Open a project to view its story structure</h2>
+                        <p>
+                            Select a project first to view and edit its story
+                            structure.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     // Use the saved template ID to find its name and description
+    // When project is selected, show the built in and customised structure
     const selectedTemplate = getStoryStructureOption(
-        project.storyStructure
+        project.storyStructure,
+        customStoryStructures
     );
 
     // Read template's notes or show empty fields.
@@ -145,6 +184,7 @@ export function StoryStructurePage({
             <StoryTemplatePicker
                 value={project.storyStructure}
                 onChange={changeTemplate}
+                customStructures={customStoryStructures}
             />
 
             {/* Edit word counts and show the projected chapter count. */}

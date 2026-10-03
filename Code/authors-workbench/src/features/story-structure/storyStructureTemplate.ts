@@ -1,8 +1,9 @@
-export type StoryStructureId =
+/*export type StoryStructureId =
     | "three-act"
     | "heros-journey"
-    | "save-the-cat";
+    | "save-the-cat";*/
 
+export type StoryStructureId = string;
 export type StoryBeat = {
     id: string;
     name: string;
@@ -24,6 +25,7 @@ export type StoryStructureTemplate = {
     name: string;
     description: string;
     acts: StoryAct[];
+    isCustom?: boolean; // Specify whether the structure is customised
 };
 
 // Convert position in a 110 page screenplay into percentage（Save the Cat）
@@ -368,20 +370,23 @@ export function getStoryBeatCount(template: StoryStructureTemplate) {
 // Finds and returns the Story Structure that matches the supplied ID
 // from either the built-in or custom structures.
 export function getStoryStructureOption(
-  id: StoryStructureId,
-  customStructures: StoryStructureTemplate[] = []
+    id: StoryStructureId,
+    customStructures: StoryStructureTemplate[] = []
 ): StoryStructureTemplate {
-  for (const option of STORY_STRUCTURE_OPTIONS) {
-    if (option.id === id) {
-      return option;
-    }
-  }
+    // First look for a built-in structure
+    const builtIn = STORY_STRUCTURE_OPTIONS.find(
+        (option) => option.id === id
+    );
 
-  for (const option of customStructures) {
-    if (option.id === id) {
-      return option;
+    if (builtIn) {
+        return builtIn;
     }
-  }
 
-  return STORY_STRUCTURE_OPTIONS[0];
+    // If not built-in, look for a custom structure
+    const custom = customStructures.find(
+        (structure) => structure.id === id
+    );
+
+    return custom ?? STORY_STRUCTURE_OPTIONS[0];
+
 }

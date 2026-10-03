@@ -192,8 +192,10 @@ export function makeStoryEvent(input: {
   title: string;
   description?: string;
   characterIds?: string[];
+
   startDate: StoryDate;
   endDate: StoryDate;
+
   locationId?: string;
   isStoryBeat: boolean;
   storyBeatId?: string;

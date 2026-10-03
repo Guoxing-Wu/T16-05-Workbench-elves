@@ -3,20 +3,23 @@ import {
     getStoryBeatCount,
 } from "./storyStructureTemplate";
 
-import type { StoryStructureId } from "./storyStructureTemplate";
+import type {
+    StoryStructureId,
+    StoryStructureTemplate,
+} from "./storyStructureTemplate";
 
-// Receive data and functions from StoryStructurePage.
+import { CustomStructureManager } from "./CustomStructureManager";
+
 type StoryTemplatePickerProps = {
     value: StoryStructureId;
-
-    // User can select other template 
     onChange: (templateId: StoryStructureId) => void;
+    customStructures?: StoryStructureTemplate[];
 };
 
-// Show template cards using the value and function
 export function StoryTemplatePicker({
     value,
     onChange,
+    customStructures = [],
 }: StoryTemplatePickerProps) {
     return (
         <section className="story-template-picker">
@@ -28,45 +31,67 @@ export function StoryTemplatePicker({
 
                     <h2>Select a planning framework</h2>
                 </div>
-
             </header>
 
-            {/* Keep the template buttons in one named group. */}
-            <div
-                className="story-template-grid"
-                role="group"
-                aria-label="Story structure templates"
-            >
-                {STORY_STRUCTURE_OPTIONS.map((option) => {
-                    // Create one card for each template and check whether it matches the selected ID.
-                    const isSelected = option.id === value;
+            <section>
+                <h3>Built-in Structures</h3>
 
-                    // Use the template ID as the card's unique key and send it to the StoryTemplate page when clicked.
-                    return (
-                        <button
-                            key={option.id}
-                            type="button"
-                            className={
-                                isSelected
-                                    ? "story-template-option is-selected"
-                                    : "story-template-option"
-                            }
-                            aria-pressed={isSelected}
-                            onClick={() => onChange(option.id)}
-                        >
-                            {/* Show template name, number of acts and story beats */}
-                            <span className="story-template-name">
-                                {option.name}
-                            </span>
+                <div
+                    className="story-template-grid"
+                    role="group"
+                    aria-label="Built-in story structure templates"
+                >
+                    {STORY_STRUCTURE_OPTIONS.map((option) => {
+                        const isSelected =
+                            option.id === value;
 
-                            <span className="story-template-summary">
-                                {option.acts.length} acts · {getStoryBeatCount(option)} story beats
-                            </span>
-                        </button>
-                    );
-                })}
-            </div>
+                        return (
+                            <button
+                                key={option.id}
+                                type="button"
+                                className={
+                                    isSelected
+                                        ? "story-template-option is-selected"
+                                        : "story-template-option"
+                                }
+                                aria-pressed={isSelected}
+                                onClick={() =>
+                                    onChange(option.id)
+                                }
+                            >
+                                <span className="story-template-name">
+                                    {option.name}
+                                </span>
+
+                                <span className="story-template-summary">
+                                    {option.acts.length} acts ·{" "}
+                                    {getStoryBeatCount(option)} story beats
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </section>
+
+            <section className="story-custom-structures-section">
+                <div className="story-custom-structures-header">
+                    <div>
+                        <h3>Custom Structures</h3>
+
+                        <p>
+                            Create and reuse your own story planning
+                            frameworks.
+                        </p>
+                    </div>
+                </div>
+
+                <CustomStructureManager
+                    structures={customStructures}
+                    compact
+                    selectedStructureId={value}
+                    onSelect={onChange}
+                />
+            </section>
         </section>
     );
 }
-

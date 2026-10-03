@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import { MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
 import {
   Field,
@@ -8,22 +7,17 @@ import {
   PageHeader,
   ToolButton,
 } from "./primitives";
-
 import { useWorkbench } from "../lib/store";
-
+import {
+  characterAgeAtYear,
+  formatStoryDate,
+} from "../lib/domain";
 import type {
   StoryDate,
   StoryEvent,
   WritingProject,
 } from "../lib/domain";
-
-import {
-  characterAgeAtYear,
-  formatStoryDate,
-} from "../lib/domain";
-
 import { getStoryBeatChapterMappings } from "../features/story-structure/storyChapterMapping";
-
 import { getStoryStructureOption } from "../features/story-structure/storyStructureTemplate";
 
 // Parses a "YYYY-MM-DD" input value into a StoryDate.
@@ -78,23 +72,25 @@ function EventRow({
   onEdit: () => void;
   onRemove: () => void;
 }) {
-  // Resolve stored chapter IDs and character IDs to the current project entities.
+  // Resolve stored chapter IDs to the current project chapters.
   const linkedChapter = (event.chapterIds || [])
     .map((id) => project.chapters.find((c) => c.id === id))
     .filter((c): c is NonNullable<typeof c> => Boolean(c));
 
+  // Resolve linked characters and keep only characters with birthdays.
   const affectedCharacters = (event.characterIds || [])
     .map((id) => project.characters.find((c) => c.id === id))
     .filter(
       (c): c is NonNullable<typeof c> & { birthday: StoryDate } =>
         c !== undefined && c.birthday !== undefined
     );
-  
+
+  // Resolve the stored location ID to the current location name.
   const locationName = event.locationId
-  ? project.locations.find(
-      (location) => location.id === event.locationId
-    )?.name
-  : undefined;
+    ? project.locations.find(
+        (location) => location.id === event.locationId
+      )?.name
+    : undefined;
 
   // Story beat events use a coral accent; regular events use blue.
   const accent = event.isStoryBeat ? "coral" : "blue";
@@ -104,13 +100,9 @@ function EventRow({
       <div className="event-year">
         <span>DATE</span>
 
-        <strong>
-          {formatStoryDate(event.startDate)}
-        </strong>
+        <strong>{formatStoryDate(event.startDate)}</strong>
 
-        <small>
-          → {formatStoryDate(event.endDate)}
-        </small>
+        <small>→ {formatStoryDate(event.endDate)}</small>
       </div>
 
       <div className="event-body">
@@ -130,9 +122,7 @@ function EventRow({
         <h3 className="event-title">{event.title}</h3>
 
         {event.description && (
-          <p className="event-description">
-            {event.description}
-          </p>
+          <p className="event-description">{event.description}</p>
         )}
       </div>
 
@@ -189,12 +179,14 @@ function ChapterMultiSelect({
 }) {
   const [open, setOpen] = useState(false);
 
+  // Only the available chapters can be selected.
   const availableChapters = availableChapterOrders
     ? chapters.filter((chapter) =>
         availableChapterOrders.includes(chapter.order)
       )
     : chapters;
 
+  // Add/remove a chapter from the selected list.
   const toggleChapter = (id: string) => {
     onChange(
       selectedIds.includes(id)
@@ -203,6 +195,7 @@ function ChapterMultiSelect({
     );
   };
 
+  // Keep the selected chapter objects for displaying their titles.
   const selectedChapters = chapters.filter((chapter) =>
     selectedIds.includes(chapter.id)
   );
@@ -263,6 +256,100 @@ function ChapterMultiSelect({
   );
 }
 
+// Multi-select dropdown for linking an event to multiple characters.
+function CharacterMultiSelect({
+  characters,
+  selectedIds,
+  onChange,
+}: {
+  characters: WritingProject["characters"];
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const toggleCharacter = (id: string) => {
+    onChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((characterId) => characterId !== id)
+        : [...selectedIds, id]
+    );
+  };
+
+  const selectedCharacters = characters.filter((character) =>
+    selectedIds.includes(character.id)
+  );
+
+  return (
+    <div className="multi-select">
+      <button
+        type="button"
+        className="multi-select-trigger"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span>
+          {selectedCharacters.length === 0
+            ? "Select characters"
+            : selectedCharacters
+                .map((character) => character.name)
+                .join(", ")}
+        </span>
+
+        <span className="multi-select-arrow">
+          {open ? "▴" : "▾"}
+        </span>
+      </button>
+
+      {selectedCharacters.length > 0 && (
+        <div className="selected-items">
+          {selectedCharacters.map((character) => (
+            <span key={character.id} className="selected-item">
+              {character.name}
+
+              <button
+                type="button"
+                onClick={() => toggleCharacter(character.id)}
+                aria-label={`Remove ${character.name}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {open && (
+        <div className="multi-select-menu">
+          {characters.length === 0 ? (
+            <p className="muted-copy">No characters yet.</p>
+          ) : (
+            characters.map((character) => {
+              const selected = selectedIds.includes(character.id);
+
+              return (
+                <button
+                  key={character.id}
+                  type="button"
+                  className={`multi-select-option ${
+                    selected ? "selected" : ""
+                  }`}
+                  onClick={() => toggleCharacter(character.id)}
+                >
+                  <span>{character.name}</span>
+
+                  {selected && (
+                    <span className="multi-select-check">✓</span>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Modal form for creating or editing a story event.
 function EventFormModal({
   project,
@@ -275,7 +362,6 @@ function EventFormModal({
   project: WritingProject;
   initial?: StoryEvent;
   onClose: () => void;
-
   onSave: (input: {
     title: string;
     description: string;
@@ -288,15 +374,14 @@ function EventFormModal({
     storyBeatId?: string;
     storyBeatName?: string;
   }) => void;
-
   addLocation: (
     projectId: string,
     input: { name: string; description?: string }
   ) => import("../lib/domain").Location;
-
   customStoryStructures: import("../features/story-structure/storyStructureTemplate").StoryStructureTemplate[];
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
+
   const [description, setDescription] = useState(
     initial?.description ?? ""
   );
@@ -327,8 +412,9 @@ function EventFormModal({
     initial?.isStoryBeat ?? false
   );
 
-  const LOCATION_NEW = "__new__";
+  const LOCATION_NEW = "**new**";
 
+  // Resolve the selected story structure, including custom structures.
   const structure = getStoryStructureOption(
     project.storyStructure,
     customStoryStructures
@@ -373,14 +459,7 @@ function EventFormModal({
     }
   });
 
-  const toggleCharacter = (id: string) => {
-    setCharacterIds((list) =>
-      list.includes(id)
-        ? list.filter((c) => c !== id)
-        : [...list, id]
-    );
-  };
-
+  // Save the event.
   const handleSave = () => {
     if (!title.trim() || !startDateInput || !endDateInput) {
       return;
@@ -394,6 +473,8 @@ function EventFormModal({
       return;
     }
 
+    // Resolve the final location ID:
+    // reuse an existing location or create a new one.
     let finalLocationId: string | undefined;
 
     if (locationId === LOCATION_NEW) {
@@ -444,9 +525,7 @@ function EventFormModal({
             <input
               type="date"
               value={startDateInput}
-              onChange={(e) =>
-                setStartDateInput(e.target.value)
-              }
+              onChange={(e) => setStartDateInput(e.target.value)}
             />
           </Field>
 
@@ -454,13 +533,12 @@ function EventFormModal({
             <input
               type="date"
               value={endDateInput}
-              onChange={(e) =>
-                setEndDateInput(e.target.value)
-              }
+              onChange={(e) => setEndDateInput(e.target.value)}
             />
           </Field>
         </div>
 
+        {/* Location */}
         <Field label="Location" full>
           <select
             value={locationId}
@@ -480,22 +558,31 @@ function EventFormModal({
               </option>
             ))}
 
+            {initial?.locationId &&
+              !project.locations.some(
+                (location) => location.id === initial.locationId
+              ) && (
+                <option value={initial.locationId}>
+                  Unknown location
+                </option>
+              )}
+
             <option value={LOCATION_NEW}>
-              + Create new location
+              ＋ Create new location…
             </option>
           </select>
 
           {locationId === LOCATION_NEW && (
             <input
               value={newLocationName}
-              onChange={(e) =>
-                setNewLocationName(e.target.value)
-              }
+              onChange={(e) => setNewLocationName(e.target.value)}
               placeholder="New location name"
+              style={{ marginTop: 8 }}
             />
           )}
         </Field>
 
+        {/* Description */}
         <Field label="Description" full>
           <textarea
             value={description}
@@ -503,20 +590,43 @@ function EventFormModal({
           />
         </Field>
 
+        {/* Story Beat */}
         <Field label="Story Beat" full>
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={isStoryBeat}
-              onChange={(e) =>
-                setIsStoryBeat(e.target.checked)
-              }
-            />
+          <button
+            type="button"
+            className={`story-beat-toggle ${
+              isStoryBeat ? "active" : ""
+            }`}
+            onClick={() => setIsStoryBeat((value) => !value)}
+          >
+            <span className="story-beat-toggle-indicator">
+              {isStoryBeat ? "✓" : ""}
+            </span>
 
-            <span>This event is a Story Beat</span>
-          </label>
+            <span className="story-beat-toggle-content">
+              <strong>
+                {isStoryBeat
+                  ? "Story Beat"
+                  : "Mark as a Story Beat"}
+              </strong>
+
+              <span>
+                {isStoryBeat
+                  ? "This event is part of the story structure."
+                  : "Link this event to your story structure."}
+              </span>
+            </span>
+          </button>
+
+          {isStoryBeat && (
+            <p className="story-beat-hint">
+              Available chapters are based on the selected story
+              structure.
+            </p>
+          )}
         </Field>
 
+        {/* Linked chapters */}
         <Field label="Linked chapters" full>
           <ChapterMultiSelect
             chapters={project.chapters}
@@ -535,31 +645,13 @@ function EventFormModal({
           />
         </Field>
 
+        {/* Characters */}
         <Field label="Characters affected" full>
-          <div className="character-checkbox-list">
-            {project.characters.map((character) => (
-              <label
-                key={character.id}
-                className="character-checkbox"
-              >
-                <input
-                  type="checkbox"
-                  checked={characterIds.includes(character.id)}
-                  onChange={() =>
-                    toggleCharacter(character.id)
-                  }
-                />
-
-                {character.name}
-              </label>
-            ))}
-
-            {project.characters.length === 0 && (
-              <p className="muted-copy">
-                No characters yet.
-              </p>
-            )}
-          </div>
+          <CharacterMultiSelect
+            characters={project.characters}
+            selectedIds={characterIds}
+            onChange={setCharacterIds}
+          />
         </Field>
 
         <div className="modal-actions">
@@ -596,8 +688,7 @@ export function EventsPage({
   >(null);
 
   const events = [...(project.events || [])].sort(
-    (a, b) =>
-      compareStoryDates(a.startDate, b.startDate)
+    (a, b) => compareStoryDates(a.startDate, b.startDate)
   );
 
   return (
@@ -629,9 +720,7 @@ export function EventsPage({
         ))}
 
         {events.length === 0 && (
-          <p className="muted-copy">
-            No events yet.
-          </p>
+          <p className="muted-copy">No events yet.</p>
         )}
       </div>
 
@@ -639,9 +728,7 @@ export function EventsPage({
         <EventFormModal
           project={project}
           initial={
-            modalState === "create"
-              ? undefined
-              : modalState
+            modalState === "create" ? undefined : modalState
           }
           onClose={() => setModalState(null)}
           addLocation={addLocation}
