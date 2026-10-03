@@ -13,17 +13,27 @@ type Props = {
     birthday: StoryDate;
     description?: string;
     location?: string;
-    role?: string;
+    role?: string[];
     gender?: string;
 
   }) => void; 
 };
+const roleOptions = [
+    "Protagonist",
+    "Antagonist",
+    "Love interest",
+    "Confidant",
+    "Deuteragonists",
+    "Tertiary characters",
+    "Foils",
+];
+
 // Form for creating a new character, with fields for name, birthday, description, and location.
 export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState<string[]>([]);
   const [gender, setGender] = useState("");
   const [birthYear, setBirthYear] = useState("");
   const [birthMonth, setBirthMonth] = useState("");
@@ -49,12 +59,11 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
       month: birthMonth ? Number(birthMonth) : undefined,
       day: birthDay ? Number(birthDay) : undefined,
     };
-
     onCreate({
       firstName: firstName.trim(),
       lastName: lastName.trim() || undefined,
       middleName: middleName.trim() || undefined,
-      role: role.trim() || undefined,
+      role,
       gender: gender.trim() || undefined,
       birthday,
       description: description.trim() || undefined,
@@ -64,7 +73,7 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
     setFirstName("");
     setMiddleName("");
     setLastName("");
-    setRole("");
+    setRole([]);
     setGender("");
     setBirthYear("");
     setBirthMonth("");
@@ -72,6 +81,13 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
     setDescription("");
     setLocation("");
   };
+  function toggleRole(option: string) {
+  setRole((previous) =>
+    previous.includes(option)
+      ? previous.filter((item) => item !== option)
+      : [...previous, option]
+  );
+}
   
   return (
     <form
@@ -167,15 +183,29 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
             <option value="Unknown">Unknown</option>
             </select>
         </label>
-        <label className="form-field">
-          <span>Role</span>
-          <input
-            value={role}
-            onChange={(event) => setRole(event.target.value)}
-            placeholder="Protagonist, antagonist, sibling..."
-          />
-        </label>
-        
+
+        <div>
+          <label>Character Role (multiple)</label>
+
+          <div className="role-tags">
+            {roleOptions.map((option) => {
+              const selected = role.includes(option);
+
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  className={`role-tag${selected ? " selected" : ""}`}
+                  aria-pressed={selected}
+                  disabled={!selected && role.length >= 2}
+                  onClick={() => toggleRole(option)}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <label className="form-field full">
           <span>Description</span>
           <textarea

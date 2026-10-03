@@ -38,7 +38,7 @@ interface WorkbenchStoreValue {
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
 
   // Character operations
-  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string ; role?: string; gender?: string }) => Character;
+  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string ; role?: string[]; gender?: string }) => Character;
   updateCharacter: (projectId: string, characterId: string, patch: Partial<Character>) => void;
   removeCharacter: (projectId: string, characterId: string) => void;
 

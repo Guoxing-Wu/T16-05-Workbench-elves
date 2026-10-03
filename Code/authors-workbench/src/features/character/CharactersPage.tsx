@@ -8,6 +8,7 @@ import "./character.css";
 import {characterAgeAtYear} from "../../lib/domain";
 import type { StoryDate } from "../../lib/domain";
 
+
 function formatStoryDate(date: StoryDate): string {
   const months = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -84,6 +85,7 @@ function getAgeToday(birthday: Character["birthday"]): string {
   return age < 0 ? "Not yet born" : String(age);
 }
 
+
 export function CharactersPage({
   project,
   onBack,
@@ -119,7 +121,6 @@ export function CharactersPage({
   const editingCharacter = characters.find(
     (character) => character.id === editingCharacterId
   );
-
   function handleDelete(character: Character) {
     if (!window.confirm(`Delete "${character.name}"?`)) return;
 
@@ -195,7 +196,7 @@ export function CharactersPage({
 
                   <span className="character-list-copy">
                     <strong>{character.name}</strong>
-                    <span>{character.role || "Character"}</span>
+                    <RoleTags value={character.role} />
                   </span>
 
                   <ChevronRight
@@ -229,7 +230,7 @@ export function CharactersPage({
 
               <div className="character-detail-heading">
                 <p className="character-section-label">
-                  {selectedCharacter.role || "Character"}
+                  <RoleTags value={selectedCharacter.role} />
                 </p>
                 <h2 id="character-detail-name">
                   {selectedCharacter.name}
@@ -281,8 +282,10 @@ export function CharactersPage({
               </div>
 
               <div>
-                <dt>Role</dt>
-                <dd>{selectedCharacter.role || "—"}</dd>
+                <dt>Roles</dt>
+                  <dd>
+                    <RoleTags value={selectedCharacter.role} fallback="—" />
+                  </dd>
               </div>
             </dl>
 
@@ -440,6 +443,27 @@ export function CharactersPage({
     </div>
   );
 }
+function RoleTags({
+  value,
+  fallback = "Character",
+}: {
+  value: string[] | string | undefined;
+  fallback?: string;
+}) {
+  const roles = Array.isArray(value) ? value : value ? [value] : [];
+
+  return (
+    <span className="role-tags">
+      {roles.length > 0
+        ? roles.map((item) => (
+            <span key={item} className="role-tag selected">
+              {item}
+            </span>
+          ))
+        : fallback}
+    </span>
+  );
+}
 // Form for editing an existing character, with fields for name, birthday, description, and location.
 function EditCharacterForm({
   character,
@@ -453,7 +477,32 @@ function EditCharacterForm({
   const [name, setName] = useState(character.name);
   const [location, setLocation] = useState(character.location ?? "");
   const [gender, setGender] = useState(character.gender ?? "");
-  const [role, setRole] = useState(character.role ?? "");
+  const roleOptions = [
+    "Protagonist",
+    "Antagonist",
+    "Love interest",
+    "Confidant",
+    "Deuteragonists",
+    "Tertiary characters",
+    "Foils",
+];
+  const [role, setRole] = useState<string[]>(() => {
+  const savedRole = character.role;
+
+  return Array.isArray(savedRole)
+    ? savedRole
+    : savedRole
+      ? [savedRole]
+      : [];
+});
+
+  function toggleRole(option: string) {
+  setRole((previous) =>
+    previous.includes(option)
+      ? previous.filter((item) => item !== option)
+      : [...previous, option]
+  );
+}
   const [description, setDescription] =
     useState(character.description ?? "");
 
@@ -475,7 +524,7 @@ function EditCharacterForm({
           name: name.trim(),
           location: location.trim(),
           gender,
-          role: role.trim(),
+          role,
           description: description.trim(),
           birthday: birthYear
             ? {
@@ -552,14 +601,31 @@ function EditCharacterForm({
             <option value="Unknown">Unknown</option>
           </select>
         </label>
+        <div className="form-field full">
+          <span id="edit-character-roles-label">Character Roles</span>
 
-        <label className="form-field">
-          <span>Role</span>
-          <input
-            value={role}
-            onChange={(event) => setRole(event.target.value)}
-          />
-        </label>
+          <div
+            className="role-tags"
+            role="group"
+            aria-labelledby="edit-character-roles-label"
+          >
+            {roleOptions.map((option) => {
+              const selected = role.includes(option);
+
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  className={`role-tag${selected ? " selected" : ""}`}
+                  aria-pressed={selected}
+                  onClick={() => toggleRole(option)}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <label className="form-field full">
           <span>Description</span>

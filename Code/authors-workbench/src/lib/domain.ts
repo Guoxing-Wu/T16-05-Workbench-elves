@@ -137,7 +137,7 @@ export interface Character {
   birthday: StoryDate;
   description?: string;
   location?: string;
-  role?: string;
+  role?: string[];
   gender?: string;
 }
 
@@ -149,7 +149,7 @@ export function makeCharacter(input: {
   birthday: StoryDate;
   description?: string;
   location?: string;
-  role?: string;
+  role?: string[];
   gender?: string;
 }): Character {
   return {
@@ -161,7 +161,7 @@ export function makeCharacter(input: {
     birthday: input.birthday,
     description: input.description ?? "",
     location: input.location ?? "",
-    role: input.role ?? "",
+    role: input.role ?? [],
     gender: input.gender ?? ""
   };
 }

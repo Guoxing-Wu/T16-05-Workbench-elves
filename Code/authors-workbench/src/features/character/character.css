@@ -539,4 +539,29 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
     width: 100%;
   }
 }
+.role-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.role-tag {
+  display: inline-flex;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: white;
+  color: #444;
+  font-size: 14px;
+}
+
+button.role-tag {
+  cursor: pointer;
+}
+
+.role-tag.selected {
+  background: #e8e5ff;
+  border-color: #7663c0;
+  color: #51418b;
+}
 
