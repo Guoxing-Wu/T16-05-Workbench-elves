@@ -1,4 +1,4 @@
-import type { StoryAct } from "./storyStructureTemplate";
+import type { StoryStructureTemplate } from "./storyStructureTemplate";
 import type { StoryTemplateNotes } from "../../lib/domain";
 
 import {
@@ -10,7 +10,7 @@ import {
 
 // Receive structure, notes and update functions from the page.
 type StoryActListProps = {
-    acts: StoryAct[];
+    template: StoryStructureTemplate;
     chapterCount: number;
     notes: StoryTemplateNotes;
     onActNoteChange: (actId: string, value: string) => void;
@@ -18,7 +18,8 @@ type StoryActListProps = {
 };
 
 // Display the template structure
-export function StoryActList({ acts, chapterCount, notes, onActNoteChange, onBeatNoteChange, }: StoryActListProps) {
+export function StoryActList({ template, chapterCount, notes, onActNoteChange, onBeatNoteChange, }: StoryActListProps) {
+    const { acts, storyBeats } = template;
     const actRanges = getActChapterRanges(
         acts, chapterCount);
     return (
@@ -52,6 +53,10 @@ export function StoryActList({ acts, chapterCount, notes, onActNoteChange, onBea
             {acts.map((act, index) => {
                 // Get the chapter range of the current act.
                 const actRange = actRanges[index];
+
+                const actStoryBeats = storyBeats.filter(
+                    (beat) => beat.actId === act.id
+                );
 
                 return (
                     <section
@@ -91,19 +96,20 @@ export function StoryActList({ acts, chapterCount, notes, onActNoteChange, onBea
                         </label>
 
                         <p className="story-act-description">
-                            {act.storyBeats.length} story beats
+                            {actStoryBeats.length} story beats
                         </p>
 
 
                         <div className="story-beat-grid">
-                            {act.storyBeats.map((beat) => {
-                                // Calculate chapters only when the act has a range.
-                                const beatRange = actRange
-                                    ? getBeatChapterRange(
-                                        beat, actRange, chapterCount
-                                    )
-                                    : undefined;
-
+                            {actStoryBeats.map((beat) => {
+                                // Calculate chapters only when the project has chapters.
+                                const beatRange =
+                                    chapterCount > 0
+                                        ? getBeatChapterRange(
+                                            beat,
+                                            chapterCount
+                                        )
+                                        : undefined;
                                 return (
                                     <article
                                         key={beat.id}

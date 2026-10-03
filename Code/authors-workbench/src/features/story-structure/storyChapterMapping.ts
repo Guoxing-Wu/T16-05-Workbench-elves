@@ -70,32 +70,27 @@ export function getActChapterRanges(
 }
 
 
-// Calculate a beat's chapters within its own act.
+// Calculate a beat's chapters within its percentages.
+
 export function getBeatChapterRange(
     beat: StoryBeat,
-    actRange: ChapterRange,
     chapterCount: number
-) {
-    let start = Math.floor(
-        chapterCount * beat.startPercent / 100
-    ) + 1;
+): ChapterRange {
+    const getChapterAtPercent = (percent: number) =>
+        Math.max(
+            1,
+            Math.min(
+                chapterCount,
+                Math.floor(
+                    chapterCount * percent / 100
+                ) + 1
+            )
+        );
 
-    let end = Math.floor(
-        chapterCount * beat.endPercent / 100
-    ) + 1;
-
-    // Keep the results inside the act's chapter range.
-    start = Math.max(
-        actRange.start,
-        Math.min(actRange.end, start)
-    );
-
-    end = Math.max(
-        actRange.start,
-        Math.min(actRange.end, end)
-    );
-
-    return { start, end };
+    return {
+        start: getChapterAtPercent(beat.startPercent),
+        end: getChapterAtPercent(beat.endPercent),
+    };
 }
 
 // Display one chapter or a chapter range.
@@ -127,39 +122,21 @@ export function getPercentRangeLabel(
     return start + "%–" + end + "%";
 }
 
-// Gets the chapter (range) of the storybeats base on given structure and chapter
+// Map every Story Beat to chapters.
 export function getStoryBeatChapterMappings(
     template: StoryStructureTemplate,
     chapterCount: number
 ): StoryBeatChapterMapping[] {
-    const actRanges = getActChapterRanges(
-        template.acts,
-        chapterCount
-    );
-
-    if (actRanges.length !== template.acts.length) {
+    if (chapterCount <= 0) {
         return [];
     }
 
-    const mappings: StoryBeatChapterMapping[] = [];
-
-    template.acts.forEach((act, index) => {
-        const actRange = actRanges[index];
-
-        for (const beat of act.storyBeats) {
-            const chapterRange = getBeatChapterRange(
-                beat,
-                actRange,
-                chapterCount
-            );
-
-            mappings.push({
-                storyBeatId: beat.id,
-                storyBeatName: beat.name,
-                chapterRange,
-            });
-        }
-    });
-
-    return mappings;
+    return template.storyBeats.map((beat) => ({
+        storyBeatId: beat.id,
+        storyBeatName: beat.name,
+        chapterRange: getBeatChapterRange(
+            beat,
+            chapterCount
+        ),
+    }));
 }

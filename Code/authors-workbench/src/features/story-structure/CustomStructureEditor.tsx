@@ -31,10 +31,15 @@ export function CustomStructureEditor({
         structure?.acts ?? []
     );
 
+    const [storyBeats, setStoryBeats] = useState<StoryBeat[]>(
+        structure?.storyBeats ?? []
+    );
+
     useEffect(() => {
         setName(structure?.name ?? "");
         setDescription(structure?.description ?? "");
         setActs(structure?.acts ?? []);
+        setStoryBeats(structure?.storyBeats ?? []);
     }, [structure]);
 
     /*
@@ -51,7 +56,6 @@ export function CustomStructureEditor({
             name: `Act ${actNumber}`,
             startPercent: 0,
             endPercent: 100,
-            storyBeats: [],
         };
 
         setActs((currentActs) => [
@@ -60,38 +64,29 @@ export function CustomStructureEditor({
         ]);
     };
 
-    /*
-     * Add a Story Beat to an Act.
-     *
-     * Story Beat percentages use the same story-wide
-     * percentage scale as the Act.
-     */
+    /* Add a Story Beat to an Act.*/
     const handleAddBeat = (actId: string) => {
-        setActs((currentActs) =>
-            currentActs.map((act) => {
-                if (act.id !== actId) {
-                    return act;
-                }
+        const selectedAct = acts.find((act) => act.id === actId);
 
-                const beatNumber =
-                    act.storyBeats.length + 1;
+        if (!selectedAct) {
+            return;
+        }
 
-                const newBeat: StoryBeat = {
-                    id: `beat-${Date.now()}-${beatNumber}`,
-                    name: `Story Beat ${beatNumber}`,
-                    startPercent: act.startPercent,
-                    endPercent: act.endPercent,
-                };
+        const beatNumber =
+            storyBeats.filter((beat) => beat.actId === actId).length + 1;
 
-                return {
-                    ...act,
-                    storyBeats: [
-                        ...act.storyBeats,
-                        newBeat,
-                    ],
-                };
-            })
-        );
+        const newBeat: StoryBeat = {
+            id: `beat-${Date.now()}-${beatNumber}`,
+            name: `Story Beat ${beatNumber}`,
+            startPercent: selectedAct.startPercent,
+            endPercent: selectedAct.endPercent,
+            actId,
+        };
+
+        setStoryBeats((currentStoryBeats) => [
+            ...currentStoryBeats,
+            newBeat,
+        ]);
     };
 
     const handleActNameChange = (
@@ -102,9 +97,9 @@ export function CustomStructureEditor({
             currentActs.map((act) =>
                 act.id === actId
                     ? {
-                          ...act,
-                          name: value,
-                      }
+                        ...act,
+                        name: value,
+                    }
                     : act
             )
         );
@@ -118,9 +113,9 @@ export function CustomStructureEditor({
             currentActs.map((act) =>
                 act.id === actId
                     ? {
-                          ...act,
-                          startPercent: value,
-                      }
+                        ...act,
+                        startPercent: value,
+                    }
                     : act
             )
         );
@@ -134,120 +129,97 @@ export function CustomStructureEditor({
             currentActs.map((act) =>
                 act.id === actId
                     ? {
-                          ...act,
-                          endPercent: value,
-                      }
+                        ...act,
+                        endPercent: value,
+                    }
                     : act
             )
         );
     };
 
     const handleBeatNameChange = (
-        actId: string,
         beatId: string,
         value: string
     ) => {
-        setActs((currentActs) =>
-            currentActs.map((act) =>
-                act.id === actId
+        setStoryBeats((currentStoryBeats) =>
+            currentStoryBeats.map((beat) =>
+                beat.id === beatId
                     ? {
-                          ...act,
-                          storyBeats:
-                              act.storyBeats.map(
-                                  (beat) =>
-                                      beat.id === beatId
-                                          ? {
-                                                ...beat,
-                                                name: value,
-                                            }
-                                          : beat
-                              ),
-                      }
-                    : act
+                        ...beat,
+                        name: value,
+                    }
+                    : beat
             )
         );
     };
 
     const handleBeatStartChange = (
-        actId: string,
         beatId: string,
         value: number
     ) => {
-        setActs((currentActs) =>
-            currentActs.map((act) =>
-                act.id === actId
+        setStoryBeats((currentStoryBeats) =>
+            currentStoryBeats.map((beat) =>
+                beat.id === beatId
                     ? {
-                          ...act,
-                          storyBeats:
-                              act.storyBeats.map(
-                                  (beat) =>
-                                      beat.id === beatId
-                                          ? {
-                                                ...beat,
-                                                startPercent:
-                                                    value,
-                                            }
-                                          : beat
-                              ),
-                      }
-                    : act
+                        ...beat,
+                        startPercent: value,
+                    }
+                    : beat
             )
         );
     };
 
     const handleBeatEndChange = (
-        actId: string,
         beatId: string,
         value: number
     ) => {
-        setActs((currentActs) =>
-            currentActs.map((act) =>
-                act.id === actId
+        setStoryBeats((currentStoryBeats) =>
+            currentStoryBeats.map((beat) =>
+                beat.id === beatId
                     ? {
-                          ...act,
-                          storyBeats:
-                              act.storyBeats.map(
-                                  (beat) =>
-                                      beat.id === beatId
-                                          ? {
-                                                ...beat,
-                                                endPercent:
-                                                    value,
-                                            }
-                                          : beat
-                              ),
-                      }
-                    : act
+                        ...beat,
+                        endPercent: value,
+                    }
+                    : beat
             )
         );
     };
 
-    /*
-     * Validate the structure before saving.
-     *
-     * Every range must stay within 0-100 and have
-     * a positive length.
-     */
-    const hasValidPercentages = acts.every((act) => {
-        const validActRange =
+
+    /* Validate the structure before saving. */
+    const hasValidActPercentages = acts.every(
+        (act) =>
             act.startPercent >= 0 &&
             act.endPercent <= 100 &&
-            act.startPercent < act.endPercent;
+            act.startPercent < act.endPercent
+    );
 
-        const validBeatRanges =
-            act.storyBeats.every(
-                (beat) =>
-                    beat.startPercent >= 0 &&
-                    beat.endPercent <= 100 &&
-                    beat.startPercent < beat.endPercent
-            );
+    const hasContinuousActRanges =
+        acts.length > 0 &&
+        acts[0].startPercent === 0 &&
+        acts[acts.length - 1].endPercent === 100 &&
+        acts.every(
+            (act, index) =>
+                index === 0 ||
+                act.startPercent ===
+                acts[index - 1].endPercent
+        );
 
-        return validActRange && validBeatRanges;
-    });
+    const hasValidBeatPercentages = storyBeats.every(
+        (beat) =>
+            beat.startPercent >= 0 &&
+            beat.endPercent <= 100 &&
+            beat.startPercent <= beat.endPercent
+    );
+
+    const hasValidStructure =
+        hasValidActPercentages &&
+        hasContinuousActRanges &&
+        hasValidBeatPercentages;
 
     const canSave =
         name.trim().length > 0 &&
-        hasValidPercentages;
+        hasValidStructure;
 
     const handleSave = () => {
         if (!canSave) {
@@ -266,6 +238,8 @@ export function CustomStructureEditor({
             isCustom: true,
 
             acts,
+
+            storyBeats,
         };
 
         onSave(savedStructure);
@@ -339,268 +313,256 @@ export function CustomStructureEditor({
                                 start building your structure.
                             </p>
                         ) : (
-                            acts.map((act, actIndex) => (
-                                <article
-                                    key={act.id}
-                                    className="custom-structure-act"
-                                >
-                                    <div className="custom-structure-act-header">
-                                        <div>
-                                            <span className="custom-structure-act-number">
-                                                ACT {actIndex + 1}
-                                            </span>
+                            acts.map((act, actIndex) => {
+                                const actStoryBeats = storyBeats.filter(
+                                    (beat) => beat.actId === act.id
+                                );
 
-                                            <input
-                                                className="custom-structure-act-name"
-                                                type="text"
-                                                value={act.name}
-                                                onChange={(event) =>
-                                                    handleActNameChange(
-                                                        act.id,
-                                                        event.target.value
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="custom-structure-range">
-                                        <span className="custom-structure-range-label">
-                                            Story Position
-                                        </span>
-
-                                        <div className="custom-structure-range-inputs">
-                                            <label>
-                                                <span>
-                                                    Start
+                                return (
+                                    <article
+                                        key={act.id}
+                                        className="custom-structure-act"
+                                    >
+                                        <div className="custom-structure-act-header">
+                                            <div>
+                                                <span className="custom-structure-act-number">
+                                                    ACT {actIndex + 1}
                                                 </span>
 
-                                                <div className="percent-input">
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={100}
-                                                        step={0.1}
-                                                        value={
-                                                            act.startPercent
-                                                        }
-                                                        onChange={(
-                                                            event
-                                                        ) =>
-                                                            handleActStartChange(
-                                                                act.id,
-                                                                Number(
-                                                                    event
-                                                                        .target
-                                                                        .value
-                                                                )
-                                                            )
-                                                        }
-                                                    />
-
-                                                    <span>
-                                                        %
-                                                    </span>
-                                                </div>
-                                            </label>
-
-                                            <span className="range-separator">
-                                                →
-                                            </span>
-
-                                            <label>
-                                                <span>
-                                                    End
-                                                </span>
-
-                                                <div className="percent-input">
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={100}
-                                                        step={0.1}
-                                                        value={
-                                                            act.endPercent
-                                                        }
-                                                        onChange={(
-                                                            event
-                                                        ) =>
-                                                            handleActEndChange(
-                                                                act.id,
-                                                                Number(
-                                                                    event
-                                                                        .target
-                                                                        .value
-                                                                )
-                                                            )
-                                                        }
-                                                    />
-
-                                                    <span>
-                                                        %
-                                                    </span>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div className="custom-structure-beats">
-                                        <div className="custom-structure-beats-header">
-                                            <h4>
-                                                Story Beats
-                                            </h4>
-
-                                            <span>
-                                                {
-                                                    act
-                                                        .storyBeats
-                                                        .length
-                                                }{" "}
-                                                beats
-                                            </span>
-                                        </div>
-
-                                        {act.storyBeats.map(
-                                            (
-                                                beat,
-                                                beatIndex
-                                            ) => (
-                                                <div
-                                                    key={
-                                                        beat.id
+                                                <input
+                                                    className="custom-structure-act-name"
+                                                    type="text"
+                                                    value={act.name}
+                                                    onChange={(event) =>
+                                                        handleActNameChange(
+                                                            act.id,
+                                                            event.target.value
+                                                        )
                                                     }
-                                                    className="custom-structure-beat"
-                                                >
-                                                    <div className="custom-structure-beat-number">
-                                                        {beatIndex +
-                                                            1}
-                                                    </div>
+                                                />
+                                            </div>
+                                        </div>
 
-                                                    <div className="custom-structure-beat-content">
+                                        <div className="custom-structure-range">
+                                            <span className="custom-structure-range-label">
+                                                Story Position
+                                            </span>
+
+                                            <div className="custom-structure-range-inputs">
+                                                <label>
+                                                    <span>
+                                                        Start
+                                                    </span>
+
+                                                    <div className="percent-input">
                                                         <input
-                                                            type="text"
+                                                            type="number"
+                                                            min={0}
+                                                            max={100}
+                                                            step={0.1}
                                                             value={
-                                                                beat.name
+                                                                act.startPercent
                                                             }
                                                             onChange={(
                                                                 event
                                                             ) =>
-                                                                handleBeatNameChange(
+                                                                handleActStartChange(
                                                                     act.id,
-                                                                    beat.id,
-                                                                    event
-                                                                        .target
-                                                                        .value
+                                                                    Number(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
                                                                 )
                                                             }
                                                         />
 
-                                                        <div className="custom-structure-range-inputs custom-structure-beat-range">
-                                                            <label>
-                                                                <span>
-                                                                    Start
+                                                        <span>
+                                                            %
+                                                        </span>
+                                                    </div>
+                                                </label>
+
+                                                <span className="range-separator">
+                                                    →
+                                                </span>
+
+                                                <label>
+                                                    <span>
+                                                        End
+                                                    </span>
+
+                                                    <div className="percent-input">
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            max={100}
+                                                            step={0.1}
+                                                            value={
+                                                                act.endPercent
+                                                            }
+                                                            onChange={(
+                                                                event
+                                                            ) =>
+                                                                handleActEndChange(
+                                                                    act.id,
+                                                                    Number(
+                                                                        event
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                )
+                                                            }
+                                                        />
+
+                                                        <span>
+                                                            %
+                                                        </span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div className="custom-structure-beats">
+                                            <div className="custom-structure-beats-header">
+                                                <h4>
+                                                    Story Beats
+                                                </h4>
+
+                                                <span>
+                                                    {actStoryBeats.length} beats
+                                                </span>
+                                            </div>
+
+                                            {actStoryBeats.map(
+                                                (
+                                                    beat,
+                                                    beatIndex
+                                                ) => (
+                                                    <div
+                                                        key={
+                                                            beat.id
+                                                        }
+                                                        className="custom-structure-beat"
+                                                    >
+                                                        <div className="custom-structure-beat-number">
+                                                            {beatIndex +
+                                                                1}
+                                                        </div>
+
+                                                        <div className="custom-structure-beat-content">
+                                                            <input
+                                                                type="text"
+                                                                value={
+                                                                    beat.name
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    handleBeatNameChange(
+                                                                        beat.id,
+                                                                        event.target.value
+                                                                    )
+                                                                }
+                                                            />
+
+                                                            <div className="custom-structure-range-inputs custom-structure-beat-range">
+                                                                <label>
+                                                                    <span>
+                                                                        Start
+                                                                    </span>
+
+                                                                    <div className="percent-input">
+                                                                        <input
+                                                                            type="number"
+                                                                            min={
+                                                                                0
+                                                                            }
+                                                                            max={
+                                                                                100
+                                                                            }
+                                                                            step={
+                                                                                0.1
+                                                                            }
+                                                                            value={
+                                                                                beat.startPercent
+                                                                            }
+                                                                            onChange={(
+                                                                                event
+                                                                            ) =>
+                                                                                handleBeatStartChange(
+                                                                                    beat.id,
+                                                                                    Number(event.target.value)
+                                                                                )
+                                                                            }
+                                                                        />
+
+                                                                        <span>
+                                                                            %
+                                                                        </span>
+                                                                    </div>
+                                                                </label>
+
+                                                                <span className="range-separator">
+                                                                    →
                                                                 </span>
 
-                                                                <div className="percent-input">
-                                                                    <input
-                                                                        type="number"
-                                                                        min={
-                                                                            0
-                                                                        }
-                                                                        max={
-                                                                            100
-                                                                        }
-                                                                        step={
-                                                                            0.1
-                                                                        }
-                                                                        value={
-                                                                            beat.startPercent
-                                                                        }
-                                                                        onChange={(
-                                                                            event
-                                                                        ) =>
-                                                                            handleBeatStartChange(
-                                                                                act.id,
-                                                                                beat.id,
-                                                                                Number(
-                                                                                    event
-                                                                                        .target
-                                                                                        .value
-                                                                                )
-                                                                            )
-                                                                        }
-                                                                    />
-
+                                                                <label>
                                                                     <span>
-                                                                        %
+                                                                        End
                                                                     </span>
-                                                                </div>
-                                                            </label>
 
-                                                            <span className="range-separator">
-                                                                →
-                                                            </span>
-
-                                                            <label>
-                                                                <span>
-                                                                    End
-                                                                </span>
-
-                                                                <div className="percent-input">
-                                                                    <input
-                                                                        type="number"
-                                                                        min={
-                                                                            0
-                                                                        }
-                                                                        max={
-                                                                            100
-                                                                        }
-                                                                        step={
-                                                                            0.1
-                                                                        }
-                                                                        value={
-                                                                            beat.endPercent
-                                                                        }
-                                                                        onChange={(
-                                                                            event
-                                                                        ) =>
-                                                                            handleBeatEndChange(
-                                                                                act.id,
-                                                                                beat.id,
-                                                                                Number(
-                                                                                    event
-                                                                                        .target
-                                                                                        .value
+                                                                    <div className="percent-input">
+                                                                        <input
+                                                                            type="number"
+                                                                            min={
+                                                                                0
+                                                                            }
+                                                                            max={
+                                                                                100
+                                                                            }
+                                                                            step={
+                                                                                0.1
+                                                                            }
+                                                                            value={
+                                                                                beat.endPercent
+                                                                            }
+                                                                            onChange={(
+                                                                                event
+                                                                            ) =>
+                                                                                handleBeatEndChange(
+                                                                                    beat.id,
+                                                                                    Number(event.target.value)
                                                                                 )
-                                                                            )
-                                                                        }
-                                                                    />
+                                                                            }
+                                                                        />
 
-                                                                    <span>
-                                                                        %
-                                                                    </span>
-                                                                </div>
-                                                            </label>
+                                                                        <span>
+                                                                            %
+                                                                        </span>
+                                                                    </div>
+                                                                </label>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )
-                                        )}
-
-                                        <button
-                                            type="button"
-                                            className="custom-structure-add-button"
-                                            onClick={() =>
-                                                handleAddBeat(
-                                                    act.id
                                                 )
-                                            }
-                                        >
-                                            + Add Story Beat
-                                        </button>
-                                    </div>
-                                </article>
-                            ))
+                                            )}
+
+                                            <button
+                                                type="button"
+                                                className="custom-structure-add-button"
+                                                onClick={() =>
+                                                    handleAddBeat(
+                                                        act.id
+                                                    )
+                                                }
+                                            >
+                                                + Add Story Beat
+                                            </button>
+                                        </div>
+                                    </article>
+                                );
+                            })
                         )}
 
                         <button
@@ -614,11 +576,10 @@ export function CustomStructureEditor({
                 </div>
             </div>
 
-            {!hasValidPercentages && (
+            {!hasValidStructure && (
                 <p className="custom-structure-validation">
-                    Each Act and Story Beat must have a valid
-                    range between 0% and 100%, with the start
-                    position before the end position.
+                    Unable to save this structure. Check the Acts
+                    and Story Beat ranges, then try again.
                 </p>
             )}
 
