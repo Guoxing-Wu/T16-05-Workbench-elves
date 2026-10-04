@@ -415,14 +415,6 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   border: 1px solid #c8dcc8; border-radius: 20px;
   background: #eaf4ea; color: #4a7a4a; font-size: 11px; font-weight: 600; cursor: default;
 }
-.top-bar-icon-btn {
-  width: 36px; height: 36px; display: grid; place-items: center;
-  border: 1px solid var(--border-warm); border-radius: 50%;
-  background: var(--surface); color: var(--ink-soft); cursor: pointer;
-  transition: background .14s ease, border-color .14s ease;
-}
-.top-bar-icon-btn:hover { background: #fff; border-color: #cfc4b8; color: var(--ink); }
-
 .user-avatar {
   width: 38px; height: 38px; display: grid; place-items: center;
   border: 0; border-radius: 50%;
