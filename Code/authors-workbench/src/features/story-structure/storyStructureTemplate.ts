@@ -392,10 +392,11 @@ export function getStoryBeatCount(template: StoryStructureTemplate) {
 
 
 // Finds and returns the Story Structure that matches the supplied ID
+// from either the built-in or custom structures.
 export function getStoryStructureOption(
     id: StoryStructureId,
     customStructures: StoryStructureTemplate[] = []
-) {
+): StoryStructureTemplate {
     // First look for a built-in structure
     const builtIn = STORY_STRUCTURE_OPTIONS.find(
         (option) => option.id === id
@@ -411,4 +412,5 @@ export function getStoryStructureOption(
     );
 
     return custom ?? STORY_STRUCTURE_OPTIONS[0];
+
 }

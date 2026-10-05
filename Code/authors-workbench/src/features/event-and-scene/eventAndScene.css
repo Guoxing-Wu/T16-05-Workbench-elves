@@ -1,0 +1,139 @@
+
+.scenes-section {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line, #e5e0d8);
+}
+
+.scenes-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.scenes-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted, #77736d);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.scenes-section-header h2 {
+  margin: 0;
+  font-family: "Lora", Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.scenes-section-header p {
+  margin: 6px 0 0;
+  color: var(--muted, #77736d);
+  font-size: 13px;
+}
+
+.scene-card {
+  display: grid;
+  grid-template-columns: minmax(110px, 150px) minmax(0, 1fr) minmax(120px, 200px) auto;
+  align-items: start;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--line, #e5e0d8);
+  border-radius: 12px;
+  background: var(--paper, #fffdf9);
+}
+
+.scene-date {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted, #77736d);
+  font-size: 12px;
+}
+
+.scene-body {
+  min-width: 0;
+}
+
+.scene-tag,
+.scene-meta {
+  margin: 0 0 7px;
+  color: var(--muted, #77736d);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+}
+
+.scene-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.scene-description {
+  margin: 8px 0 0;
+  color: var(--muted, #77736d);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.scene-meta {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.scene-side {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+.scene-meta-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--muted, #77736d);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.scene-meta-item svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.scene-form-error {
+  margin: 0;
+  color: #b54747;
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .scene-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .scene-date,
+  .scene-body,
+  .scene-side {
+    grid-column: 1 / -1;
+  }
+
+  .scene-card .row-actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .scenes-section-header {
+    align-items: flex-start;
+  }
+}

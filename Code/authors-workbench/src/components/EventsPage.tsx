@@ -8,14 +8,22 @@ import {
   ToolButton,
 } from "./primitives";
 import { useWorkbench } from "../lib/store";
-import { characterAgeAtYear } from "../lib/domain";
-import type { StoryDate, StoryEvent, WritingProject } from "../lib/domain";
+import {
+  characterAgeAtYear,
+  formatStoryDate,
+} from "../lib/domain";
+import type {
+  StoryDate,
+  StoryEvent,
+  WritingProject,
+} from "../lib/domain";
 import { getStoryBeatChapterMappings } from "../features/story-structure/storyChapterMapping";
 import { getStoryStructureOption } from "../features/story-structure/storyStructureTemplate";
 
-// Parses a "YYYY-MM-DD" (or "YYYY-MM", or "YYYY") input value into a StoryDate.
+// Parses a "YYYY-MM-DD" input value into a StoryDate.
 function parseStoryDateInput(value: string): StoryDate {
   const [yearStr, monthStr, dayStr] = value.split("-");
+
   const year = Number(yearStr) || 0;
   const month = monthStr ? Number(monthStr) : undefined;
   const day = dayStr ? Number(dayStr) : undefined;
@@ -23,7 +31,7 @@ function parseStoryDateInput(value: string): StoryDate {
   return { year, month, day };
 }
 
-// Converts a StoryDate back into a "YYYY-MM-DD" string for the <input type="date">.
+// Converts a StoryDate back into a "YYYY-MM-DD" string for the date input.
 function storyDateToInputValue(date: StoryDate): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   const year = String(date.year).padStart(4, "0");
@@ -39,6 +47,19 @@ function storyDateToInputValue(date: StoryDate): string {
   return `${year}-01-01`;
 }
 
+// Compare two StoryDate values chronologically.
+function compareStoryDates(a: StoryDate, b: StoryDate): number {
+  if (a.year !== b.year) {
+    return a.year - b.year;
+  }
+
+  if ((a.month ?? 0) !== (b.month ?? 0)) {
+    return (a.month ?? 0) - (b.month ?? 0);
+  }
+
+  return (a.day ?? 0) - (b.day ?? 0);
+}
+
 // One row in the event list.
 function EventRow({
   event,
@@ -51,7 +72,7 @@ function EventRow({
   onEdit: () => void;
   onRemove: () => void;
 }) {
-  // Resolve linked chapters.
+  // Resolve stored chapter IDs to the current project chapters.
   const linkedChapter = (event.chapterIds || [])
     .map((id) => project.chapters.find((c) => c.id === id))
     .filter((c): c is NonNullable<typeof c> => Boolean(c));
@@ -66,17 +87,22 @@ function EventRow({
 
   // Resolve the stored location ID to the current location name.
   const locationName = event.locationId
-    ? project.locations.find((location) => location.id === event.locationId)
-        ?.name
+    ? project.locations.find(
+        (location) => location.id === event.locationId
+      )?.name
     : undefined;
 
+  // Story beat events use a coral accent; regular events use blue.
   const accent = event.isStoryBeat ? "coral" : "blue";
 
   return (
     <div className={`event-card accent-${accent}`}>
       <div className="event-year">
-        <span>YEAR</span>
-        <strong>{event.eventDate.year}</strong>
+        <span>DATE</span>
+
+        <strong>{formatStoryDate(event.startDate)}</strong>
+
+        <small>→ {formatStoryDate(event.endDate)}</small>
       </div>
 
       <div className="event-body">
@@ -104,12 +130,13 @@ function EventRow({
         {affectedCharacters.length > 0 && (
           <span className="event-meta-item">
             <Users size={12} />
+
             {affectedCharacters
               .map(
                 (character) =>
                   `${character.name} (${characterAgeAtYear(
                     character.birthday,
-                    event.eventDate
+                    event.startDate
                   )})`
               )
               .join(", ")}
@@ -142,11 +169,13 @@ function ChapterMultiSelect({
   selectedIds,
   onChange,
   availableChapterOrders,
+  chapterBeatNames,
 }: {
   chapters: WritingProject["chapters"];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   availableChapterOrders?: number[];
+  chapterBeatNames?: Record<number, string[]>;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -206,7 +235,13 @@ function ChapterMultiSelect({
                   }`}
                   onClick={() => toggleChapter(chapter.id)}
                 >
-                  <span>{chapter.title}</span>
+                  <span>
+                    {chapter.title}
+
+                    {chapterBeatNames?.[chapter.order]?.length
+                      ? ` · ${chapterBeatNames[chapter.order].join(" / ")}`
+                      : ""}
+                  </span>
 
                   {selected && (
                     <span className="multi-select-check">✓</span>
@@ -255,7 +290,9 @@ function CharacterMultiSelect({
         <span>
           {selectedCharacters.length === 0
             ? "Select characters"
-            : selectedCharacters.map((character) => character.name).join(", ")}
+            : selectedCharacters
+                .map((character) => character.name)
+                .join(", ")}
         </span>
 
         <span className="multi-select-arrow">
@@ -328,7 +365,8 @@ function EventFormModal({
   onSave: (input: {
     title: string;
     description: string;
-    eventDate: StoryDate;
+    startDate: StoryDate;
+    endDate: StoryDate;
     locationId?: string;
     chapterIds: string[];
     characterIds: string[];
@@ -343,13 +381,23 @@ function EventFormModal({
   customStoryStructures: import("../features/story-structure/storyStructureTemplate").StoryStructureTemplate[];
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [description, setDescription] = useState(initial?.description ?? "");
 
-  const [dateInput, setDateInput] = useState(
-    initial ? storyDateToInputValue(initial.eventDate) : ""
+  const [description, setDescription] = useState(
+    initial?.description ?? ""
   );
 
-  const [locationId, setLocationId] = useState(initial?.locationId ?? "");
+  const [startDateInput, setStartDateInput] = useState(
+    initial ? storyDateToInputValue(initial.startDate) : ""
+  );
+
+  const [endDateInput, setEndDateInput] = useState(
+    initial ? storyDateToInputValue(initial.endDate) : ""
+  );
+
+  const [locationId, setLocationId] = useState(
+    initial?.locationId ?? ""
+  );
+
   const [newLocationName, setNewLocationName] = useState("");
 
   const [chapterIds, setChapterIds] = useState<string[]>(
@@ -364,7 +412,7 @@ function EventFormModal({
     initial?.isStoryBeat ?? false
   );
 
-  const LOCATION_NEW = "__new__";
+  const LOCATION_NEW = "**new**";
 
   // Resolve the selected story structure, including custom structures.
   const structure = getStoryStructureOption(
@@ -395,9 +443,35 @@ function EventFormModal({
     )
   );
 
+  const chapterBeatNames: Record<number, string[]> = {};
+
+  storyBeatMappings.forEach((mapping) => {
+    for (
+      let order = mapping.chapterRange.start;
+      order <= mapping.chapterRange.end;
+      order++
+    ) {
+      if (!chapterBeatNames[order]) {
+        chapterBeatNames[order] = [];
+      }
+
+      chapterBeatNames[order].push(mapping.storyBeatName);
+    }
+  });
+
   // Save the event.
   const handleSave = () => {
-    if (!title.trim() || !dateInput) return;
+    if (!title.trim() || !startDateInput || !endDateInput) {
+      return;
+    }
+
+    const startDate = parseStoryDateInput(startDateInput);
+    const endDate = parseStoryDateInput(endDateInput);
+
+    if (compareStoryDates(startDate, endDate) > 0) {
+      window.alert("End date cannot be earlier than start date.");
+      return;
+    }
 
     // Resolve the final location ID:
     // reuse an existing location or create a new one.
@@ -417,7 +491,8 @@ function EventFormModal({
     onSave({
       title: title.trim(),
       description,
-      eventDate: parseStoryDateInput(dateInput),
+      startDate,
+      endDate,
       locationId: finalLocationId,
       chapterIds,
       characterIds,
@@ -446,11 +521,19 @@ function EventFormModal({
             />
           </Field>
 
-          <Field label="Story date">
+          <Field label="Start date">
             <input
               type="date"
-              value={dateInput}
-              onChange={(e) => setDateInput(e.target.value)}
+              value={startDateInput}
+              onChange={(e) => setStartDateInput(e.target.value)}
+            />
+          </Field>
+
+          <Field label="End date">
+            <input
+              type="date"
+              value={endDateInput}
+              onChange={(e) => setEndDateInput(e.target.value)}
             />
           </Field>
         </div>
@@ -459,7 +542,13 @@ function EventFormModal({
         <Field label="Location" full>
           <select
             value={locationId}
-            onChange={(e) => setLocationId(e.target.value)}
+            onChange={(e) => {
+              setLocationId(e.target.value);
+
+              if (e.target.value !== LOCATION_NEW) {
+                setNewLocationName("");
+              }
+            }}
           >
             <option value="">No location</option>
 
@@ -544,7 +633,14 @@ function EventFormModal({
             selectedIds={chapterIds}
             onChange={setChapterIds}
             availableChapterOrders={
-              isStoryBeat ? storyBeatChapterOrders : undefined
+              isStoryBeat
+                ? storyBeatChapterOrders
+                : undefined
+            }
+            chapterBeatNames={
+              isStoryBeat
+                ? chapterBeatNames
+                : undefined
             }
           />
         </Field>
@@ -559,7 +655,9 @@ function EventFormModal({
         </Field>
 
         <div className="modal-actions">
-          <ToolButton onClick={onClose}>Cancel</ToolButton>
+          <ToolButton onClick={onClose}>
+            Cancel
+          </ToolButton>
 
           <ToolButton primary onClick={handleSave}>
             Save event
@@ -571,7 +669,7 @@ function EventFormModal({
 }
 
 // The Events page: lists all story events for the active project,
-// sorted by story date.
+// sorted by their start date.
 export function EventsPage({
   project,
 }: {
@@ -590,7 +688,7 @@ export function EventsPage({
   >(null);
 
   const events = [...(project.events || [])].sort(
-    (a, b) => a.eventDate.year - b.eventDate.year
+    (a, b) => compareStoryDates(a.startDate, b.startDate)
   );
 
   return (
