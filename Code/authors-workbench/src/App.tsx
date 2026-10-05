@@ -16,7 +16,7 @@ import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/Topbar";
 import { RightSidebar } from "./components/RightSidebar";
 import { PlaceholderPage } from "./components/PlaceholderPage";
-import { EventsPage } from "./components/EventsPage";
+import { EventsPage } from "./features/event-and-scene/EventsPage";
 import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
 import { ChapterPage } from "./components/ChapterPage";
 import { CharactersPage } from "./features/character/CharactersPage";

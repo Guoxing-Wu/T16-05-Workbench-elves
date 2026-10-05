@@ -1,4 +1,4 @@
-import { Bell, Check, Search } from "lucide-react";
+import { Check } from "lucide-react";
 import { useWorkbench } from "../lib/store";
 
 // The top bar shown above the main content: project info on the left, actions on the right.
@@ -19,18 +19,13 @@ export function TopBar() {
         <p>{subtitle}</p>
       </div>
 
-      {/* Right: action buttons */}
+      {/* Right: save status and account */}
       <div className="top-bar-actions">
         <button type="button" className="saved-badge">
           <Check size={13} strokeWidth={2.5} />
           <span>Saved</span>
         </button>
-        <button type="button" className="top-bar-icon-btn" title="Search">
-          <Search size={17} strokeWidth={1.7} />
-        </button>
-        <button type="button" className="top-bar-icon-btn" title="Notifications">
-          <Bell size={17} strokeWidth={1.7} />
-        </button>
+
         <button type="button" className="user-avatar" title="Account">
           <span>Hi</span>
         </button>
