@@ -51,7 +51,7 @@ export function TimelinePage(
   onBack: () => void;
 }) {
   const events = [...(project.events ?? [])].sort((a, b) =>
-    compareDates(a.eventDate, b.eventDate)
+    compareDates(a.startDate, b.startDate)
   );
  
   const firstEvent = events[0];
@@ -59,8 +59,8 @@ export function TimelinePage(
 
   const summary =
     firstEvent && lastEvent
-      ? `${formatStoryDate(firstEvent.eventDate)} – ${formatStoryDate(
-          lastEvent.eventDate
+      ? `${formatStoryDate(firstEvent.startDate)} – ${formatStoryDate(
+          lastEvent.startDate
         )} · ${events.length} ${events.length === 1 ? "event" : "events"}`
       : "No dated events yet";
 
@@ -117,8 +117,8 @@ export function TimelinePage(
                 className={`chronological-item chronological-item--${side}`}
               >
                 <div className="chronological-date">
-                  <strong>{event.eventDate.year}</strong>
-                  <span>{formatStoryDate(event.eventDate)}</span>
+                  <strong>{event.startDate.year}</strong>
+                  <span>{formatStoryDate(event.startDate)}</span>
                 </div>
 
                 <span className="chronological-dot" aria-hidden="true" />
@@ -151,7 +151,7 @@ export function TimelinePage(
                         const age = character.birthday
                           ? characterAgeAtYear(
                               character.birthday,
-                              event.eventDate
+                              event.startDate
                             )
                           : undefined;
 

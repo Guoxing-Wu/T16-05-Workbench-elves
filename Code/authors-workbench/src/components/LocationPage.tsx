@@ -8,7 +8,7 @@ import type { Chapter, Location, StoryEvent, WritingProject } from "../lib/domai
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 // Formats a StoryDate as "10 Jan 1992" (day/month omitted when not recorded).
-function formatDisplayDate(date: StoryEvent["eventDate"]): string {
+function formatDisplayDate(date: StoryEvent["startDate"]): string {
   const day = date.day ? `${date.day} ` : "";
   const month = date.month ? `${MONTHS[date.month - 1]} ` : "";
   return `${day}${month}${date.year}`;
@@ -22,7 +22,7 @@ function EventHistoryRow({ event, project }: { event: StoryEvent; project: Writi
     .join(", ");
   return (
     <div className="location-history-row">
-      <span className="location-history-date">{formatDisplayDate(event.eventDate)}</span>
+      <span className="location-history-date">{formatDisplayDate(event.startDate)}</span>
       <div>
         <strong>{event.title}</strong>
         {names && <p>{names}</p>}
@@ -51,8 +51,8 @@ function LocationCard({
   const events = (project.events || [])
   .filter((e) => e.locationId === location.id)
   .sort((a, b) => {
-    const da = a.eventDate;
-    const db = b.eventDate;
+    const da = a.startDate;
+    const db = b.startDate;
     return (
       da.year - db.year ||
       (da.month ?? 0) - (db.month ?? 0) ||

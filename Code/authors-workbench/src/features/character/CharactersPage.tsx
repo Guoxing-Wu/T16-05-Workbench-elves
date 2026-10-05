@@ -114,7 +114,7 @@ export function CharactersPage({
       .filter((event) =>
         event.characterIds?.includes(selectedCharacter.id)
       )
-      .sort((a, b) => compareDates(a.eventDate, b.eventDate))
+      .sort((a, b) => compareDates(a.startDate, b.startDate))
   : [];
 
 
@@ -336,7 +336,7 @@ export function CharactersPage({
                   const age = selectedCharacter.birthday
                     ? characterAgeAtYear(
                         selectedCharacter.birthday,
-                        event.eventDate
+                        event.startDate
                       )
                     : undefined;
 
@@ -354,7 +354,7 @@ export function CharactersPage({
                   return (
                     <li key={event.id} className="character-journey-item">
                       <div className="character-journey-date">
-                        <span>{formatStoryDate(event.eventDate)}</span>
+                        <span>{formatStoryDate(event.startDate)}</span>
 
                         {age != null && (
                           <small>
