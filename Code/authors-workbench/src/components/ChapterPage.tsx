@@ -136,7 +136,8 @@ function ChapterEditor({
     addStoryEvent(project.id, {
       title: trimmed,
       chapterIds: [chapterId],
-      eventDate: { year: 0 },
+      startDate: { year: 0 },
+      endDate: { year: 0 },
       isStoryBeat: false,
     });
   };
