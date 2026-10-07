@@ -12,17 +12,17 @@ import {
 import { WorkbenchProvider, useWorkbench } from "./lib/store";
 import type { WorkbenchView } from "./lib/store";
 import { ProjectsPage } from "./components/ProjectsPage";
-import { Sidebar } from "./components/Sidebar";
-import { TopBar } from "./components/Topbar";
-import { RightSidebar } from "./components/RightSidebar";
+import { Sidebar } from "./features/Sidebar/Sidebar";
+import { TopBar } from "./features/Sidebar/Topbar";
+import { RightSidebar } from "./features/Sidebar/RightSidebar";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import { EventsPage } from "./features/event-and-scene/EventsPage";
 import { StoryStructurePage } from "./features/story-structure/StoryStructurePage";
-import { ChapterPage } from "./components/ChapterPage";
+import { ChapterPage } from "./features/ChapterPlan/ChapterPage";
 import { CharactersPage } from "./features/character/CharactersPage";
 import { TimelinePage } from "./features/TimeLine/TimeLinePage";
 import { OverviewPage } from "./components/OverviewPage";
-import { LocationsPage } from "./components/LocationPage";
+import { LocationsPage } from "./features/Location/LocationPage";
 
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
