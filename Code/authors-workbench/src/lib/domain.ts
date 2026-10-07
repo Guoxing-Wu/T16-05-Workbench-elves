@@ -142,6 +142,7 @@ export interface StoryScene {
   description: string;
 
   date: StoryDate;
+  time?: string;
 
   eventId?: string;
   chapterIds: string[];
@@ -220,6 +221,7 @@ export function makeStoryEvent(input: {
     title: string;
     description?: string;
     date: StoryDate;
+    time?: string;
     eventId?: string;
     chapterIds: string[];
     characterIds?: string[];
@@ -230,6 +232,7 @@ export function makeStoryEvent(input: {
       title: input.title.trim(),
       description: input.description ?? "",
       date: input.date,
+      time: input.time || undefined,
       eventId: input.eventId,
       chapterIds: input.chapterIds,
       characterIds: input.characterIds,

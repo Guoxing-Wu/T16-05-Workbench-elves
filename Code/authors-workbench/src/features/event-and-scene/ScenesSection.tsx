@@ -174,6 +174,7 @@ function SceneFormModal({
     title: string;
     description: string;
     date: StoryDate;
+    time?: string;
     eventId?: string;
     chapterIds: string[];
     characterIds: string[];
@@ -189,6 +190,7 @@ function SceneFormModal({
   const [dateInput, setDateInput] = useState(
     initial ? sceneDateToInputValue(initial.date) : ""
   );
+  const [timeInput, setTimeInput] = useState(initial?.time ?? "");
 
   const [eventId, setEventId] = useState(
     initial?.eventId ?? ""
@@ -228,6 +230,7 @@ function SceneFormModal({
       title: title.trim(),
       description: description.trim(),
       date: parseSceneDate(dateInput),
+      time: timeInput.trim() || undefined,
       eventId: eventId || undefined,
       chapterIds,
       characterIds,
@@ -265,6 +268,26 @@ function SceneFormModal({
                 setError("");
               }}
             />
+          </Field>
+          <Field label="Time (optional)">
+            <select
+              value={timeInput}
+              onChange={(event) => setTimeInput(event.target.value)}
+            >
+              <option value="">No time selected</option>
+
+              {Array.from({ length: 48 }, (_, index) => {
+                const hour = String(Math.floor(index / 2)).padStart(2, "0");
+                const minute = index % 2 === 0 ? "00" : "30";
+                const time = `${hour}:${minute}`;
+
+                return (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                );
+              })}
+            </select>
           </Field>
         </div>
 
@@ -389,7 +412,8 @@ function SceneRow({
     <div className="scene-card">
       <div className="scene-date">
         <CalendarDays size={15} />
-        <span>{formatStoryDate(scene.date)}</span>
+        <span>{formatStoryDate(scene.date)}  {scene.time ? ` · ${scene.time}` : ""}</span>
+       
       </div>
 
       <div className="scene-body">
