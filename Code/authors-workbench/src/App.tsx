@@ -219,10 +219,17 @@ function CurrentView() {
 
 // The root layout: collapsible sidebar on the left, main content on the right.
 function WorkbenchApp() {
+  const { persistenceStatus } = useWorkbench();
   return (
     <div className="app-layout">
       <Sidebar />
       <div className="main-area">
+        {persistenceStatus === "unavailable" && (
+          <div className="storage-warning" role="alert">
+            Your browser's local storage isn't available, so changes won't be saved
+            after you close or refresh this page.
+          </div>
+        )}
         <TopBar />
         <div className="content-wrapper">
           <main className="main-workspace" id="main-content">

@@ -1,8 +1,11 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState, useEffect} from "react";
 import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent, makeStoryScene, makeLocation } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryScene, StoryDate, Location } from "./domain";
 import type { StoryStructureId, StoryStructureTemplate,} from "../features/story-structure/storyStructureTemplate";
+import { STORES, getAll } from "./db";
+import { useCollectionSync } from "./useCollectionSync";
+
 //left 
 export type WorkbenchView =
   | "projects"
@@ -16,8 +19,15 @@ export type WorkbenchView =
   | "settings"
   | "help";
 
+
+// "loading"     -> still reading from IndexedDB
+// "ready"       -> data loaded, every change is saved automatically
+// "unavailable" -> IndexedDB can't be used, the app works but nothing is saved
+export type PersistenceStatus = "loading" | "ready" | "unavailable";
+
 // Shape of things the app can do through useWorkbench().
 interface WorkbenchStoreValue {
+  persistenceStatus: PersistenceStatus;
   projects: WritingProject[];
   // The project currently open, or null when on the projects overview.
   activeProject: WritingProject | null;
@@ -132,12 +142,47 @@ interface WorkbenchStoreValue {
 }
 const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 
-// Holds all states in memory
+// Holds all states in memory and mirrors projects + custom structures to IndexedDB.export function WorkbenchProvider({ children }: { children: ReactNode }) {
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<WritingProject[]>([]);
   
   const [customStoryStructures, setCustomStoryStructures] = useState<StoryStructureTemplate[]>([]);
 
+  const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>("loading");
+    // Load everything saved from last time once, when the app starts.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [savedProjects, savedStructures] = await Promise.all([
+          getAll<WritingProject>(STORES.projects),
+          getAll<StoryStructureTemplate>(STORES.customStructures),
+        ]);
+        if (cancelled) return;
+
+        // IndexedDB returns records ordered by id.
+        setProjects(savedProjects.sort((a, b) => b.createdAt - a.createdAt));
+        setCustomStoryStructures(savedStructures.sort((a, b) => a.id.localeCompare(b.id)));
+        setPersistenceStatus("ready");
+      } catch (error) {
+        console.error("[db] Could not open IndexedDB, changes will not be saved:", error);
+        if (!cancelled) setPersistenceStatus("unavailable");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Auto-save: write changed records whenever the data changes.
+  // Only active once loading has finished successfully.
+  const persistenceReady = persistenceStatus === "ready";
+  const markPersistenceFailed = () => setPersistenceStatus("unavailable");
+  useCollectionSync(STORES.projects, projects, persistenceReady, markPersistenceFailed);
+  useCollectionSync(STORES.customStructures, customStoryStructures, persistenceReady, markPersistenceFailed);
+  
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
 
   const [activeView, setActiveView] = useState<WorkbenchView>("projects");
@@ -418,6 +463,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<WorkbenchStoreValue>(
     () => ({
+      persistenceStatus,
       // Project
       projects,
       activeProject,
@@ -461,6 +507,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       updateLocation,
     }),
     [
+      persistenceStatus,
       projects,
       activeProject,
       activeProjectId,
@@ -468,6 +515,12 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       customStoryStructures,
     ]
   );
+
+  // Wait for the saved data before rendering, otherwise the UI would flash
+  // "No projects yet" for a moment even though projects exist.
+  if (persistenceStatus === "loading") {
+    return <div className="app-loading" role="status">Loading your workbench…</div>;
+  }
 
   return <WorkbenchStore.Provider value={value}>{children}</WorkbenchStore.Provider>;
 }
