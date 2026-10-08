@@ -137,3 +137,27 @@
     align-items: flex-start;
   }
 }
+  .scene-card{
+  border: 1px solid #dce4e4;
+  border-left: 4px solid var(--event-color, #648c96);
+  border-radius: 8px;
+  background: #fff;
+}
+.scenes-section .scene-card {
+  border: none;
+  border-left: 4px solid;
+
+}
+.scenes-section .scene-title {
+  font-family: "Lora", Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.tl-date,
+.tl-date strong,
+.tl-date span,
+.tl-range {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 400;
+}

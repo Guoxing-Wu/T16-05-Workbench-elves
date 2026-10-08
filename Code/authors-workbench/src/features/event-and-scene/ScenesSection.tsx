@@ -26,6 +26,13 @@ import type {
 } from "../../lib/domain";
 
 import "./eventAndScene.css";
+const CHAPTER_COLORS = [
+  "#648C96", // 雾蓝
+  "#AB8B70", // 灰棕
+  "#8C7A98", // 灰紫
+  "#7F9575", // 灰绿
+  "#B47F83", // 灰粉
+];
 
 function parseSceneDate(value: string): StoryDate {
   const [year, month, day] = value.split("-").map(Number);
@@ -375,12 +382,14 @@ function SceneFormModal({
 
 function SceneRow({
   scene,
+  color,
   project,
   onEdit,
   onRemove,
 }: {
   scene: StoryScene;
   project: WritingProject;
+  color: string;
   onEdit: () => void;
   onRemove: () => void;
 }) {
@@ -409,7 +418,7 @@ function SceneRow({
     : undefined;
 
   return (
-    <div className="scene-card">
+    <div className="scene-card" style={{ borderColor: color }}>
       <div className="scene-date">
         <CalendarDays size={15} />
         <span>{formatStoryDate(scene.date)}  {scene.time ? ` · ${scene.time}` : ""}</span>
@@ -499,6 +508,19 @@ export function ScenesSection({
       removeStoryScene(project.id, scene.id);
     }
   };
+    function getSceneColor(scene: StoryScene): string {
+    const chapters = [...project.chapters].sort(
+      (a, b) => a.order - b.order
+    );
+
+    const index = chapters.findIndex((chapter) =>
+      (scene.chapterIds ?? []).includes(chapter.id)
+    );
+
+    return index === -1
+      ? "#648C96"
+      : CHAPTER_COLORS[index % CHAPTER_COLORS.length];
+  }
 
   return (
     <section className="scenes-section">
@@ -524,6 +546,7 @@ export function ScenesSection({
             key={scene.id}
             scene={scene}
             project={project}
+            color={getSceneColor(scene)}
             onEdit={() => setModalState(scene)}
             onRemove={() => handleRemove(scene)}
           />
