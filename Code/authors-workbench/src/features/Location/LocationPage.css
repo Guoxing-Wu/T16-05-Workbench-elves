@@ -1,0 +1,241 @@
+/* ===== Locations page (extracted from index.css) ===== */
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.location-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 22px 24px 48px;
+  border: 1px solid var(--border-warm);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(41,39,37,.04);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.location-card:hover {
+  border-color: #d5c9bc;
+  box-shadow: 0 6px 18px rgba(41,39,37,.07);
+}
+
+.location-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.location-head-main {
+  min-width: 0;
+}
+
+.location-card-head .location-name {
+  margin-bottom: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.location-card-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--blue);
+  background: var(--blue-soft);
+  flex-shrink: 0;
+}
+
+.location-eyebrow {
+  color: var(--coral-dark);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .11em;
+}
+
+.location-name {
+  margin: 6px 0 8px;
+  font: 600 20px var(--serif);
+}
+
+.location-description {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.location-stats {
+  padding: 13px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-top: 1px solid var(--divider-warm);
+  border-bottom: 1px solid var(--divider-warm);
+  color: var(--text-muted);
+  font-size: 9px;
+}
+
+.location-stats strong {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.location-people {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  font-size: 11px;
+}
+
+.location-expand-link {
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.location-expand-link:hover {
+  color: var(--coral-dark);
+}
+
+.location-history {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.location-history-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.location-history-date {
+  color: var(--coral-dark);
+  font-family: var(--mono);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.location-history-row strong {
+  font: 600 13px var(--serif);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.location-history-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+.location-history-names {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.location-history-row.nested-scene {
+  padding-left: 18px;
+}
+
+.location-history-group {
+  min-width: 0;
+}
+.location-history-group + .location-history-group { margin-top: 14px; }
+.location-history-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--divider-warm);
+}
+.location-history-group-head .group-num {
+  color: var(--coral-dark);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.location-history-group-head .group-title {
+  font: 600 13px var(--serif);
+  color: var(--ink);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.location-history-group .location-history-row { margin-bottom: 8px; }
+.location-history-group .location-history-row:last-child { margin-bottom: 0; }
+.location-history-group.no-chapter .group-num { color: var(--text-muted); font-family: inherit; }
+.location-history-group.no-chapter .group-title { color: var(--text-muted); }
+
+.location-card-actions {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.edit-location-button,
+.delete-location-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.edit-location-button {
+  color: var(--blue);
+}
+
+.edit-location-button:hover {
+  background: var(--blue-soft);
+  color: var(--ink);
+}
+
+.delete-location-button {
+  color: #b94a48;
+}
+
+.delete-location-button:hover {
+  background: #f5e3e1;
+  color: #913735;
+}
+
+@media (max-width: 700px) {
+  .location-grid {
+    grid-template-columns: 1fr;
+  }
+}
