@@ -692,6 +692,7 @@ export function EventsPage({
     (a, b) => compareStoryDates(a.startDate, b.startDate)
   );
 
+
   return (
     <div className="page-stack core-page">
       <PageHeader
