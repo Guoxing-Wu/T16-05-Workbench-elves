@@ -17,8 +17,9 @@ import {
   FolderOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useWorkbench } from "../lib/store";
-import type { WorkbenchView } from "../lib/store";
+import { useWorkbench } from "../../lib/store";
+import type { WorkbenchView } from "../../lib/store";
+import "./Sidebar.css";
 
 // A single navigation entry: icon + label + the view it switches to.
 interface NavItem {
@@ -96,9 +97,6 @@ function SidebarButton({
 export function Sidebar() {
   const { activeView, setActiveView} = useWorkbench();
   const [collapsed, setCollapsed] = useState(false);
-
-  // Only top-level views (outside a project's manuscript) should close the open project.
-  const TOP_LEVEL_VIEWS: WorkbenchView[] = ["projects", "overview"];
 
   // Switching to a top-level view closes any open project detail.
   /*const navigate = (view: WorkbenchView) => {

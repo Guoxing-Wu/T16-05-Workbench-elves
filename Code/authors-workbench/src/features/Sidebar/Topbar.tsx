@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
-import { useWorkbench } from "../lib/store";
+import { useWorkbench } from "../../lib/store";
+import "./Sidebar.css";
 
 // The top bar shown above the main content: project info on the left, actions on the right.
 export function TopBar() {

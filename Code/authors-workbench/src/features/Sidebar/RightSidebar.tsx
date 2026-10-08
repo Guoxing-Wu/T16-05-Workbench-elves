@@ -6,6 +6,7 @@ import {
   RefreshCw,
   User,
 } from "lucide-react";
+import "./Sidebar.css";
 
 // A pool of writing-related quotes for the daily inspiration card.
 const INSPIRATION_QUOTES = [
