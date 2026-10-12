@@ -5,6 +5,8 @@ import type { Chapter, WritingProject, Character, StoryEvent, StoryScene, StoryD
 import type { StoryStructureId, StoryStructureTemplate,} from "../features/story-structure/storyStructureTemplate";
 import { STORES, getAll } from "./db";
 import { useCollectionSync } from "./useCollectionSync";
+import { mergeById } from "./backup";
+import type { BackupFile, ImportMode } from "./backup";
 
 //left 
 export type WorkbenchView =
@@ -139,6 +141,9 @@ interface WorkbenchStoreValue {
     locationId: string,
     input: { name: string; description?: string }
   ) => void;
+
+  // Restore data from a (already parsed and validated) backup file.
+  importBackup: (backup: BackupFile, mode: ImportMode) => void;
 }
 const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 
@@ -461,6 +466,32 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  // Restores a backup with only React state is touched. useCollectionSync notices the
+  // change and writes/deletes the matching IndexedDB records on its own.
+  const importBackup: WorkbenchStoreValue["importBackup"] = (backup, mode) => {
+    const { projects: incomingProjects, customStructures: incomingStructures } = backup.data;
+
+    // Same ordering the app uses when it loads from IndexedDB.
+    const newestFirst = (list: WritingProject[]) =>
+      [...list].sort((a, b) => b.createdAt - a.createdAt);
+    const byId = (list: StoryStructureTemplate[]) =>
+      [...list].sort((a, b) => a.id.localeCompare(b.id));
+
+    if (mode === "replace") {
+      // The backup becomes the whole workbench. Records that are not in it get deleted.
+      setProjects(newestFirst(incomingProjects));
+      setCustomStoryStructures(byId(incomingStructures));
+      // The open project may no longer exist, so go back to the projects list.
+      setActiveProjectIdState(null);
+      setActiveView("projects");
+      return;
+    }
+
+    // The backup's version is prior when there are same ids, and everything else is kept.
+    setProjects((list) => newestFirst(mergeById(list, incomingProjects)));
+    setCustomStoryStructures((list) => byId(mergeById(list, incomingStructures)));
+  };
+
   const value = useMemo<WorkbenchStoreValue>(
     () => ({
       persistenceStatus,
@@ -505,6 +536,9 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addLocation,
       removeLocation,
       updateLocation,
+
+      // Backup
+      importBackup,
     }),
     [
       persistenceStatus,
