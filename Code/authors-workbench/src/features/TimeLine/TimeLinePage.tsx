@@ -10,7 +10,7 @@ import type {
   StoryScene,
   WritingProject,
 } from "../../lib/domain";
-import "./TimelinePage.css";
+import "./TimeLinePage.css";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
