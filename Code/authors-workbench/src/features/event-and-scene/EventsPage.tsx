@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
 import {
   Field,
@@ -171,14 +172,39 @@ function ChapterMultiSelect({
   onChange,
   availableChapterOrders,
   chapterBeatNames,
+  openDropdown,
+  setOpenDropdown,
 }: {
   chapters: WritingProject["chapters"];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   availableChapterOrders?: number[];
   chapterBeatNames?: Record<number, string[]>;
+  openDropdown: "chapter" | "character" | null;
+  setOpenDropdown: Dispatch<
+    SetStateAction<"chapter" | "character" | null>
+  >;
 }) {
-  const [open, setOpen] = useState(false);
+  const open = openDropdown === "chapter";
+  const multiSelectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: PointerEvent) => {
+      if (
+        open &&
+        multiSelectRef.current &&
+        !multiSelectRef.current.contains(event.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, [open, setOpenDropdown]);
 
   // Only the available chapters can be selected.
   const availableChapters = availableChapterOrders
@@ -187,26 +213,38 @@ function ChapterMultiSelect({
       )
     : chapters;
 
-  // Add/remove a chapter from the selected list.
   const toggleChapter = (id: string) => {
-    onChange(
-      selectedIds.includes(id)
-        ? selectedIds.filter((chapterId) => chapterId !== id)
-        : [...selectedIds, id]
-    );
-  };
+    const nextSelectedIds = selectedIds.includes(id)
+      ? selectedIds.filter((chapterId) => chapterId !== id)
+      : [...selectedIds, id];
 
-  // Keep the selected chapter objects for displaying their titles.
-  const selectedChapters = chapters.filter((chapter) =>
-    selectedIds.includes(chapter.id)
-  );
+    // Display the chapter by its order
+    const sortedIds = [...nextSelectedIds].sort((a, b) => {
+      const orderA =
+        chapters.find((chapter) => chapter.id === a)?.order ??
+        Number.MAX_SAFE_INTEGER;
+
+      const orderB =
+        chapters.find((chapter) => chapter.id === b)?.order ??
+        Number.MAX_SAFE_INTEGER;
+
+      return orderA - orderB;
+    });
+
+    onChange(sortedIds);
+  };
+  const selectedChapters = chapters
+    .filter((chapter) => selectedIds.includes(chapter.id))
+    .sort((a, b) => a.order - b.order);
 
   return (
-    <div className="multi-select">
+    <div className="multi-select" ref={multiSelectRef}>
       <button
         type="button"
         className="multi-select-trigger"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() =>
+          setOpenDropdown(open ? null : "chapter")
+        }
       >
         <span>
           {selectedChapters.length === 0
@@ -238,7 +276,6 @@ function ChapterMultiSelect({
                 >
                   <span>
                     {chapter.title}
-
                     {chapterBeatNames?.[chapter.order]?.length
                       ? ` · ${chapterBeatNames[chapter.order].join(" / ")}`
                       : ""}
@@ -256,18 +293,42 @@ function ChapterMultiSelect({
     </div>
   );
 }
-
 // Multi-select dropdown for linking an event to multiple characters.
 function CharacterMultiSelect({
   characters,
   selectedIds,
   onChange,
+  openDropdown,
+  setOpenDropdown,
 }: {
   characters: WritingProject["characters"];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
+  openDropdown: "chapter" | "character" | null;
+  setOpenDropdown: Dispatch<
+    SetStateAction<"chapter" | "character" | null>
+  >;
 }) {
-  const [open, setOpen] = useState(false);
+  const open = openDropdown === "character";
+  const multiSelectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: PointerEvent) => {
+      if (
+        open &&
+        multiSelectRef.current &&
+        !multiSelectRef.current.contains(event.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, [open, setOpenDropdown]);
 
   const toggleCharacter = (id: string) => {
     onChange(
@@ -282,11 +343,13 @@ function CharacterMultiSelect({
   );
 
   return (
-    <div className="multi-select">
+    <div className="multi-select" ref={multiSelectRef}>
       <button
         type="button"
         className="multi-select-trigger"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() =>
+          setOpenDropdown(open ? null : "character")
+        }
       >
         <span>
           {selectedCharacters.length === 0
@@ -306,14 +369,6 @@ function CharacterMultiSelect({
           {selectedCharacters.map((character) => (
             <span key={character.id} className="selected-item">
               {character.name}
-
-              <button
-                type="button"
-                onClick={() => toggleCharacter(character.id)}
-                aria-label={`Remove ${character.name}`}
-              >
-                ×
-              </button>
             </span>
           ))}
         </div>
@@ -408,6 +463,10 @@ function EventFormModal({
   const [characterIds, setCharacterIds] = useState<string[]>(
     initial?.characterIds ?? []
   );
+
+  const [openDropdown, setOpenDropdown] = useState<
+    "chapter" | "character" | null
+  >(null);
 
   const [isStoryBeat, setIsStoryBeat] = useState(
     initial?.isStoryBeat ?? false
@@ -643,7 +702,10 @@ function EventFormModal({
                 ? chapterBeatNames
                 : undefined
             }
+            openDropdown={openDropdown}
+            setOpenDropdown={setOpenDropdown}
           />
+          
         </Field>
 
         {/* Characters */}
@@ -652,6 +714,8 @@ function EventFormModal({
             characters={project.characters}
             selectedIds={characterIds}
             onChange={setCharacterIds}
+            openDropdown={openDropdown}
+            setOpenDropdown={setOpenDropdown}
           />
         </Field>
 
