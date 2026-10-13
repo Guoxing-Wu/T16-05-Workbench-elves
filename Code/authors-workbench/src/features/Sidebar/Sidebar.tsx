@@ -19,6 +19,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useWorkbench } from "../../lib/store";
 import type { WorkbenchView } from "../../lib/store";
+import { BackupModal } from "../backup/BackupModal";
 import "./Sidebar.css";
 
 // A single navigation entry: icon + label + the view it switches to.
@@ -97,6 +98,8 @@ function SidebarButton({
 export function Sidebar() {
   const { activeView, setActiveView} = useWorkbench();
   const [collapsed, setCollapsed] = useState(false);
+  // Whether the Backup & Restore dialog is open.
+  const [backupOpen, setBackupOpen] = useState(false);
 
   // Switching to a top-level view closes any open project detail.
   /*const navigate = (view: WorkbenchView) => {
@@ -108,12 +111,12 @@ export function Sidebar() {
     setActiveView(view);
   };
 
-  // Placeholder actions for the tool buttons — real functionality comes later.
+  // Tool buttons run an action instead of navigating.
   const tools: ToolItem[] = [
     {
       icon: Download,
       label: "Backup & Restore",
-      action: () => console.log("[Workbench] Backup & Restore — not implemented yet"),
+      action: () => setBackupOpen(true),
     },
     {
       icon: Share2,
@@ -122,6 +125,7 @@ export function Sidebar() {
     },
   ];
   return (
+    <>
     <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>
       {/* Brand mark + collapse toggle */}
       <div className="sidebar-brand">
@@ -191,6 +195,10 @@ export function Sidebar() {
         ))}
       </div>
     </aside>
+
+    {/* Rendered next to the <aside>, not inside it, so the sidebar's overflow never clips it. */}
+    {backupOpen && <BackupModal onClose={() => setBackupOpen(false)} />}
+    </>
   );
 }
 

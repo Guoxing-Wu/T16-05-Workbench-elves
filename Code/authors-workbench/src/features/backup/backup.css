@@ -1,0 +1,40 @@
+/* ===== Backup & Restore dialog ===== */
+.backup-section { padding: 20px 22px; }
+.backup-section + .backup-section { border-top: 1px solid var(--divider-warm); }
+.backup-section h3 { margin: 0 0 5px; font: 600 15px var(--serif); color: var(--ink); }
+.backup-section > p { margin: 0 0 13px; color: var(--text-muted); font-size: 12px; line-height: 1.65; }
+
+/* The real file input is hidden; a normal button opens it. */
+.backup-file-input { display: none; }
+
+/* Summary of the file the user picked */
+.backup-preview { margin-top: 16px; padding: 15px; border: 1px solid var(--border-warm); border-radius: 8px; background: var(--surface); }
+.backup-preview-file { display: flex; align-items: center; gap: 10px; color: var(--blue); }
+.backup-preview-file div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.backup-preview-file strong { color: var(--ink); font-size: 12.5px; overflow-wrap: anywhere; }
+.backup-preview-file span { color: var(--text-muted); font-size: 11px; }
+.backup-preview-counts { margin: 12px 0; color: var(--ink-soft); font-size: 12px; }
+
+/* Merge / Replace choice */
+.backup-modes { display: grid; gap: 8px; }
+.backup-mode { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; border: 1px solid var(--border-warm); border-radius: 7px; background: var(--paper-light); cursor: pointer; }
+.backup-mode:hover { border-color: #cfc4b8; }
+.backup-mode.selected { border-color: var(--coral); background: #fff; }
+.backup-mode input { margin-top: 3px; accent-color: var(--coral); }
+.backup-mode div { display: flex; flex-direction: column; gap: 3px; }
+.backup-mode strong { font-size: 12.5px; color: var(--ink); }
+.backup-mode span { color: var(--text-muted); font-size: 11.5px; line-height: 1.55; }
+
+.backup-check { margin-top: 12px; display: flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 12px; cursor: pointer; }
+.backup-check input { accent-color: var(--coral); }
+
+.backup-note { margin: 12px 0 0; padding: 9px 11px; display: flex; align-items: flex-start; gap: 8px; border: 1px solid #e8d9a8; border-radius: 7px; background: #faf3dc; color: #6b5d3f; font-size: 11.5px; line-height: 1.55; }
+.backup-note svg { flex: 0 0 auto; margin-top: 2px; }
+
+.backup-preview-actions { margin-top: 15px; display: flex; justify-content: flex-end; gap: 9px; }
+
+/* Result / error line at the bottom of the dialog */
+.backup-message { margin: 0 22px 20px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px; border-radius: 7px; font-size: 12px; line-height: 1.55; }
+.backup-message svg { flex: 0 0 auto; margin-top: 2px; }
+.backup-message.success { border: 1px solid #c6d3bd; background: var(--sage-soft); color: #4d5a43; }
+.backup-message.error { border: 1px solid #e2c3c0; background: #f7e3e0; color: #8f3f3b; }
