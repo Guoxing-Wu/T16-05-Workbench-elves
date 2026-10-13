@@ -1,23 +1,11 @@
 
-import { useState } from "react";
-import {
-  CalendarDays,
-  MapPin,
-  Pencil,
-  Plus,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { MapPin, Pencil, Plus, Trash2, Users,} from "lucide-react";
 
-import {
-  Field,
-  IconButton,
-  Modal,
-  ToolButton,
-} from "../../components/primitives";
+import {Field, IconButton, Modal, ToolButton,} from "../../components/primitives";
 
 import { useWorkbench } from "../../lib/store";
-import { formatStoryDate } from "../../lib/domain";
+import { formatStoryDate, characterAgeAtYear } from "../../lib/domain";
 
 import type {
   StoryDate,
@@ -27,11 +15,11 @@ import type {
 
 import "./eventAndScene.css";
 const CHAPTER_COLORS = [
-  "#648C96", // 雾蓝
-  "#AB8B70", // 灰棕
-  "#8C7A98", // 灰紫
-  "#7F9575", // 灰绿
-  "#B47F83", // 灰粉
+  "#648C96", 
+  "#AB8B70", 
+  "#8C7A98", 
+  "#7F9575", 
+  "#B47F83", 
 ];
 
 function parseSceneDate(value: string): StoryDate {
@@ -84,6 +72,25 @@ function SceneMultiSelect({
 }) {
   const [open, setOpen] = useState(false);
 
+  const multiSelectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: PointerEvent) => {
+      if (
+        multiSelectRef.current &&
+        !multiSelectRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleClickOutside);
+    };
+  }, []);
+  
   const selectedOptions = options.filter((option) =>
     selectedIds.includes(option.id)
   );
@@ -98,7 +105,7 @@ function SceneMultiSelect({
 
   return (
     <Field label={label} full>
-      <div className="multi-select">
+      <div className="multi-select" ref={multiSelectRef}>
         <button
           type="button"
           className="multi-select-trigger"
@@ -119,15 +126,6 @@ function SceneMultiSelect({
           <div className="selected-items">
             {selectedOptions.map((option) => (
               <span className="selected-item" key={option.id}>
-                {option.name}
-
-                <button
-                  type="button"
-                  aria-label={`Remove ${option.name}`}
-                  onClick={() => toggleOption(option.id)}
-                >
-                  ×
-                </button>
               </span>
             ))}
           </div>
@@ -400,12 +398,14 @@ function SceneRow({
     )
     .filter((name): name is string => Boolean(name));
 
-  const characterNames = (scene.characterIds ?? [])
-    .map(
-      (id) =>
-        project.characters.find((character) => character.id === id)?.name
-    )
-    .filter((name): name is string => Boolean(name));
+const affectedCharacters = (scene.characterIds ?? [])
+  .map((id) =>
+    project.characters.find((character) => character.id === id)
+  )
+  .filter(
+    (character): character is WritingProject["characters"][number] =>
+      Boolean(character)
+  );
 
   const eventName = scene.eventId
     ? project.events.find((event) => event.id === scene.eventId)?.title
@@ -419,39 +419,48 @@ function SceneRow({
 
   return (
     <div className="scene-card" style={{ borderColor: color }}>
-      <div className="scene-date">
-        <CalendarDays size={15} />
-        <span>{formatStoryDate(scene.date)}  {scene.time ? ` · ${scene.time}` : ""}</span>
-       
+      <div className="event-year">
+        <span>DATE</span>
+        <strong>{formatStoryDate(scene.date)}</strong>
+        {scene.time && <small>· {scene.time}</small>}
       </div>
 
       <div className="scene-body">
+
+        {chapterNames.length > 0 && (
+          <p className="event-tag">
+            CHAPTER · {chapterNames.join(", ")}
+          </p>
+        )}
+
         {eventName && (
-          <p className="scene-tag">
+          <p className="event-tag">
             EVENT · {eventName}
           </p>
         )}
 
         <h3 className="scene-title">{scene.title}</h3>
-
         {scene.description && (
           <p className="scene-description">
             {scene.description}
           </p>
         )}
 
-        {chapterNames.length > 0 && (
-          <p className="scene-meta">
-            CHAPTER · {chapterNames.join(", ")}
-          </p>
-        )}
       </div>
 
       <div className="scene-side">
-        {characterNames.length > 0 && (
+        {affectedCharacters.length > 0 && (
           <span className="scene-meta-item">
             <Users size={12} />
-            {characterNames.join(", ")}
+            {affectedCharacters
+              .map(
+                (character) =>
+                  `${character.name} (${characterAgeAtYear(
+                    character.birthday,
+                    scene.date
+                  )})`
+              )
+              .join(", ")}
           </span>
         )}
 
@@ -462,7 +471,6 @@ function SceneRow({
           </span>
         )}
       </div>
-
       <div className="row-actions">
         <IconButton title="Edit scene" onClick={onEdit}>
           <Pencil size={14} />
