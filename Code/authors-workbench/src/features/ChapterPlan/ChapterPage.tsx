@@ -28,6 +28,15 @@ import {
 
 type ViewMode = "grid" | "list";
 
+// Payload carried while an entity tag is dragged between chapter cards.
+type EntityDragKind = "char" | "loc" | "evt" | "scene";
+
+interface EntityDrag {
+  kind: EntityDragKind;
+  entityId: string;
+  fromChapterId: string;
+}
+
 // ---------------------------------------------------------------------------
 // Shared constants & pure helpers
 // ---------------------------------------------------------------------------
@@ -106,6 +115,9 @@ function ChapterCard({
   onDragEnd,
   onDragOver,
   onDrop,
+  dropTarget,
+  onEntityDragStart,
+  onEntityDragEnd,
 }: {
   chapter: Chapter;
   actIndex: number;
@@ -123,6 +135,9 @@ function ChapterCard({
   onDragEnd: () => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
+  dropTarget?: boolean;
+  onEntityDragStart: (d: EntityDrag) => void;
+  onEntityDragEnd: () => void;
 }) {
   const actColor =
     actIndex > 0 ? ACT_COLORS[(actIndex - 1) % ACT_COLORS.length] : undefined;
@@ -136,7 +151,9 @@ function ChapterCard({
       draggable
       className={`chapter-plan-card${actIndex > 0 ? " act-bar" : ""} ${selected ? "selected" : ""}${
         dragging ? " dragging" : ""
-      }${insertBefore ? " insert-before" : ""}${insertAfter ? " insert-after" : ""}`}
+      }${insertBefore ? " insert-before" : ""}${insertAfter ? " insert-after" : ""}${
+        dropTarget ? " drop-target" : ""
+      }`}
       style={actColor ? { borderLeftColor: actColor } : undefined}
       onClick={onClick}
       onDragStart={onDragStart}
@@ -164,27 +181,88 @@ function ChapterCard({
                   className="card-av"
                   style={{ background: avatarColor(c.name) }}
                   key={c.id}
+                  draggable
+                  onDragStart={(e) => {
+                    e.stopPropagation();
+                    const payload: EntityDrag = {
+                      kind: "char",
+                      entityId: c.id,
+                      fromChapterId: chapter.id,
+                    };
+                    e.dataTransfer.setData(
+                      "application/x-entity",
+                      JSON.stringify(payload)
+                    );
+                    onEntityDragStart(payload);
+                  }}
+                  onDragEnd={onEntityDragEnd}
                 >
                   {c.name.slice(0, 2).toUpperCase()}
                 </span>
               ))}
+              {/* The "+N" badge is not draggable; it does not stand for one entity. */}
               {sortedChars.length > 3 && (
                 <span className="card-av more">+{sortedChars.length - 3}</span>
               )}
             </span>
           )}
           {locs.map((l) => (
-            <span className="card-loc" key={l.id}>
+            <span
+              className="card-loc"
+              key={l.id}
+              draggable
+              onDragStart={(e) => {
+                e.stopPropagation();
+                const payload: EntityDrag = {
+                  kind: "loc",
+                  entityId: l.id,
+                  fromChapterId: chapter.id,
+                };
+                e.dataTransfer.setData("application/x-entity", JSON.stringify(payload));
+                onEntityDragStart(payload);
+              }}
+              onDragEnd={onEntityDragEnd}
+            >
               {l.name}
             </span>
           ))}
           {evts.map((e) => (
-            <span className="card-evt" key={e.id}>
+            <span
+              className="card-evt"
+              key={e.id}
+              draggable
+              onDragStart={(ev) => {
+                ev.stopPropagation();
+                const payload: EntityDrag = {
+                  kind: "evt",
+                  entityId: e.id,
+                  fromChapterId: chapter.id,
+                };
+                ev.dataTransfer.setData("application/x-entity", JSON.stringify(payload));
+                onEntityDragStart(payload);
+              }}
+              onDragEnd={onEntityDragEnd}
+            >
               {e.title}
             </span>
           ))}
           {scenes.map((s) => (
-            <span className="card-evt" key={s.id}>
+            <span
+              className="card-scene"
+              key={s.id}
+              draggable
+              onDragStart={(ev) => {
+                ev.stopPropagation();
+                const payload: EntityDrag = {
+                  kind: "scene",
+                  entityId: s.id,
+                  fromChapterId: chapter.id,
+                };
+                ev.dataTransfer.setData("application/x-entity", JSON.stringify(payload));
+                onEntityDragStart(payload);
+              }}
+              onDragEnd={onEntityDragEnd}
+            >
               {s.title}
             </span>
           ))}
@@ -480,7 +558,7 @@ function ChapterEditor({
             </span>
           ))}
           {myScenes.map((sc) => (
-            <span className="chip chip-evt" key={sc.id}>
+            <span className="chip chip-scene" key={sc.id}>
               <span className="chip-label">{sc.title}</span>
               <span className="chip-x" onClick={() => toggleScene(sc.id)}>
                 &times;
@@ -617,12 +695,22 @@ function ChapterEditor({
 // ---------------------------------------------------------------------------
 
 export function ChapterPage({ project }: { project: WritingProject }) {
-  const { addChapter, updateChapter, updateProject, customStoryStructures } = useWorkbench();
+  const {
+    addChapter,
+    updateChapter,
+    updateProject,
+    updateStoryEvent,
+    updateStoryScene,
+    customStoryStructures,
+  } = useWorkbench();
   const [view, setView] = useState<ViewMode>("grid");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [insertIndex, setInsertIndex] = useState<number | null>(null);
   const suppressClick = useRef(false);
+  // The entity tag currently being dragged, and the card it is hovering over.
+  const [entityDrag, setEntityDrag] = useState<EntityDrag | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
 
   const chapters = project.chapters || [];
   const template = getStoryStructureOption(project.storyStructure, customStoryStructures);
@@ -670,6 +758,39 @@ export function ChapterPage({ project }: { project: WritingProject }) {
       list.splice(from < toIndex ? toIndex - 1 : toIndex, 0, moved);
       return { ...p, chapters: list.map((c, i) => ({ ...c, order: i })) };
     });
+  };
+
+  // Moves a dragged entity from its source chapter to the target chapter.
+  const moveEntityToChapter = (drag: EntityDrag, toChapterId: string) => {
+    if (drag.fromChapterId === toChapterId) return;
+
+    if (drag.kind === "char" || drag.kind === "loc") {
+      const key = drag.kind === "char" ? "characterIds" : "locationIds";
+      const from = chapters.find((c) => c.id === drag.fromChapterId);
+      const to = chapters.find((c) => c.id === toChapterId);
+      if (!from || !to) return;
+      updateChapter(project.id, from.id, {
+        [key]: (from[key] ?? []).filter((x) => x !== drag.entityId),
+      });
+      updateChapter(project.id, to.id, {
+        [key]: [...(to[key] ?? []).filter((x) => x !== drag.entityId), drag.entityId],
+      });
+      return;
+    }
+
+    if (drag.kind === "evt") {
+      const ev = project.events.find((e) => e.id === drag.entityId);
+      if (!ev) return;
+      updateStoryEvent(project.id, drag.entityId, {
+        chapterIds: ev.chapterIds.map((c) => (c === drag.fromChapterId ? toChapterId : c)),
+      });
+    } else if (drag.kind === "scene") {
+      const sc = project.scenes.find((s) => s.id === drag.entityId);
+      if (!sc) return;
+      updateStoryScene(project.id, drag.entityId, {
+        chapterIds: sc.chapterIds.map((c) => (c === drag.fromChapterId ? toChapterId : c)),
+      });
+    }
   };
 
   // ---- Resolve linked entities for a chapter card --------------------------
@@ -795,7 +916,20 @@ export function ChapterPage({ project }: { project: WritingProject }) {
                         setDragId(null);
                         setInsertIndex(null);
                       }}
+                      // Entity tags are dropped onto a target card, chapter reordering
+                      // keeps using an insertion index. Both are distinguished by the
+                      // custom mime type carried in the drag data.
                       onDragOver={(e) => {
+                        const isEntity = e.dataTransfer.types.includes(
+                          "application/x-entity",
+                        );
+                        if (isEntity) {
+                          if (entityDrag && entityDrag.fromChapterId !== c.id) {
+                            setDropTargetId(c.id);
+                            e.preventDefault();
+                          }
+                          return;
+                        }
                         if (c.id === dragId) return;
                         const rect = e.currentTarget.getBoundingClientRect();
                         const before = e.clientX < rect.left + rect.width / 2;
@@ -804,6 +938,15 @@ export function ChapterPage({ project }: { project: WritingProject }) {
                       }}
                       onDrop={(e) => {
                         e.preventDefault();
+                        if (entityDrag) {
+                          if (entityDrag.fromChapterId !== c.id) {
+                            moveEntityToChapter(entityDrag, c.id);
+                          }
+                          setEntityDrag(null);
+                          setDropTargetId(null);
+                          suppressClick.current = true;
+                          return;
+                        }
                         if (dragId && insertIndex !== null) {
                           const fromIdx = chapters.findIndex((x) => x.id === dragId);
                           const isNoop =
@@ -812,6 +955,13 @@ export function ChapterPage({ project }: { project: WritingProject }) {
                         }
                         setDragId(null);
                         setInsertIndex(null);
+                      }}
+                      dropTarget={dropTargetId === c.id}
+                      onEntityDragStart={(d) => setEntityDrag(d)}
+                      onEntityDragEnd={() => {
+                        setEntityDrag(null);
+                        setDropTargetId(null);
+                        suppressClick.current = true;
                       }}
                     />
                   );

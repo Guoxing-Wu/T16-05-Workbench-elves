@@ -459,6 +459,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .chip-char { background: #f2ece1; color: #5a4f3f; }
 .chip-loc { background: var(--blue-soft); color: var(--blue); border-color: #c9d6dc; }
 .chip-evt { background: var(--mustard-soft); color: #8a7530; border-color: #e4d39a; }
+.chip-scene { background: var(--sage-soft); color: var(--sage); border-color: #c5d0c1; }
 .chip-avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--coral); color: #fff; font-size: 9px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
 .chip-x { cursor: pointer; opacity: .6; padding: 0 2px; }
 .chip-add { display: inline-flex; align-items: center; min-height: 24px; border: 1px dashed #cfc3ae; background: transparent; color: var(--text-muted); border-radius: 999px; font-size: 12px; padding: 3px 10px; cursor: pointer; }
