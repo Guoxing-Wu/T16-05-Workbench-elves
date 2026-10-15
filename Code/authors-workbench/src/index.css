@@ -1353,6 +1353,12 @@ input:focus-visible {
   border-color: #e4d39a;
 }
 
+.chip-scene {
+  background: var(--sage-soft);
+  color: var(--sage);
+  border-color: #c5d0c1;
+}
+
 .chip-avatar {
   width: 20px;
   height: 20px;
