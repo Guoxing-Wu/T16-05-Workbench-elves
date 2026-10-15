@@ -45,7 +45,7 @@ interface WorkbenchStoreValue {
   deleteProject: (id: string) => void;
   updateProject: (id: string, updater: (project: WritingProject) => WritingProject) => void;
   addChapter: (projectId: string) => void;
-  updateChapter: (projectId: string, chapterId: string, patch: Partial<Chapter>) => void;
+  updateChapter: (projectId: string, chapterId: string, patch: Partial<Chapter>, silent?: boolean) => void;
   removeChapter: (projectId: string, chapterId: string) => void;
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
 
@@ -74,7 +74,8 @@ interface WorkbenchStoreValue {
   updateStoryEvent: (
     projectId: string,
     eventId: string,
-    patch: Partial<StoryEvent>
+    patch: Partial<StoryEvent>,
+    silent?: boolean
   ) => void;
 
   removeStoryEvent: (
@@ -99,7 +100,8 @@ interface WorkbenchStoreValue {
   updateStoryScene: (
     projectId: string,
     sceneId: string,
-    patch: Partial<StoryScene>
+    patch: Partial<StoryScene>,
+    silent?: boolean
   ) => void;
 
   removeStoryScene: (
@@ -246,10 +248,14 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   };
 
   // Patches one chapter's fields.
-  const updateChapter = (projectId: string, chapterId: string, patch: Partial<Chapter>) => {
+  const updateChapter = (projectId: string, chapterId: string, patch: Partial<Chapter>, silent?: boolean) => {
     updateProject(projectId, (project) => ({
       ...project,
-      chapters: (project.chapters || []).map((c) => (c.id === chapterId ? { ...c, ...patch } : c)),
+      chapters: (project.chapters || []).map((c) =>
+        c.id === chapterId
+          ? { ...c, ...patch, ...(silent ? {} : { updatedAt: Date.now() }) }
+          : c
+      ),
     }));
   };
 
@@ -294,7 +300,9 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const updateCharacter: WorkbenchStoreValue["updateCharacter"] = (projectId, characterId, patch) => {
     updateProject(projectId, (project) => ({
       ...project,
-      characters: (project.characters || []).map((c) => (c.id === characterId ? { ...c, ...patch } : c)),
+      characters: (project.characters || []).map((c) =>
+        c.id === characterId ? { ...c, ...patch, updatedAt: Date.now() } : c
+      ),
     }));
   };
 
@@ -317,10 +325,14 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   };
 
   // Patches one story event's fields.
-  const updateStoryEvent: WorkbenchStoreValue["updateStoryEvent"] = (projectId, eventId, patch) => {
+  const updateStoryEvent: WorkbenchStoreValue["updateStoryEvent"] = (projectId, eventId, patch, silent) => {
     updateProject(projectId, (project) => ({
       ...project,
-      events: (project.events || []).map((e) => (e.id === eventId ? { ...e, ...patch } : e)),
+      events: (project.events || []).map((e) =>
+        e.id === eventId
+          ? { ...e, ...patch, ...(silent ? {} : { updatedAt: Date.now() }) }
+          : e
+      ),
     }));
   };
 
@@ -351,13 +363,14 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const updateStoryScene: WorkbenchStoreValue["updateStoryScene"] = (
     projectId,
     sceneId,
-    patch
+    patch,
+    silent
   ) => {
     updateProject(projectId, (project) => ({
       ...project,
       scenes: (project.scenes || []).map((scene) =>
         scene.id === sceneId
-          ? { ...scene, ...patch }
+          ? { ...scene, ...patch, ...(silent ? {} : { updatedAt: Date.now() }) }
           : scene
       ),
     }));
@@ -461,6 +474,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
             ...l,
             name: input.name.trim(),
             description: input.description?.trim() || "",
+            updatedAt: Date.now(),
           }
           : l
       ),
