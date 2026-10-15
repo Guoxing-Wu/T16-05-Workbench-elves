@@ -403,6 +403,10 @@ input:focus-visible {
   border: 1px solid var(--border-warm); border-radius: 7px;
   background: var(--surface); box-shadow: 0 12px 30px rgba(41,39,37,.14);
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> e7bdea3ccae97f143d30454fd3cbf848859f2a32
 .form-field small {
   color: var(--text-muted);
   font-size: 9px;
@@ -1350,6 +1354,12 @@ input:focus-visible {
   background: var(--mustard-soft);
   color: #8a7530;
   border-color: #e4d39a;
+}
+
+.chip-scene {
+  background: var(--sage-soft);
+  color: var(--sage);
+  border-color: #c5d0c1;
 }
 
 .chip-avatar {

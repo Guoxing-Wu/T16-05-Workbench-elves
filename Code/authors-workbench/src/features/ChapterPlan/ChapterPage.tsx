@@ -121,9 +121,10 @@ export function ChapterPage({ project }: { project: WritingProject }) {
       const from = chapters.find((c) => c.id === drag.fromChapterId);
       const to = chapters.find((c) => c.id === toChapterId);
       if (!from || !to) return;
+      // Source chapter changes silently — only the target chapter is "edited".
       updateChapter(project.id, from.id, {
         [key]: (from[key] ?? []).filter((x) => x !== drag.entityId),
-      });
+      }, true);
       updateChapter(project.id, to.id, {
         [key]: [...(to[key] ?? []).filter((x) => x !== drag.entityId), drag.entityId],
       });
@@ -135,13 +136,16 @@ export function ChapterPage({ project }: { project: WritingProject }) {
       if (!ev) return;
       updateStoryEvent(project.id, drag.entityId, {
         chapterIds: ev.chapterIds.map((c) => (c === drag.fromChapterId ? toChapterId : c)),
-      });
+      }, true);
+      // The entity move itself is silent — the target chapter is what counts as edited.
+      updateChapter(project.id, toChapterId, {});
     } else if (drag.kind === "scene") {
       const sc = project.scenes.find((s) => s.id === drag.entityId);
       if (!sc) return;
       updateStoryScene(project.id, drag.entityId, {
         chapterIds: sc.chapterIds.map((c) => (c === drag.fromChapterId ? toChapterId : c)),
-      });
+      }, true);
+      updateChapter(project.id, toChapterId, {});
     }
   };
 

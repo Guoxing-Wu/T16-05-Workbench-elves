@@ -10,6 +10,7 @@ export interface Chapter {
   notes: string;
   characterIds?: string[];
   locationIds?: string[];
+  updatedAt?: number;
 }
 
 // Author can write notes for the template
@@ -49,6 +50,7 @@ export function makeChapter(order: number, n: number): Chapter {
     targetWordCount: 0,
     actualWordCount: 0,
     notes: "",
+    updatedAt: Date.now(),
   };
 }
 
@@ -100,6 +102,7 @@ export interface Location {
   id: string;
   name: string;
   description?: string;
+  updatedAt?: number;
 }
 
 // Build a new location.
@@ -108,6 +111,7 @@ export function makeLocation(input: { name: string; description?: string }): Loc
     id: makeId(),
     name: input.name.trim(),
     description: input.description?.trim() || "",
+    updatedAt: Date.now(),
   };
 }
 
@@ -134,6 +138,7 @@ export interface StoryEvent {
   isStoryBeat: boolean;
   storyBeatId?: string;
   storyBeatName?: string;
+  updatedAt?: number;
 }
 
 export interface StoryScene {
@@ -149,6 +154,7 @@ export interface StoryScene {
 
   characterIds?: string[];
   locationId?: string;
+  updatedAt?: number;
 }
 
 //A character in the story
@@ -160,6 +166,7 @@ export interface Character {
   location?: string;
   role?: string[];
   gender?: string;
+  updatedAt?: number;
 }
 
 // Build a new character with the provided info
@@ -183,7 +190,8 @@ export function makeCharacter(input: {
     description: input.description ?? "",
     location: input.location ?? "",
     role: input.role ?? [],
-    gender: input.gender ?? ""
+    gender: input.gender ?? "",
+    updatedAt: Date.now(),
   };
 }
 
@@ -214,6 +222,7 @@ export function makeStoryEvent(input: {
     isStoryBeat: input.isStoryBeat,
     storyBeatId: input.storyBeatId,
     storyBeatName: input.storyBeatName,
+    updatedAt: Date.now(),
   };
 }
   // Build a new scene
@@ -237,6 +246,7 @@ export function makeStoryEvent(input: {
       chapterIds: input.chapterIds,
       characterIds: input.characterIds,
       locationId: input.locationId,
+      updatedAt: Date.now(),
     };
   }
 
