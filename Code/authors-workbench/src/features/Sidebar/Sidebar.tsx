@@ -20,6 +20,7 @@ import type { LucideIcon } from "lucide-react";
 import { useWorkbench } from "../../lib/store";
 import type { WorkbenchView } from "../../lib/store";
 import { BackupModal } from "../backup/BackupModal";
+import { ExportModal } from "../export/ExportModal";
 import "./Sidebar.css";
 
 // A single navigation entry: icon + label + the view it switches to.
@@ -100,6 +101,8 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   // Whether the Backup & Restore dialog is open.
   const [backupOpen, setBackupOpen] = useState(false);
+  // Whether the Export dialog is open.
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Switching to a top-level view closes any open project detail.
   /*const navigate = (view: WorkbenchView) => {
@@ -121,7 +124,7 @@ export function Sidebar() {
     {
       icon: Share2,
       label: "Export",
-      action: () => console.log("[Workbench] Export — not implemented yet"),
+      action: () => setExportOpen(true),
     },
   ];
   return (
@@ -198,6 +201,7 @@ export function Sidebar() {
 
     {/* Rendered next to the <aside>, not inside it, so the sidebar's overflow never clips it. */}
     {backupOpen && <BackupModal onClose={() => setBackupOpen(false)} />}
+    {exportOpen && <ExportModal onClose={() => setExportOpen(false)} />}
     </>
   );
 }
