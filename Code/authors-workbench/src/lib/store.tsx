@@ -1,8 +1,8 @@
-import { createContext, useContext, useMemo, useState, useEffect} from "react";
+import { createContext, useContext, useMemo, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent, makeStoryScene, makeLocation } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryScene, StoryDate, Location } from "./domain";
-import type { StoryStructureId, StoryStructureTemplate,} from "../features/story-structure/storyStructureTemplate";
+import type { StoryStructureId, StoryStructureTemplate, } from "../features/story-structure/storyStructureTemplate";
 import { STORES, getAll } from "./db";
 import { useCollectionSync } from "./useCollectionSync";
 import { mergeById } from "./backup";
@@ -18,6 +18,7 @@ export type WorkbenchView =
   | "locations"
   | "events"
   | "timeline"
+  | "profile"
   | "settings"
   | "help";
 
@@ -49,7 +50,7 @@ interface WorkbenchStoreValue {
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
 
   // Character operations
-  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string ; role?: string[]; gender?: string }) => Character;
+  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string; role?: string[]; gender?: string }) => Character;
   updateCharacter: (projectId: string, characterId: string, patch: Partial<Character>) => void;
   removeCharacter: (projectId: string, characterId: string) => void;
 
@@ -150,11 +151,11 @@ const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 // Holds all states in memory and mirrors projects + custom structures to IndexedDB.export function WorkbenchProvider({ children }: { children: ReactNode }) {
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<WritingProject[]>([]);
-  
+
   const [customStoryStructures, setCustomStoryStructures] = useState<StoryStructureTemplate[]>([]);
 
   const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>("loading");
-    // Load everything saved from last time once, when the app starts.
+  // Load everything saved from last time once, when the app starts.
   useEffect(() => {
     let cancelled = false;
 
@@ -187,7 +188,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const markPersistenceFailed = () => setPersistenceStatus("unavailable");
   useCollectionSync(STORES.projects, projects, persistenceReady, markPersistenceFailed);
   useCollectionSync(STORES.customStructures, customStoryStructures, persistenceReady, markPersistenceFailed);
-  
+
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
 
   const [activeView, setActiveView] = useState<WorkbenchView>("projects");
@@ -254,18 +255,18 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
 
   // Deletes a chapter and reorder the rest.
   const removeChapter = (projectId: string, chapterId: string) => {
-  updateProject(projectId, (project) => {
-    const chapters = (project.chapters || []).filter((c) => c.id !== chapterId);
-    const perChapter =
-      project.targetWordCount > 0 && chapters.length > 0
-        ? Math.round(project.targetWordCount / chapters.length)
-        : 0;
-    return {
-      ...project,
-      chapters: chapters.map((c, i) => ({ ...c, order: i, targetWordCount: perChapter })),
-    };
-  });
-};
+    updateProject(projectId, (project) => {
+      const chapters = (project.chapters || []).filter((c) => c.id !== chapterId);
+      const perChapter =
+        project.targetWordCount > 0 && chapters.length > 0
+          ? Math.round(project.targetWordCount / chapters.length)
+          : 0;
+      return {
+        ...project,
+        chapters: chapters.map((c, i) => ({ ...c, order: i, targetWordCount: perChapter })),
+      };
+    });
+  };
 
   // Swaps a chapter with its neighbour if it is not beyond the end of the list.
   const moveChapter = (projectId: string, chapterId: string, direction: -1 | 1) => {
@@ -457,10 +458,10 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       locations: (project.locations || []).map((l) =>
         l.id === locationId
           ? {
-              ...l,
-              name: input.name.trim(),
-              description: input.description?.trim() || "",
-            }
+            ...l,
+            name: input.name.trim(),
+            description: input.description?.trim() || "",
+          }
           : l
       ),
     }));
@@ -520,7 +521,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addStoryEvent,
       updateStoryEvent,
       removeStoryEvent,
-      
+
       // Story Scene
       addStoryScene,
       updateStoryScene,
