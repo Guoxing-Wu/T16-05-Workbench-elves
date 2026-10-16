@@ -232,6 +232,81 @@
   cursor: default;
 }
 
+/* Loading and saving override the badge's default green appearance. */
+.saved-badge--loading {
+  border-color: var(--border-warm);
+  background: var(--paper-light);
+  color: var(--text-muted);
+}
+
+.saved-badge--saving {
+  border-color: #ead7a5;
+  background: #fbf1da;
+  color: #8a641f;
+}
+
+.saved-badge--error {
+  border-color: #e8c6c1;
+  background: #fae9e5;
+  color: #a3443c;
+}
+
+/* Animate the icon while loading or saving. */
+.save-status-spinner {
+  animation: save-status-spin 1s linear infinite;
+}
+
+@keyframes save-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Respect the user's reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  .save-status-spinner {
+    animation: none;
+  }
+}
+
+/* Keep recovery actions below the top bar when saving fails. */
+.save-error-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px clamp(20px, 2.6vw, 38px);
+  border-bottom: 1px solid #e8c6c1;
+  background: #fae9e5;
+  color: #a3443c;
+}
+
+.save-error-banner>svg {
+  flex-shrink: 0;
+}
+
+.save-error-copy {
+  flex: 1;
+  min-width: 180px;
+}
+
+.save-error-copy strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.save-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Reuse the existing button appearance with more compact spacing. */
+.save-error-actions .toolbar-button {
+  min-height: 32px;
+  padding: 7px 11px;
+}
+
 .user-avatar {
   width: 38px;
   height: 38px;
@@ -559,38 +634,77 @@
 
 /* ===== Recently edited "view all" drawer ===== */
 .recent-drawer-scrim {
-  position: fixed; inset: 0; z-index: 200;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
   background: rgba(41, 39, 37, .38);
 }
+
 .recent-drawer {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 201;
   width: min(340px, 88vw);
   background: var(--paper-light);
   box-shadow: -16px 0 40px rgba(41, 39, 37, .25);
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   animation: recent-drawer-in .22s ease;
 }
+
 @keyframes recent-drawer-in {
-  from { transform: translateX(30px); opacity: 0; }
-  to   { transform: none; opacity: 1; }
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
 }
+
 .recent-drawer-head {
-  display: flex; align-items: center; gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 18px 18px 12px;
   border-bottom: 1px solid var(--divider-warm);
 }
+
 .recent-drawer-head h3 {
-  margin: 0; font-size: 12px; letter-spacing: .16em; color: var(--ink);
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: .16em;
+  color: var(--ink);
 }
+
 .recent-drawer-head span {
-  margin-left: auto; font-size: 11px; color: var(--text-muted);
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
 }
+
 .recent-drawer-close {
-  border: 0; background: rgba(41, 39, 37, .08);
-  width: 28px; height: 28px; border-radius: 50%;
-  display: grid; place-items: center; cursor: pointer; color: var(--ink-soft);
+  border: 0;
+  background: rgba(41, 39, 37, .08);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink-soft);
 }
-.recent-drawer-close:hover { background: rgba(41, 39, 37, .15); }
+
+.recent-drawer-close:hover {
+  background: rgba(41, 39, 37, .15);
+}
+
 .recent-drawer-list {
-  flex: 1; overflow-y: auto; padding: 10px 12px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px;
 }

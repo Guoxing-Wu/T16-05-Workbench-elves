@@ -254,25 +254,29 @@ function CurrentView({
 function WorkbenchApp() {
   const { persistenceStatus } = useWorkbench();
   const [profile, setProfile] = useState<AuthorProfile>(INITIAL_PROFILE);
+  const persistenceReady = persistenceStatus === "ready";
+
   return (
     <div className="app-layout">
-      <Sidebar />
+      {/* Enable navigation and backup tools after existing data has loaded. */}
+      {persistenceReady && <Sidebar />}
       <div className="main-area">
-        {persistenceStatus === "unavailable" && (
-          <div className="storage-warning" role="alert">
-            Your browser's local storage isn't available, so changes won't be saved
-            after you close or refresh this page.
-          </div>
-        )}
         <TopBar profile={profile} />
+
         <div className="content-wrapper">
           <main className="main-workspace" id="main-content">
-            <CurrentView
-              profile={profile}
-              onSaveProfile={setProfile}
-            />
+            {/* Wait for existing records before showing editable content. */}
+            {persistenceReady ? (
+              <CurrentView
+                profile={profile}
+                onSaveProfile={setProfile}
+              />
+            ) : (
+              <p role="status">Loading your workbench…</p>
+            )}
           </main>
-          <RightSidebar />
+
+          {persistenceReady && <RightSidebar />}
         </div>
       </div>
     </div>
