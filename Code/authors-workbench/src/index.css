@@ -403,10 +403,7 @@ input:focus-visible {
   border: 1px solid var(--border-warm); border-radius: 7px;
   background: var(--surface); box-shadow: 0 12px 30px rgba(41,39,37,.14);
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> e7bdea3ccae97f143d30454fd3cbf848859f2a32
 .form-field small {
   color: var(--text-muted);
   font-size: 9px;
