@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import { ChevronDown, ChevronRight, MapPin, Plus } from "lucide-react";
 import { PageHeader, ToolButton } from "../../components/primitives";
 import { characterAgeAtYear } from "../../lib/domain";
-import { LoadTimelineTestButton } from "../../features/TimeLine/LoadTimelineTestButton";
 import type {
   StoryDate,
   StoryEvent,

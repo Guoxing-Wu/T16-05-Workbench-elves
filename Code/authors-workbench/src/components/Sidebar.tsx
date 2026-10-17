@@ -98,7 +98,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   // Only top-level views (outside a project's manuscript) should close the open project.
-  const TOP_LEVEL_VIEWS: WorkbenchView[] = ["projects", "overview"];
+  //const TOP_LEVEL_VIEWS: WorkbenchView[] = ["projects", "overview"];
 
   // Switching to a top-level view closes any open project detail.
   /*const navigate = (view: WorkbenchView) => {
