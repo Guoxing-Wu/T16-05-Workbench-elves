@@ -87,6 +87,10 @@ Run all npm commands below from the `Code/authors-workbench` directory.
 
 
 
+## Project Documentation
+**Documentation hub:** [Project Confluence] (https://student-team-edq1stef.atlassian.net/wiki/spaces/IP/overview)
+
+
 
 ## Tools Used
 | Tool | Logo | Purpose | Description |
