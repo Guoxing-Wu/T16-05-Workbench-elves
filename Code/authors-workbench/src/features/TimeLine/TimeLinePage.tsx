@@ -322,12 +322,14 @@ export function TimelinePage({
           project.scenes?.length ?? 0
         } scenes`}
       >
+        
         <ToolButton primary onClick={onManageEvents}>
           <Plus size={18} />
           Manage Events & Scenes
         </ToolButton>
-        <LoadTimelineTestButton storyStructure={project.storyStructure} />
+        {/* <LoadTimelineTestButton storyStructure={project.storyStructure} /> */}
       </PageHeader>
+      
 
       {nodes.length === 0 ? (
         <p className="muted-copy">
