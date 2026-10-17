@@ -1,12 +1,13 @@
-import { createContext, useContext, useMemo, useState, useEffect } from "react";
+import { createContext, useContext, useMemo, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent, makeStoryScene, makeLocation } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryScene, StoryDate, Location } from "./domain";
 import type { StoryStructureId, StoryStructureTemplate, } from "../features/story-structure/storyStructureTemplate";
 import { STORES, getAll } from "./db";
 import { useCollectionSync } from "./useCollectionSync";
-import { mergeById } from "./backup";
+import { mergeById, createBackup, downloadBackup } from "./backup";
 import type { BackupFile, ImportMode } from "./backup";
+import type { CollectionSaveStatus } from "./useCollectionSync";
 
 //left 
 export type WorkbenchView =
@@ -23,14 +24,20 @@ export type WorkbenchView =
   | "help";
 
 
-// "loading"     -> still reading from IndexedDB
-// "ready"       -> data loaded, every change is saved automatically
-// "unavailable" -> IndexedDB can't be used, the app works but nothing is saved
+// "loading"     -> reading existing data from IndexedDB
+// "ready"       -> initial data loaded; automatic saving is enabled
+// "unavailable" -> initial loading failed; editing is blocked until retry succeeds
 export type PersistenceStatus = "loading" | "ready" | "unavailable";
+
+// Overall save state shared by the workbench UI.
+export type SaveStatus = CollectionSaveStatus;
 
 // Shape of things the app can do through useWorkbench().
 interface WorkbenchStoreValue {
   persistenceStatus: PersistenceStatus;
+  saveStatus: SaveStatus;
+  retrySave: () => Promise<void>;
+  exportBackup: () => void;
   projects: WritingProject[];
   // The project currently open, or null when on the projects overview.
   activeProject: WritingProject | null;
@@ -157,6 +164,10 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [customStoryStructures, setCustomStoryStructures] = useState<StoryStructureTemplate[]>([]);
 
   const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>("loading");
+
+  // Incrementing this value retries the initial database read.
+  const [loadAttempt, setLoadAttempt] = useState(0);
+
   // Load everything saved from last time once, when the app starts.
   useEffect(() => {
     let cancelled = false;
@@ -182,14 +193,70 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadAttempt]);
 
   // Auto-save: write changed records whenever the data changes.
   // Only active once loading has finished successfully.
   const persistenceReady = persistenceStatus === "ready";
-  const markPersistenceFailed = () => setPersistenceStatus("unavailable");
-  useCollectionSync(STORES.projects, projects, persistenceReady, markPersistenceFailed);
-  useCollectionSync(STORES.customStructures, customStoryStructures, persistenceReady, markPersistenceFailed);
+
+  // Each collection tracks its own writes and save failures.
+  const projectsSync = useCollectionSync(
+    STORES.projects,
+    projects,
+    persistenceReady
+  );
+
+  const structuresSync = useCollectionSync(
+    STORES.customStructures,
+    customStoryStructures,
+    persistenceReady
+  );
+
+  const collectionStatuses = [
+    projectsSync.status,
+    structuresSync.status,
+  ];
+
+  // Report success only when both collections have finished saving.
+  let saveStatus: SaveStatus = "saved";
+  if (persistenceStatus === "loading") {
+    saveStatus = "loading";
+  } else if (
+    persistenceStatus === "unavailable" ||
+    collectionStatuses.includes("error")
+  ) {
+    saveStatus = "error";
+  } else if (collectionStatuses.includes("loading")) {
+    saveStatus = "loading";
+  } else if (collectionStatuses.includes("saving")) {
+    saveStatus = "saving";
+  }
+
+  const retrySave = useCallback(async (): Promise<void> => {
+    if (persistenceStatus === "unavailable") {
+      // Retry reading existing data before allowing any writes.
+      setPersistenceStatus("loading");
+      setLoadAttempt((attempt) => attempt + 1);
+      return;
+    }
+
+    if (persistenceStatus !== "ready") return;
+
+    // Retry pending writes without reloading or replacing page data.
+    await Promise.all([
+      projectsSync.retry(),
+      structuresSync.retry(),
+    ]);
+  }, [
+    persistenceStatus,
+    projectsSync.retry,
+    structuresSync.retry,
+  ]);
+
+  const exportBackup = useCallback(() => {
+    // Include submitted changes even if local saving has failed.
+    downloadBackup(createBackup(projects, customStoryStructures));
+  }, [projects, customStoryStructures]);
 
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
 
@@ -510,6 +577,11 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const value = useMemo<WorkbenchStoreValue>(
     () => ({
       persistenceStatus,
+      // Expose save status and recovery actions to the UI.
+      saveStatus,
+      retrySave,
+      exportBackup,
+
       // Project
       projects,
       activeProject,
@@ -557,6 +629,9 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     }),
     [
       persistenceStatus,
+      saveStatus,
+      retrySave,
+      exportBackup,
       projects,
       activeProject,
       activeProjectId,
@@ -565,14 +640,30 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     ]
   );
 
-  // Wait for the saved data before rendering, otherwise the UI would flash
-  // "No projects yet" for a moment even though projects exist.
-  if (persistenceStatus === "loading") {
-    return <div className="app-loading" role="status">Loading your workbench…</div>;
+  // Prevent editing until existing records have been loaded.
+  if (persistenceStatus === "unavailable") {
+    return (
+      <div className="app-loading" role="alert">
+        <p>Your saved plans could not be loaded.</p>
+
+        <button
+          type="button"
+          className="toolbar-button"
+          onClick={() => {
+            void retrySave();
+          }}
+        >
+          Retry loading
+        </button>
+      </div>
+    );
   }
 
   return <WorkbenchStore.Provider value={value}>{children}</WorkbenchStore.Provider>;
+
+
 }
+
 
 // Throws error early if used outside the provider.
 export function useWorkbench() {

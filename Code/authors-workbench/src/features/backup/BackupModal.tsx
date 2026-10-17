@@ -5,8 +5,6 @@ import { Modal, ToolButton } from "../../components/primitives";
 import { useWorkbench } from "../../lib/store";
 import {
   BackupError,
-  createBackup,
-  downloadBackup,
   parseBackup,
   projectsWithMissingStructure,
   mergeById,
@@ -29,7 +27,7 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 // "Backup & Restore" dialog: download everything as JSON, or restore from a JSON file.
 export function BackupModal({ onClose }: { onClose: () => void }) {
-  const { projects, customStoryStructures, importBackup } = useWorkbench();
+  const { projects, customStoryStructures, importBackup, exportBackup } = useWorkbench();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [staged, setStaged] = useState<StagedBackup | null>(null);
@@ -43,7 +41,7 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
   /* ---------- Export ---------- */
 
   const handleExport = () => {
-    downloadBackup(createBackup(projects, customStoryStructures));
+    exportBackup();
     setMessage({
       kind: "success",
       text: `Backup downloaded: ${plural(projects.length, "project")} and ${plural(
@@ -82,12 +80,12 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
     if (mode === "replace") {
       const ok = window.confirm(
         "Replace everything?\n\nAll current projects and custom story structures will be " +
-          "removed and replaced by the contents of this backup. This cannot be undone."
+        "removed and replaced by the contents of this backup. This cannot be undone."
       );
       if (!ok) return;
       // Safety net: keep a copy of what is about to be replaced.
       if (saveCurrentFirst && hasData) {
-        downloadBackup(createBackup(projects, customStoryStructures));
+        exportBackup();
       }
     }
 
@@ -97,13 +95,13 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
       text:
         mode === "replace"
           ? `Restored ${plural(incomingProjects.length, "project")} and ${plural(
-              incomingStructures.length,
-              "custom structure"
-            )}. Your previous data was replaced.`
+            incomingStructures.length,
+            "custom structure"
+          )}. Your previous data was replaced.`
           : `Merged ${plural(incomingProjects.length, "project")} and ${plural(
-              incomingStructures.length,
-              "custom structure"
-            )} into your workbench.`,
+            incomingStructures.length,
+            "custom structure"
+          )} into your workbench.`,
     });
     setStaged(null);
   };
