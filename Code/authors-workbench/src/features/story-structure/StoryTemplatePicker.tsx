@@ -24,13 +24,7 @@ export function StoryTemplatePicker({
     return (
         <section className="story-template-picker">
             <header className="story-template-picker-header">
-                <div>
-                    <span className="story-template-eyebrow">
-                        STORY STRUCTURE TEMPLATES
-                    </span>
-
-                    <h2>Select a planning framework</h2>
-                </div>
+                <h2>Select a planning framework</h2>
             </header>
 
             <section>

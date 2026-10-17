@@ -1,8 +1,3 @@
-/*export type StoryStructureId =
-    | "three-act"
-    | "heros-journey"
-    | "save-the-cat";*/
-
 export type StoryStructureId = string;
 export type StoryBeat = {
     id: string;
