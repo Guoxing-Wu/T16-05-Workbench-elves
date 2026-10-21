@@ -171,6 +171,7 @@ function SceneFormModal({
   initial,
   onClose,
   onSave,
+  addLocation,
 }: {
   project: WritingProject;
   initial?: StoryScene;
@@ -185,6 +186,10 @@ function SceneFormModal({
     characterIds: string[];
     locationId?: string;
   }) => void;
+    addLocation: (
+      projectId: string,
+      input: { name: string; description?: string }
+    ) => import("../../lib/domain").Location;
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
 
@@ -213,6 +218,9 @@ function SceneFormModal({
     initial?.locationId ?? ""
   );
 
+  const [newLocationName, setNewLocationName] = useState("");
+  const LOCATION_NEW = "**new**";
+
   const [error, setError] = useState("");
 
   const handleSave = () => {
@@ -231,6 +239,22 @@ function SceneFormModal({
       return;
     }
 
+    let finalLocationId: string | undefined;
+
+    if (locationId === LOCATION_NEW) {
+      const name = newLocationName.trim();
+
+      if (!name) {
+        setError("Please enter a location name.");
+        return;
+      }
+
+      const created = addLocation(project.id, { name });
+      finalLocationId = created.id;
+    } else if (locationId) {
+      finalLocationId = locationId;
+    }
+
     onSave({
       title: title.trim(),
       description: description.trim(),
@@ -239,12 +263,11 @@ function SceneFormModal({
       eventId: eventId || undefined,
       chapterIds,
       characterIds,
-      locationId: locationId || undefined,
+      locationId: finalLocationId,
     });
 
     onClose();
   };
-
   return (
     <Modal
       title={initial ? "Edit scene" : "Create a scene"}
@@ -346,9 +369,17 @@ function SceneFormModal({
         <Field label="Location (optional)" full>
           <select
             value={locationId}
-            onChange={(event) =>
-              setLocationId(event.target.value)
-            }
+            onChange={(event) => {
+              const value = event.target.value;
+
+              setLocationId(value);
+
+              if (value !== LOCATION_NEW) {
+                setNewLocationName("");
+              }
+
+              setError("");
+            }}
           >
             <option value="">No location</option>
 
@@ -357,8 +388,26 @@ function SceneFormModal({
                 {location.name}
               </option>
             ))}
+
+            <option value={LOCATION_NEW}>
+              ＋ Create new location…
+            </option>
           </select>
         </Field>
+
+        {locationId === LOCATION_NEW && (
+          <Field label="New location name" full>
+            <input
+              value={newLocationName}
+              onChange={(event) => {
+                setNewLocationName(event.target.value);
+                setError("");
+              }}
+              placeholder="e.g. Emma's apartment"
+              autoFocus
+            />
+          </Field>
+        )}
 
         {error && (
           <p className="scene-form-error">{error}</p>
@@ -497,6 +546,7 @@ export function ScenesSection({
     addStoryScene,
     updateStoryScene,
     removeStoryScene,
+    addLocation,
   } = useWorkbench();
 
   const [modalState, setModalState] = useState<
@@ -577,6 +627,7 @@ export function ScenesSection({
               : modalState
           }
           onClose={() => setModalState(null)}
+          addLocation={addLocation}
           onSave={(input) => {
             if (modalState === "create") {
               addStoryScene(project.id, input);
