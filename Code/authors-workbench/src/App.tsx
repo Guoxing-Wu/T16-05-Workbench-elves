@@ -9,6 +9,7 @@ import {
   Settings,
   Users,
 } from "lucide-react";
+import { useState } from "react";
 import { WorkbenchProvider, useWorkbench } from "./lib/store";
 import type { WorkbenchView } from "./lib/store";
 import { ProjectsPage } from "./components/ProjectsPage";
@@ -23,11 +24,20 @@ import { CharactersPage } from "./features/character/CharactersPage";
 import { TimelinePage } from "./features/TimeLine/TimeLinePage";
 import { OverviewPage } from "./components/OverviewPage";
 import { LocationsPage } from "./features/Location/LocationPage";
+import { ProfilePage } from "./components/ProfilePage";
+import type { AuthorProfile } from "./components/ProfilePage";
 
+// Initial author profile used for the current browser session.
+const INITIAL_PROFILE: AuthorProfile = {
+  displayName: "",
+  penName: "",
+  bio: "",
+  avatarUrl: null,
+};
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
-  Exclude<WorkbenchView, "projects">,
+  Exclude<WorkbenchView, "projects" | "profile">,
   { title: string; icon: typeof LayoutDashboard; eyebrow: string; description: string }
 > = {
   overview: {
@@ -95,9 +105,19 @@ const PLACEHOLDER_CONFIG: Record<
   },
 };
 
+// Defines the profile data and save callback received by CurrentView.
+interface CurrentViewProps {
+  profile: AuthorProfile;
+  onSaveProfile: (profile: AuthorProfile) => void;
+}
+
+
 // Decides which component to render in the main area based on the active view.
-function CurrentView() {
-  const { activeView, activeProject, setActiveProjectId, setActiveView} = useWorkbench();
+function CurrentView({
+  profile,
+  onSaveProfile,
+}: CurrentViewProps) {
+  const { activeView, activeProject, setActiveProjectId, setActiveView } = useWorkbench();
   // Project page always shows the project list. Opening a project jumps to its Overview dashboard. 
   if (activeView === "projects") {
     const openProject = (id: string) => {
@@ -109,15 +129,28 @@ function CurrentView() {
     );
   }
 
+  // Displays and updates the current author profile.
+  if (activeView === "profile") {
+    return (
+      <ProfilePage
+        profile={profile}
+        onSave={onSaveProfile}
+        onBack={() => {
+          setActiveView(activeProject ? "overview" : "projects");
+        }}
+      />
+    );
+  }
+
   // Story structure displays the template selected for the active project.
   if (activeView === "storyStructure") {
     // StoryStructurePage now supports both states:
     // 1. A project is open -> show the project's story structure.
     // 2. No project is open -> show the global custom structure manager.
     return (
-        <StoryStructurePage
-            project={activeProject ?? undefined}
-        />
+      <StoryStructurePage
+        project={activeProject ?? undefined}
+      />
     );
 
   }
@@ -194,13 +227,13 @@ function CurrentView() {
         />
       );
     }
-    return <TimelinePage project={activeProject} onManageEvents={() =>setActiveView("events")} onBack={() => setActiveProjectId(null)} />;
+    return <TimelinePage project={activeProject} onManageEvents={() => setActiveView("events")} onBack={() => setActiveProjectId(null)} />;
   }
 
 
   // Navigate to the overview page.
   if (activeView === "overview") {
-    
+
     return <OverviewPage />;
   }
 
@@ -220,22 +253,30 @@ function CurrentView() {
 // The root layout: collapsible sidebar on the left, main content on the right.
 function WorkbenchApp() {
   const { persistenceStatus } = useWorkbench();
+  const [profile, setProfile] = useState<AuthorProfile>(INITIAL_PROFILE);
+  const persistenceReady = persistenceStatus === "ready";
+
   return (
     <div className="app-layout">
-      <Sidebar />
+      {/* Enable navigation and backup tools after existing data has loaded. */}
+      {persistenceReady && <Sidebar />}
       <div className="main-area">
-        {persistenceStatus === "unavailable" && (
-          <div className="storage-warning" role="alert">
-            Your browser's local storage isn't available, so changes won't be saved
-            after you close or refresh this page.
-          </div>
-        )}
-        <TopBar />
+        <TopBar profile={profile} />
+
         <div className="content-wrapper">
           <main className="main-workspace" id="main-content">
-            <CurrentView />
+            {/* Wait for existing records before showing editable content. */}
+            {persistenceReady ? (
+              <CurrentView
+                profile={profile}
+                onSaveProfile={setProfile}
+              />
+            ) : (
+              <p role="status">Loading your workbench…</p>
+            )}
           </main>
-          <RightSidebar />
+
+          {persistenceReady && <RightSidebar />}
         </div>
       </div>
     </div>

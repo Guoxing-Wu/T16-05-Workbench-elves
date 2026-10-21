@@ -1,10 +1,13 @@
-import { createContext, useContext, useMemo, useState, useEffect} from "react";
+import { createContext, useContext, useMemo, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent, makeStoryScene, makeLocation } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryScene, StoryDate, Location } from "./domain";
-import type { StoryStructureId, StoryStructureTemplate,} from "../features/story-structure/storyStructureTemplate";
+import type { StoryStructureId, StoryStructureTemplate, } from "../features/story-structure/storyStructureTemplate";
 import { STORES, getAll } from "./db";
 import { useCollectionSync } from "./useCollectionSync";
+import { mergeById, createBackup, downloadBackup } from "./backup";
+import type { BackupFile, ImportMode } from "./backup";
+import type { CollectionSaveStatus } from "./useCollectionSync";
 
 //left 
 export type WorkbenchView =
@@ -16,18 +19,25 @@ export type WorkbenchView =
   | "locations"
   | "events"
   | "timeline"
+  | "profile"
   | "settings"
   | "help";
 
 
-// "loading"     -> still reading from IndexedDB
-// "ready"       -> data loaded, every change is saved automatically
-// "unavailable" -> IndexedDB can't be used, the app works but nothing is saved
+// "loading"     -> reading existing data from IndexedDB
+// "ready"       -> initial data loaded; automatic saving is enabled
+// "unavailable" -> initial loading failed; editing is blocked until retry succeeds
 export type PersistenceStatus = "loading" | "ready" | "unavailable";
+
+// Overall save state shared by the workbench UI.
+export type SaveStatus = CollectionSaveStatus;
 
 // Shape of things the app can do through useWorkbench().
 interface WorkbenchStoreValue {
   persistenceStatus: PersistenceStatus;
+  saveStatus: SaveStatus;
+  retrySave: () => Promise<void>;
+  exportBackup: () => void;
   projects: WritingProject[];
   // The project currently open, or null when on the projects overview.
   activeProject: WritingProject | null;
@@ -42,12 +52,12 @@ interface WorkbenchStoreValue {
   deleteProject: (id: string) => void;
   updateProject: (id: string, updater: (project: WritingProject) => WritingProject) => void;
   addChapter: (projectId: string) => void;
-  updateChapter: (projectId: string, chapterId: string, patch: Partial<Chapter>) => void;
+  updateChapter: (projectId: string, chapterId: string, patch: Partial<Chapter>, silent?: boolean) => void;
   removeChapter: (projectId: string, chapterId: string) => void;
   moveChapter: (projectId: string, chapterId: string, direction: -1 | 1) => void; // -1 = up, 1 = down
 
   // Character operations
-  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string ; role?: string[]; gender?: string }) => Character;
+  addCharacter: (projectId: string, input: { firstName: string; lastName?: string; middleName?: string; birthday: StoryDate; description?: string; location?: string; role?: string[]; gender?: string }) => Character;
   updateCharacter: (projectId: string, characterId: string, patch: Partial<Character>) => void;
   removeCharacter: (projectId: string, characterId: string) => void;
 
@@ -71,7 +81,8 @@ interface WorkbenchStoreValue {
   updateStoryEvent: (
     projectId: string,
     eventId: string,
-    patch: Partial<StoryEvent>
+    patch: Partial<StoryEvent>,
+    silent?: boolean
   ) => void;
 
   removeStoryEvent: (
@@ -96,7 +107,8 @@ interface WorkbenchStoreValue {
   updateStoryScene: (
     projectId: string,
     sceneId: string,
-    patch: Partial<StoryScene>
+    patch: Partial<StoryScene>,
+    silent?: boolean
   ) => void;
 
   removeStoryScene: (
@@ -139,17 +151,24 @@ interface WorkbenchStoreValue {
     locationId: string,
     input: { name: string; description?: string }
   ) => void;
+
+  // Restore data from a (already parsed and validated) backup file.
+  importBackup: (backup: BackupFile, mode: ImportMode) => void;
 }
 const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 
 // Holds all states in memory and mirrors projects + custom structures to IndexedDB.export function WorkbenchProvider({ children }: { children: ReactNode }) {
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<WritingProject[]>([]);
-  
+
   const [customStoryStructures, setCustomStoryStructures] = useState<StoryStructureTemplate[]>([]);
 
   const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>("loading");
-    // Load everything saved from last time once, when the app starts.
+
+  // Incrementing this value retries the initial database read.
+  const [loadAttempt, setLoadAttempt] = useState(0);
+
+  // Load everything saved from last time once, when the app starts.
   useEffect(() => {
     let cancelled = false;
 
@@ -174,15 +193,71 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadAttempt]);
 
   // Auto-save: write changed records whenever the data changes.
   // Only active once loading has finished successfully.
   const persistenceReady = persistenceStatus === "ready";
-  const markPersistenceFailed = () => setPersistenceStatus("unavailable");
-  useCollectionSync(STORES.projects, projects, persistenceReady, markPersistenceFailed);
-  useCollectionSync(STORES.customStructures, customStoryStructures, persistenceReady, markPersistenceFailed);
-  
+
+  // Each collection tracks its own writes and save failures.
+  const projectsSync = useCollectionSync(
+    STORES.projects,
+    projects,
+    persistenceReady
+  );
+
+  const structuresSync = useCollectionSync(
+    STORES.customStructures,
+    customStoryStructures,
+    persistenceReady
+  );
+
+  const collectionStatuses = [
+    projectsSync.status,
+    structuresSync.status,
+  ];
+
+  // Report success only when both collections have finished saving.
+  let saveStatus: SaveStatus = "saved";
+  if (persistenceStatus === "loading") {
+    saveStatus = "loading";
+  } else if (
+    persistenceStatus === "unavailable" ||
+    collectionStatuses.includes("error")
+  ) {
+    saveStatus = "error";
+  } else if (collectionStatuses.includes("loading")) {
+    saveStatus = "loading";
+  } else if (collectionStatuses.includes("saving")) {
+    saveStatus = "saving";
+  }
+
+  const retrySave = useCallback(async (): Promise<void> => {
+    if (persistenceStatus === "unavailable") {
+      // Retry reading existing data before allowing any writes.
+      setPersistenceStatus("loading");
+      setLoadAttempt((attempt) => attempt + 1);
+      return;
+    }
+
+    if (persistenceStatus !== "ready") return;
+
+    // Retry pending writes without reloading or replacing page data.
+    await Promise.all([
+      projectsSync.retry(),
+      structuresSync.retry(),
+    ]);
+  }, [
+    persistenceStatus,
+    projectsSync.retry,
+    structuresSync.retry,
+  ]);
+
+  const exportBackup = useCallback(() => {
+    // Include submitted changes even if local saving has failed.
+    downloadBackup(createBackup(projects, customStoryStructures));
+  }, [projects, customStoryStructures]);
+
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
 
   const [activeView, setActiveView] = useState<WorkbenchView>("projects");
@@ -240,27 +315,31 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   };
 
   // Patches one chapter's fields.
-  const updateChapter = (projectId: string, chapterId: string, patch: Partial<Chapter>) => {
+  const updateChapter = (projectId: string, chapterId: string, patch: Partial<Chapter>, silent?: boolean) => {
     updateProject(projectId, (project) => ({
       ...project,
-      chapters: (project.chapters || []).map((c) => (c.id === chapterId ? { ...c, ...patch } : c)),
+      chapters: (project.chapters || []).map((c) =>
+        c.id === chapterId
+          ? { ...c, ...patch, ...(silent ? {} : { updatedAt: Date.now() }) }
+          : c
+      ),
     }));
   };
 
   // Deletes a chapter and reorder the rest.
   const removeChapter = (projectId: string, chapterId: string) => {
-  updateProject(projectId, (project) => {
-    const chapters = (project.chapters || []).filter((c) => c.id !== chapterId);
-    const perChapter =
-      project.targetWordCount > 0 && chapters.length > 0
-        ? Math.round(project.targetWordCount / chapters.length)
-        : 0;
-    return {
-      ...project,
-      chapters: chapters.map((c, i) => ({ ...c, order: i, targetWordCount: perChapter })),
-    };
-  });
-};
+    updateProject(projectId, (project) => {
+      const chapters = (project.chapters || []).filter((c) => c.id !== chapterId);
+      const perChapter =
+        project.targetWordCount > 0 && chapters.length > 0
+          ? Math.round(project.targetWordCount / chapters.length)
+          : 0;
+      return {
+        ...project,
+        chapters: chapters.map((c, i) => ({ ...c, order: i, targetWordCount: perChapter })),
+      };
+    });
+  };
 
   // Swaps a chapter with its neighbour if it is not beyond the end of the list.
   const moveChapter = (projectId: string, chapterId: string, direction: -1 | 1) => {
@@ -288,7 +367,9 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const updateCharacter: WorkbenchStoreValue["updateCharacter"] = (projectId, characterId, patch) => {
     updateProject(projectId, (project) => ({
       ...project,
-      characters: (project.characters || []).map((c) => (c.id === characterId ? { ...c, ...patch } : c)),
+      characters: (project.characters || []).map((c) =>
+        c.id === characterId ? { ...c, ...patch, updatedAt: Date.now() } : c
+      ),
     }));
   };
 
@@ -311,10 +392,14 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   };
 
   // Patches one story event's fields.
-  const updateStoryEvent: WorkbenchStoreValue["updateStoryEvent"] = (projectId, eventId, patch) => {
+  const updateStoryEvent: WorkbenchStoreValue["updateStoryEvent"] = (projectId, eventId, patch, silent) => {
     updateProject(projectId, (project) => ({
       ...project,
-      events: (project.events || []).map((e) => (e.id === eventId ? { ...e, ...patch } : e)),
+      events: (project.events || []).map((e) =>
+        e.id === eventId
+          ? { ...e, ...patch, ...(silent ? {} : { updatedAt: Date.now() }) }
+          : e
+      ),
     }));
   };
 
@@ -345,13 +430,14 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const updateStoryScene: WorkbenchStoreValue["updateStoryScene"] = (
     projectId,
     sceneId,
-    patch
+    patch,
+    silent
   ) => {
     updateProject(projectId, (project) => ({
       ...project,
       scenes: (project.scenes || []).map((scene) =>
         scene.id === sceneId
-          ? { ...scene, ...patch }
+          ? { ...scene, ...patch, ...(silent ? {} : { updatedAt: Date.now() }) }
           : scene
       ),
     }));
@@ -452,18 +538,50 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       locations: (project.locations || []).map((l) =>
         l.id === locationId
           ? {
-              ...l,
-              name: input.name.trim(),
-              description: input.description?.trim() || "",
-            }
+            ...l,
+            name: input.name.trim(),
+            description: input.description?.trim() || "",
+            updatedAt: Date.now(),
+          }
           : l
       ),
     }));
   };
 
+  // Restores a backup with only React state is touched. useCollectionSync notices the
+  // change and writes/deletes the matching IndexedDB records on its own.
+  const importBackup: WorkbenchStoreValue["importBackup"] = (backup, mode) => {
+    const { projects: incomingProjects, customStructures: incomingStructures } = backup.data;
+
+    // Same ordering the app uses when it loads from IndexedDB.
+    const newestFirst = (list: WritingProject[]) =>
+      [...list].sort((a, b) => b.createdAt - a.createdAt);
+    const byId = (list: StoryStructureTemplate[]) =>
+      [...list].sort((a, b) => a.id.localeCompare(b.id));
+
+    if (mode === "replace") {
+      // The backup becomes the whole workbench. Records that are not in it get deleted.
+      setProjects(newestFirst(incomingProjects));
+      setCustomStoryStructures(byId(incomingStructures));
+      // The open project may no longer exist, so go back to the projects list.
+      setActiveProjectIdState(null);
+      setActiveView("projects");
+      return;
+    }
+
+    // The backup's version is prior when there are same ids, and everything else is kept.
+    setProjects((list) => newestFirst(mergeById(list, incomingProjects)));
+    setCustomStoryStructures((list) => byId(mergeById(list, incomingStructures)));
+  };
+
   const value = useMemo<WorkbenchStoreValue>(
     () => ({
       persistenceStatus,
+      // Expose save status and recovery actions to the UI.
+      saveStatus,
+      retrySave,
+      exportBackup,
+
       // Project
       projects,
       activeProject,
@@ -489,7 +607,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addStoryEvent,
       updateStoryEvent,
       removeStoryEvent,
-      
+
       // Story Scene
       addStoryScene,
       updateStoryScene,
@@ -505,9 +623,15 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addLocation,
       removeLocation,
       updateLocation,
+
+      // Backup
+      importBackup,
     }),
     [
       persistenceStatus,
+      saveStatus,
+      retrySave,
+      exportBackup,
       projects,
       activeProject,
       activeProjectId,
@@ -516,14 +640,30 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     ]
   );
 
-  // Wait for the saved data before rendering, otherwise the UI would flash
-  // "No projects yet" for a moment even though projects exist.
-  if (persistenceStatus === "loading") {
-    return <div className="app-loading" role="status">Loading your workbench…</div>;
+  // Prevent editing until existing records have been loaded.
+  if (persistenceStatus === "unavailable") {
+    return (
+      <div className="app-loading" role="alert">
+        <p>Your saved plans could not be loaded.</p>
+
+        <button
+          type="button"
+          className="toolbar-button"
+          onClick={() => {
+            void retrySave();
+          }}
+        >
+          Retry loading
+        </button>
+      </div>
+    );
   }
 
   return <WorkbenchStore.Provider value={value}>{children}</WorkbenchStore.Provider>;
+
+
 }
+
 
 // Throws error early if used outside the provider.
 export function useWorkbench() {
