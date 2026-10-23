@@ -472,6 +472,8 @@ function EventFormModal({
     initial?.isStoryBeat ?? false
   );
 
+  const [errors, setErrors] = useState<string[]>([]);
+
   const LOCATION_NEW = "**new**";
 
   // Resolve the selected story structure, including custom structures.
@@ -521,9 +523,25 @@ function EventFormModal({
 
   // Save the event.
   const handleSave = () => {
-    if (!title.trim() || !startDateInput || !endDateInput) {
+    const missingFields: string[] = [];
+    if (!title.trim()) {
+      missingFields.push("Event title");
+    }
+
+    if (!startDateInput) {
+      missingFields.push("Start date");
+    }
+
+    if (!endDateInput) {
+      missingFields.push("End date");
+    }
+
+    if (missingFields.length > 0) {
+      setErrors(missingFields);
       return;
     }
+
+    setErrors([]);
 
     const startDate = parseStoryDateInput(startDateInput);
     const endDate = parseStoryDateInput(endDateInput);
@@ -573,15 +591,25 @@ function EventFormModal({
       wide
     >
       <div className="workbench-form">
+        {errors.length > 0 && (
+          <div className="scene-form-error" role="alert">
+            <p>Please complete the following required fields:</p>
+            <ul>
+              {errors.map((field) => (
+                <li key={field}>{field}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="form-grid">
-          <Field label="Event title">
+          <Field label="Event title *">
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </Field>
 
-          <Field label="Start date">
+          <Field label="Start date *">
             <input
               type="date"
               value={startDateInput}
@@ -589,7 +617,7 @@ function EventFormModal({
             />
           </Field>
 
-          <Field label="End date">
+          <Field label="End date *">
             <input
               type="date"
               value={endDateInput}
