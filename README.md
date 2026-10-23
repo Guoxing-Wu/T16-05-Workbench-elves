@@ -25,10 +25,10 @@ Imbi has a need for a workbench to help manage her writing efficiently, specific
 | Member | Name | Role | Student ID | Email | GitHub Account |
 | :---: | --- | --- | --- | --- | --- |
 | 1 | Jiechang Che | Product Owner | 1389308 | cheaj@student.unimelb.edu.au | AngelinaChe0621 |
-| 2 | Ruting Kou | Secrum Master | 1674238 | rutingk@student.unimelb.edu.au | rtk2iscoding |
-| 3 | Kexin Meng | Developer | 1447619 | mengkm@student.unimelb.edu.au | Mackenziekk |
-| 4 | Yawen Xue | Developer | 1524304 | yawxue3@student.unimelb.edu.au | A-XYW |
-| 5 | Guoxing Wu | Developer | 1259517 | guwu@student.unimelb.edu.au | Guoxing-Wu |
+| 2 | Kexin Meng | Developer & Secrum Master (w1~3) | 1447619 | mengkm@student.unimelb.edu.au | Mackenziekk |
+| 3 | Ruting Kou | Developer & Secrum Master (w4~6) | 1674238 | rutingk@student.unimelb.edu.au | rtk2iscoding |
+| 4 | Yawen Xue | Developer & Secrum Master (w7~9) | 1524304 | yawxue3@student.unimelb.edu.au | A-XYW |
+| 5 | Guoxing Wu | Developer & Secrum Master (w10~12) | 1259517 | guwu@student.unimelb.edu.au | Guoxing-Wu |
 
 
 ## Repository Structure
