@@ -118,10 +118,14 @@ export function OverviewPage() {
 
 
 
-  const written = wordsWritten(featured);
-  const target = featured.targetWordCount || 0;
+
+  // Calculate progress using the active project's current word count.
+  const written = Math.max(0, wordsWritten(featured));
+  const target = Math.max(0, featured.targetWordCount ?? 0);
+
   const progress = target > 0 ? Math.min(100, Math.round((written / target) * 100)) : 0;
-  const structure = getStoryStructureOption(featured.storyStructure)
+
+  const structure = getStoryStructureOption(featured.storyStructure);
 
   return (
     <div className="page-stack core-page overview-page">
