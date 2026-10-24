@@ -241,11 +241,11 @@ describe("RightSidebar — recently edited", () => {
       { id: "l1", name: "Carlton", updatedAt: now - 3 * HOUR },
     ];
     project.events = [
-      { id: "e1", title: "Arrival", startDate: { year: 1990 }, endDate: { year: 0 }, chapterIds: [], isStoryBeat: false, updatedAt: now - 1 * DAY },
-      { id: "e2", title: "Old Event", startDate: { year: 1888 }, endDate: { year: 0 }, chapterIds: [], isStoryBeat: false, updatedAt: now - 10 * DAY },
+      { id: "e1", title: "Arrival", description: "", startDate: { year: 1990 }, endDate: { year: 0 }, chapterIds: [], isStoryBeat: false, updatedAt: now - 1 * DAY },
+      { id: "e2", title: "Old Event", description: "", startDate: { year: 1888 }, endDate: { year: 0 }, chapterIds: [], isStoryBeat: false, updatedAt: now - 10 * DAY },
     ];
     project.scenes = [
-      { id: "s1", title: "Lobby", date: { year: 1990 }, chapterIds: [], updatedAt: now - 3 * DAY },
+      { id: "s1", title: "Lobby", description: "", date: { year: 1990 }, chapterIds: [], updatedAt: now - 3 * DAY },
     ];
     return { project, now };
   }

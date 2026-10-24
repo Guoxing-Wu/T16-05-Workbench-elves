@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { createProject, makeChapter, makeCharacter, makeLocation, makeStoryEvent, makeStoryScene } from "../../lib/domain";
-import type { Chapter, Character, Location, StoryEvent, StoryScene, WritingProject } from "../../lib/domain";
+import type { Chapter, StoryEvent, StoryScene, WritingProject } from "../../lib/domain";
 import { useWorkbench } from "../../lib/store";
 import { ChapterPage } from "./ChapterPage";
 
@@ -328,7 +328,7 @@ describe("ChapterPage — moving entities between chapters", () => {
   });
 
   it("moves an event from its source chapter to the target chapter", () => {
-    const { project, ch1, ch2, event } = populatedProject();
+    const { project, ch2, event } = populatedProject();
     renderPage(project);
 
     const opening = screen.getByRole("button", { name: /Opening/ });

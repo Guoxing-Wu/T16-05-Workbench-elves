@@ -14,7 +14,7 @@ jest.mock("../lib/store", () => ({
 
 const storeMock = jest.mocked(useWorkbench);
 const createProjectMock = jest.fn();
-const updateProjectMock = jest.fn();
+const updateProjectMock = jest.fn<(id: string, updater: (project: WritingProject) => WritingProject) => void>();
 const deleteProjectMock = jest.fn();
 const onOpenMock = jest.fn<(id: string) => void>();
 
