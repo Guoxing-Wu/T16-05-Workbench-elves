@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 
 // A page's title block with a slot on the right for action buttons (e.g. "New project" button).
 export function PageHeader({
-  eyebrow,
   title,
   count,
   children,
@@ -19,7 +18,6 @@ export function PageHeader({
   return (
     <header className="page-header">
       <div>
-        <span>{eyebrow ?? "AUTHOR’S WORKBENCH"}</span>
         <h1>{title}</h1>
         {count && <p>{count}</p>}
       </div>

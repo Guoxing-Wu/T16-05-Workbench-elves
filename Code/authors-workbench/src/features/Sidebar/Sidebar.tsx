@@ -11,7 +11,6 @@ import {
   LayoutDashboard,
   MapPin,
   Network,
-  Settings,
   Share2,
   Users,
   FolderOpen,
@@ -20,6 +19,7 @@ import type { LucideIcon } from "lucide-react";
 import { useWorkbench } from "../../lib/store";
 import type { WorkbenchView } from "../../lib/store";
 import { BackupModal } from "../backup/BackupModal";
+import { ExportModal } from "../export/ExportModal";
 import "./Sidebar.css";
 
 // A single navigation entry: icon + label + the view it switches to.
@@ -58,7 +58,6 @@ const NAV_GROUPS: NavGroup[] = [
 
 // Bottom navigation (settings / help) kept separate so it sticks to the bottom.
 const BOTTOM_NAV: NavItem[] = [
-  { icon: Settings, label: "Settings", view: "settings" },
   { icon: HelpCircle, label: "Help", view: "help" },
 ];
 // Tool buttons do not navigate — they trigger an action instead.
@@ -96,10 +95,12 @@ function SidebarButton({
 }
 // The collapsible left navigation rail.
 export function Sidebar() {
-  const { activeView, setActiveView} = useWorkbench();
+  const { activeView, setActiveView } = useWorkbench();
   const [collapsed, setCollapsed] = useState(false);
   // Whether the Backup & Restore dialog is open.
   const [backupOpen, setBackupOpen] = useState(false);
+  // Whether the Export dialog is open.
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Switching to a top-level view closes any open project detail.
   /*const navigate = (view: WorkbenchView) => {
@@ -121,83 +122,84 @@ export function Sidebar() {
     {
       icon: Share2,
       label: "Export",
-      action: () => console.log("[Workbench] Export — not implemented yet"),
+      action: () => setExportOpen(true),
     },
   ];
   return (
     <>
-    <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>
-      {/* Brand mark + collapse toggle */}
-      <div className="sidebar-brand">
-        <div className="brand-mark">
-          <Feather size={18} strokeWidth={1.6} />
-        </div>
-        {!collapsed && (
-          <div className="sidebar-brand-text">
-            <span>AUTHOR'S</span>
-            <strong>WORKBENCH</strong>
+      <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>
+        {/* Brand mark + collapse toggle */}
+        <div className="sidebar-brand">
+          <div className="brand-mark">
+            <Feather size={18} strokeWidth={1.6} />
           </div>
-        )}
-        <button
-          type="button"
-          className="sidebar-collapse-btn"
-          onClick={() => setCollapsed((c) => !c)}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
-        </button>
-      </div>
+          {!collapsed && (
+            <div className="sidebar-brand-text">
+              <span>AUTHOR'S</span>
+              <strong>WORKBENCH</strong>
+            </div>
+          )}
+          <button
+            type="button"
+            className="sidebar-collapse-btn"
+            onClick={() => setCollapsed((c) => !c)}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+          </button>
+        </div>
 
-      {/* Scrollable nav area */}
-      <nav className="sidebar-nav">
-        {NAV_GROUPS.map((group, gi) => (
-          <div key={gi} className="sidebar-group">
-            {group.title && !collapsed && <p className="sidebar-group-title">{group.title}</p>}
-            {group.items.map((item) => (
+        {/* Scrollable nav area */}
+        <nav className="sidebar-nav">
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={gi} className="sidebar-group">
+              {group.title && !collapsed && <p className="sidebar-group-title">{group.title}</p>}
+              {group.items.map((item) => (
+                <SidebarButton
+                  key={item.view}
+                  icon={item.icon}
+                  label={item.label}
+                  collapsed={collapsed}
+                  active={activeView === item.view}
+                  onClick={() => navigate(item.view)}
+                />
+              ))}
+            </div>
+          ))}
+
+          {/* TOOLS group — action buttons, not navigation */}
+          <div className="sidebar-group">
+            {!collapsed && <p className="sidebar-group-title">TOOLS</p>}
+            {tools.map((tool) => (
               <SidebarButton
-                key={item.view}
-                icon={item.icon}
-                label={item.label}
+                key={tool.label}
+                icon={tool.icon}
+                label={tool.label}
                 collapsed={collapsed}
-                active={activeView === item.view}
-                onClick={() => navigate(item.view)}
+                onClick={tool.action}
               />
             ))}
           </div>
-        ))}
+        </nav>
 
-        {/* TOOLS group — action buttons, not navigation */}
-        <div className="sidebar-group">
-          {!collapsed && <p className="sidebar-group-title">TOOLS</p>}
-          {tools.map((tool) => (
+        {/* Bottom nav pinned to the bottom of the sidebar */}
+        <div className="sidebar-bottom">
+          {BOTTOM_NAV.map((item) => (
             <SidebarButton
-              key={tool.label}
-              icon={tool.icon}
-              label={tool.label}
+              key={item.view}
+              icon={item.icon}
+              label={item.label}
               collapsed={collapsed}
-              onClick={tool.action}
+              active={activeView === item.view}
+              onClick={() => navigate(item.view)}
             />
           ))}
         </div>
-      </nav>
+      </aside>
 
-      {/* Bottom nav pinned to the bottom of the sidebar */}
-      <div className="sidebar-bottom">
-        {BOTTOM_NAV.map((item) => (
-          <SidebarButton
-            key={item.view}
-            icon={item.icon}
-            label={item.label}
-            collapsed={collapsed}
-            active={activeView === item.view}
-            onClick={() => navigate(item.view)}
-          />
-        ))}
-      </div>
-    </aside>
-
-    {/* Rendered next to the <aside>, not inside it, so the sidebar's overflow never clips it. */}
-    {backupOpen && <BackupModal onClose={() => setBackupOpen(false)} />}
+      {/* Rendered next to the <aside>, not inside it, so the sidebar's overflow never clips it. */}
+      {backupOpen && <BackupModal onClose={() => setBackupOpen(false)} />}
+      {exportOpen && <ExportModal onClose={() => setExportOpen(false)} />}
     </>
   );
 }

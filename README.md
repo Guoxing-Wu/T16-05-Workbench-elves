@@ -3,18 +3,17 @@
 The goal of Author's Workbench is to help authors plan and manage their writing efficiently.
   
 ## Table of Contents
-
 1. [Client profiles](#client-profile)
 2. [Client Requirements](#client-requirements)
 3. [Team Members](#team-members)
 4. [Repository Structure](#repository-structure)
-5. [Tools used](#tools-used)
+6. [Tools used](#tools-used)
 
 ## Client Profile 
 Imbi Neeme is an administrator in the School of Computing and Information Systems, Faculty of Engineering and Information Technology, and is also a published author (https://www.penguin.com.au/authors/imbi-neeme). 
 
-## Client Requirements 
 
+## Client Requirements 
 Imbi has a need for a workbench to help manage her writing efficiently, specifically with:
 
 - mapping plot points in a flexible way that accommodates the total wordcount for a specific project as well as chapter lengths
@@ -22,16 +21,14 @@ Imbi has a need for a workbench to help manage her writing efficiently, specific
 - a plot planning utility to integrate with Microsoft Excel
 
 
-
 ## Team Members
-
 | Member | Name | Role | Student ID | Email | GitHub Account |
 | :---: | --- | --- | --- | --- | --- |
 | 1 | Jiechang Che | Product Owner | 1389308 | cheaj@student.unimelb.edu.au | AngelinaChe0621 |
-| 2 | Ruting Kou | Secrum Master | 1674238 | rutingk@student.unimelb.edu.au | rtk2iscoding |
-| 3 | Kexin Meng | Developer | 1447619 | mengkm@student.unimelb.edu.au | Mackenziekk |
-| 4 | Yawen Xue | Developer | 1524304 | yawxue3@student.unimelb.edu.au | A-XYW |
-| 5 | Guoxing Wu | Developer | 1259517 | guwu@student.unimelb.edu.au | Guoxing-Wu |
+| 2 | Kexin Meng | Developer & Secrum Master (w1~3) | 1447619 | mengkm@student.unimelb.edu.au | Mackenziekk |
+| 3 | Ruting Kou | Developer & Secrum Master (w4~6) | 1674238 | rutingk@student.unimelb.edu.au | rtk2iscoding |
+| 4 | Yawen Xue | Developer & Secrum Master (w7~9) | 1524304 | yawxue3@student.unimelb.edu.au | A-XYW |
+| 5 | Guoxing Wu | Developer & Secrum Master (w10~12) | 1259517 | guwu@student.unimelb.edu.au | Guoxing-Wu |
 
 
 ## Repository Structure
@@ -78,9 +75,24 @@ Imbi has a need for a workbench to help manage her writing efficiently, specific
   - README.md
 
 
+## Local Setup
+```bash
+git clone https://github.com/Mackenziekk/T16-05-Workbench-elves.git
+cd T16-05-Workbench-elves/Code/authors-workbench
+npm ci
+npm run dev
+```
+Open the local URL displayed in the terminal.
+Run all npm commands below from the `Code/authors-workbench` directory.
+
+
+
+## Project Documentation
+**Documentation hub:** [Project Confluence] (https://student-team-edq1stef.atlassian.net/wiki/spaces/IP/overview)
+
+
 
 ## Tools Used
-
 | Tool | Logo | Purpose | Description |
 | --- | :---: | --- | --- |
 | GitHub | <img src="https://github.com/Mackenziekk/T16-05-Workbench-elves/blob/main/Project_Files/Team_Progress1/Tool%20Used/Tools_Logos/github.png?raw=true" width="100"> | Code and file management | Store and manage all project files, including source code, design artefacts, and documentation. |
