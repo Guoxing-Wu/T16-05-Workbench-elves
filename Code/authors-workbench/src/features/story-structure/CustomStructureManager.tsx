@@ -5,7 +5,6 @@ import type {
     StoryStructureId,
     StoryStructureTemplate,
 } from "./storyStructureTemplate";
-import { getStoryBeatCount } from "./storyStructureTemplate";
 
 import { useWorkbench } from "../../lib/store";
 import { CustomStructureEditor } from "./CustomStructureEditor";
@@ -105,24 +104,6 @@ export function CustomStructureManager({
     const handleCancel = () => {
         setEditingStructure(null);
     };
-
-    /*
-     * When compact mode is used inside a project,
-     * show the editor without the larger library header.
-     */
-    if (compact && isEditorOpen) {
-        return (
-            <section className="custom-structure-manager compact">
-                <CustomStructureEditor
-                    structure={
-                        editingStructure ?? undefined
-                    }
-                    onSave={handleSave}
-                    onCancel={handleCancel}
-                />
-            </section>
-        );
-    }
 
     return (
         <section
@@ -232,7 +213,13 @@ export function CustomStructureManager({
                                         onClick={() => onSelect?.(structure.id)}
                                         role="button"
                                         tabIndex={0}
+
                                         onKeyDown={(event) => {
+                                            // Let nested buttons handle their own keyboard activation.
+                                            if (event.target !== event.currentTarget) {
+                                                return;
+                                            }
+
                                             if (event.key === "Enter" || event.key === " ") {
                                                 event.preventDefault();
                                                 onSelect?.(structure.id);
@@ -265,9 +252,9 @@ export function CustomStructureManager({
 
                                                 <span>
                                                     <strong>
-                                                        {getStoryBeatCount(structure)}
+                                                        {structure.storyBeats.length}
                                                     </strong>{" "}
-                                                    {getStoryBeatCount(structure) === 1
+                                                    {structure.storyBeats.length === 1
                                                         ? "beat"
                                                         : "beats"}
                                                 </span>
@@ -309,11 +296,10 @@ export function CustomStructureManager({
                 </>
             )}
 
-            {!compact && isEditorOpen && (
+            {isEditorOpen && (
                 <CustomStructureEditor
-                    structure={
-                        editingStructure ?? undefined
-                    }
+                    key={editingStructure?.id ?? "new"}
+                    structure={editingStructure ?? undefined}
                     onSave={handleSave}
                     onCancel={handleCancel}
                 />

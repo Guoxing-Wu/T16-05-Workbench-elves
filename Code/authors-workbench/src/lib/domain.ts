@@ -1,4 +1,5 @@
 import type { StoryStructureId } from "../features/story-structure/storyStructureTemplate";
+import { getProjectedChapterCount } from "../features/story-structure/storyChapterMapping";
 
 // A single chapter within a project.
 export interface Chapter {
@@ -54,7 +55,7 @@ export function makeChapter(order: number, n: number): Chapter {
   };
 }
 
-// Builds a new project with no chapters yet. 
+// Creates a project with chapters based on its planning settings
 export function createProject(input: {
   title: string;
   targetWordCount: number;
@@ -62,10 +63,10 @@ export function createProject(input: {
   storyStructure: StoryStructureId;
 }): WritingProject {
   const stamp = Date.now();
-  const estimate =
-    input.averageChapterLength > 0
-      ? Math.max(1, Math.round(input.targetWordCount / input.averageChapterLength))
-      : 0;
+  const estimate = getProjectedChapterCount(
+    input.targetWordCount,
+    input.averageChapterLength
+  );
   const chapters: Chapter[] =
     estimate > 0
       ? Array.from({ length: estimate }, (_, i) => makeChapter(i, i + 1)).map((c) => ({
@@ -225,30 +226,30 @@ export function makeStoryEvent(input: {
     updatedAt: Date.now(),
   };
 }
-  // Build a new scene
-  export function makeStoryScene(input: {
-    title: string;
-    description?: string;
-    date: StoryDate;
-    time?: string;
-    eventId?: string;
-    chapterIds: string[];
-    characterIds?: string[];
-    locationId?: string;
-  }): StoryScene {
-    return {
-      id: makeId(),
-      title: input.title.trim(),
-      description: input.description ?? "",
-      date: input.date,
-      time: input.time || undefined,
-      eventId: input.eventId,
-      chapterIds: input.chapterIds,
-      characterIds: input.characterIds,
-      locationId: input.locationId,
-      updatedAt: Date.now(),
-    };
-  }
+// Build a new scene
+export function makeStoryScene(input: {
+  title: string;
+  description?: string;
+  date: StoryDate;
+  time?: string;
+  eventId?: string;
+  chapterIds: string[];
+  characterIds?: string[];
+  locationId?: string;
+}): StoryScene {
+  return {
+    id: makeId(),
+    title: input.title.trim(),
+    description: input.description ?? "",
+    date: input.date,
+    time: input.time || undefined,
+    eventId: input.eventId,
+    chapterIds: input.chapterIds,
+    characterIds: input.characterIds,
+    locationId: input.locationId,
+    updatedAt: Date.now(),
+  };
+}
 
 // Computes a character's age at a given point in the story timeline.
 export function characterAgeAtYear(birth: StoryDate, reference: StoryDate): number {
