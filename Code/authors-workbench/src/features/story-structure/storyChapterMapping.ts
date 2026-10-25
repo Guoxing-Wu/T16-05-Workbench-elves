@@ -28,6 +28,19 @@ export function getProjectedChapterCount(
     );
 }
 
+function getChapterPosition(
+    chapterCount: number,
+    percent: number
+) {
+    const position = chapterCount * percent / 100;
+    const nearestInteger = Math.round(position);
+    const tolerance = Number.EPSILON * chapterCount;
+
+    // Correct floating-point drift before the caller chooses floor or ceil.
+    return Math.abs(position - nearestInteger) <= tolerance
+        ? nearestInteger
+        : position;
+}
 
 // Allocate consecutive chapters to the acts
 export function getActChapterRanges(
@@ -44,21 +57,17 @@ export function getActChapterRanges(
     let start = 1;
     for (let index = 0; index < acts.length; index++) {
         const act = acts[index];
-        let end = Math.floor(
-            chapterCount * act.endPercent / 100
-        );
-
-        // Remain at least one chapter for every remaining act
         const remainingActs = acts.length - index - 1;
         const maximumEnd = chapterCount - remainingActs;
 
-        if (end < start) {
-            end = start;
-        }
-
-        if (end > maximumEnd) {
-            end = maximumEnd;
-        }
+        // Give this act at least one chapter and reserve one for each remaining act.
+        const end = Math.min(
+            maximumEnd,
+            Math.max(
+                start,
+                Math.floor(getChapterPosition(chapterCount, act.endPercent))
+            )
+        );
 
         ranges.push({ start, end });
 
@@ -71,26 +80,30 @@ export function getActChapterRanges(
 
 
 // Calculate a beat's chapters within its percentages.
-
 export function getBeatChapterRange(
     beat: StoryBeat,
     chapterCount: number
 ): ChapterRange {
-    const getChapterAtPercent = (percent: number) =>
-        Math.max(
-            1,
-            Math.min(
-                chapterCount,
-                Math.floor(
-                    chapterCount * percent / 100
-                ) + 1
-            )
+    const clampToChapter = (chapter: number) =>
+        Math.max(1, Math.min(chapterCount, chapter));
+
+    const end = clampToChapter(
+        Math.ceil(
+            getChapterPosition(chapterCount, beat.endPercent)
+        )
+    );
+
+    // A point belongs to the chapter ending there.
+    // A range starts after its lower boundary.
+    const start = beat.startPercent === beat.endPercent
+        ? end
+        : clampToChapter(
+            Math.floor(
+                getChapterPosition(chapterCount, beat.startPercent)
+            ) + 1
         );
 
-    return {
-        start: getChapterAtPercent(beat.startPercent),
-        end: getChapterAtPercent(beat.endPercent),
-    };
+    return { start, end };
 }
 
 // Display one chapter or a chapter range.

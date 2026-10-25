@@ -92,8 +92,6 @@
     line-height: 1.6;
 }
 
-
-
 /* Act overview and story beat groups */
 .story-structure-board {
     padding: 20px;
@@ -186,7 +184,7 @@
     min-height: 110px;
     padding: 16px;
     border: 1px solid var(--border-warm);
-    border-left: 4px solid var(--story-act-color);
+    border-left: 4px solid var(--story-act-color, var(--ink-soft));
     border-radius: 7px;
     background: var(--paper-light);
 }
@@ -212,8 +210,6 @@
         grid-template-columns: 1fr;
     }
 }
-
-
 
 /* Show project settings in three columns. */
 .story-plan-summary {
@@ -261,7 +257,7 @@
 }
 
 .story-beat-position span:first-child {
-    color: var(--story-act-color);
+    color: var(--story-act-color, var(--ink-soft));
 }
 
 .story-act-description,
@@ -299,8 +295,6 @@
     font-size: 12px;
 }
 
-
-
 /* Leave space between act notes and story beat cards. */
 .story-act-notes {
     display: block;
@@ -336,63 +330,6 @@
     resize: vertical;
 }
 
-/* =========================================================
-   Story Structure — Structure Library
-   Used when no project is selected
-   ========================================================= */
-
-.story-structure-library {
-    display: grid;
-    gap: 18px;
-}
-
-.story-structure-library-header {
-    padding: 22px 24px;
-    border: 1px solid var(--border-warm);
-    border-radius: 8px;
-    background: var(--surface);
-}
-
-.story-structure-library-heading {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-}
-
-.story-structure-library-icon {
-    width: 42px;
-    height: 42px;
-    flex: 0 0 auto;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--blue-soft);
-    color: var(--blue);
-}
-
-.story-section-eyebrow {
-    color: var(--coral-dark);
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: .11em;
-    text-transform: uppercase;
-}
-
-.story-structure-library-header h2 {
-    margin: 6px 0 5px;
-    font: 600 20px/1.35 var(--serif);
-    color: var(--ink);
-}
-
-.story-structure-library-header p {
-    max-width: 600px;
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 11px;
-    line-height: 1.6;
-}
-
-
 /* ===== Custom structure manager ===== */
 
 .custom-structure-manager {
@@ -407,7 +344,7 @@
     gap: 18px;
 }
 
-.custom-structure-manager-header > div {
+.custom-structure-manager-header>div {
     min-width: 0;
 }
 
@@ -423,7 +360,6 @@
     font-size: 10.5px;
     line-height: 1.5;
 }
-
 
 /* ===== Empty state ===== */
 
@@ -468,7 +404,6 @@
     line-height: 1.6;
 }
 
-
 /* ===== Custom structure cards ===== */
 
 .custom-structure-list {
@@ -501,13 +436,6 @@
     transform: translateY(-1px);
 }
 
-.custom-structure-card-eyebrow {
-    color: var(--coral-dark);
-    font-size: 8px;
-    font-weight: 600;
-    letter-spacing: .11em;
-}
-
 .custom-structure-card h3 {
     margin: 6px 0 5px;
     color: var(--ink);
@@ -532,41 +460,10 @@
     overflow: hidden;
 }
 
-.custom-structure-card-stats {
-    margin-top: 14px;
-    padding: 10px 0;
-
-    display: flex;
-    align-items: center;
-    gap: 18px;
-
-    border-top: 1px solid var(--divider-warm);
-}
-
 .custom-structure-card-stats span {
     color: var(--text-muted);
     font-size: 9px;
 }
-
-.custom-structure-card-stats strong {
-    color: var(--ink);
-    font-family: var(--mono);
-    font-size: 10px;
-}
-
-
-/* ===== Card actions ===== */
-
-.custom-structure-actions {
-    margin-top: auto;
-    padding-top: 10px;
-
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 3px;
-}
-
 
 /* ===== Project placeholder ===== */
 
@@ -596,10 +493,6 @@
     color: var(--sage);
 }
 
-.story-project-placeholder-content {
-    min-width: 0;
-}
-
 .story-project-placeholder h2 {
     margin: 5px 0 4px;
     color: var(--ink);
@@ -613,7 +506,6 @@
     font-size: 10.5px;
     line-height: 1.55;
 }
-
 
 /* ===== Responsive ===== */
 
@@ -633,23 +525,11 @@
 }
 
 @media (max-width: 480px) {
-    .story-structure-library-header {
-        padding: 18px;
-    }
-
-    .story-structure-library-heading {
-        gap: 11px;
-    }
-
-    .story-structure-library-icon {
-        width: 36px;
-        height: 36px;
-    }
-
     .story-project-placeholder {
         padding: 18px;
     }
 }
+
 /* ---------------------------------------------------------
    Custom structures inside the selected-project view
    --------------------------------------------------------- */
@@ -691,7 +571,7 @@
     background: var(--paper-light);
 }
 
-.custom-structure-compact-toolbar > span {
+.custom-structure-compact-toolbar>span {
     color: var(--text-muted);
     font-size: 11px;
     line-height: 1.5;
@@ -718,7 +598,6 @@
     border-color: var(--coral);
     background: var(--coral-soft);
 }
-
 
 .custom-structure-card-main {
     flex: 1;
@@ -753,20 +632,28 @@
 }
 
 .custom-structure-card-stats {
+    margin-top: 14px;
+    padding: 10px 0;
     display: flex;
+    align-items: center;
     gap: 12px;
+    border-top: 1px solid var(--divider-warm);
     color: var(--text-muted);
     font-size: 10px;
 }
 
 .custom-structure-card-stats strong {
     color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
     font-weight: 600;
 }
 
 .custom-structure-actions {
+    margin-top: auto;
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 5px;
     padding: 0 10px 0 0;
 }
@@ -785,8 +672,7 @@
 }
 
 /* Keep the compact manager's editor separated from the picker. */
-.custom-structure-manager.compact
-    .custom-structure-editor {
+.custom-structure-manager.compact .custom-structure-editor {
     margin-top: 0;
 }
 

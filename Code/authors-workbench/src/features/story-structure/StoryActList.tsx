@@ -1,6 +1,8 @@
-import type { StoryStructureTemplate } from "./storyStructureTemplate";
+import type {
+    StoryBeat,
+    StoryStructureTemplate,
+} from "./storyStructureTemplate";
 import type { StoryTemplateNotes } from "../../lib/domain";
-
 import {
     getActChapterRanges,
     getBeatChapterRange,
@@ -8,7 +10,6 @@ import {
     getPercentRangeLabel,
 } from "./storyChapterMapping";
 
-// Receive structure, notes and update functions from the page.
 type StoryActListProps = {
     template: StoryStructureTemplate;
     chapterCount: number;
@@ -17,11 +18,63 @@ type StoryActListProps = {
     onBeatNoteChange: (beatId: string, value: string) => void;
 };
 
-// Display the template structure
-export function StoryActList({ template, chapterCount, notes, onActNoteChange, onBeatNoteChange, }: StoryActListProps) {
+export function StoryActList({
+    template,
+    chapterCount,
+    notes,
+    onActNoteChange,
+    onBeatNoteChange,
+}: StoryActListProps) {
     const { acts, storyBeats } = template;
-    const actRanges = getActChapterRanges(
-        acts, chapterCount);
+    const actRanges = getActChapterRanges(acts, chapterCount);
+
+    // Keep beats visible when they have no act or their referenced act is missing.
+    const independentBeats = storyBeats.filter(
+        (beat) => !acts.some((act) => act.id === beat.actId)
+    );
+
+    // Reuse the same cards and note fields for grouped and independent beats.
+    function renderBeatGrid(beats: StoryBeat[]) {
+        return (
+            <div className="story-beat-grid">
+                {beats.map((beat) => {
+                    // Calculate from the beat's own percentages, independently of act ranges.
+                    const beatRange = chapterCount > 0
+                        ? getBeatChapterRange(beat, chapterCount)
+                        : undefined;
+
+                    return (
+                        <article key={beat.id} className="story-beat-card">
+                            <div className="story-beat-position">
+                                <span>{getChapterRangeLabel(beatRange)}</span>
+                                <span>
+                                    {getPercentRangeLabel(
+                                        beat.startPercent,
+                                        beat.endPercent
+                                    )}
+                                </span>
+                            </div>
+
+                            <h4>{beat.name}</h4>
+
+                            <label className="story-beat-notes">
+                                <span className="story-note-label">NOTES</span>
+                                <textarea
+                                    rows={3}
+                                    value={notes.beatNotes[beat.id] ?? ""}
+                                    placeholder="Write your story beat notes..."
+                                    onChange={(event) =>
+                                        onBeatNoteChange(beat.id, event.target.value)
+                                    }
+                                />
+                            </label>
+                        </article>
+                    );
+                })}
+            </div>
+        );
+    }
+
     return (
         <section className="story-structure-board">
             {chapterCount < acts.length && (
@@ -29,31 +82,27 @@ export function StoryActList({ template, chapterCount, notes, onActNoteChange, o
                     Plan at least {acts.length} chapters to map every act.
                 </p>
             )}
-            {/* Show an overview information for each act */}
-            <div className="story-act-overview">
-                {acts.map((act, index) => (
-                    <div
-                        key={act.id}
-                        className={
-                            "story-act-overview-item story-act-" +
-                            (index + 1)
-                        }
-                    >
-                        <span>ACT {index + 1}</span>
-                        <strong>{act.name}</strong>
-                        <span>
-                            {getChapterRangeLabel(actRanges[index])}
-                        </span>
-                    </div>
-                ))}
-            </div>
 
-            {/* Show each act with its own story beat content */}
+            {acts.length > 0 && (
+                <div className="story-act-overview">
+                    {acts.map((act, index) => (
+                        <div
+                            key={act.id}
+                            className={
+                                "story-act-overview-item story-act-" + (index + 1)
+                            }
+                        >
+                            <span>ACT {index + 1}</span>
+                            <strong>{act.name}</strong>
+                            <span>
+                                {getChapterRangeLabel(actRanges[index])}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {acts.map((act, index) => {
-                // Get the chapter range of the current act.
-                const actRange = actRanges[index];
-
                 const actStoryBeats = storyBeats.filter(
                     (beat) => beat.actId === act.id
                 );
@@ -61,33 +110,29 @@ export function StoryActList({ template, chapterCount, notes, onActNoteChange, o
                 return (
                     <section
                         key={act.id}
-                        className={
-                            "story-act-group story-act-" + (index + 1)
-                        }
+                        className={"story-act-group story-act-" + (index + 1)}
                     >
                         <header className="story-act-header">
                             <div>
                                 <span className="story-template-eyebrow">
                                     ACT {index + 1} ·{" "}
                                     {getPercentRangeLabel(
-                                        act.startPercent, act.endPercent
+                                        act.startPercent,
+                                        act.endPercent
                                     )}
                                 </span>
                                 <h3>{act.name}</h3>
                             </div>
-
                             <span className="story-act-count">
-                                {getChapterRangeLabel(actRange)}
+                                {getChapterRangeLabel(actRanges[index])}
                             </span>
                         </header>
 
-                        {/* Remain the template title and let the author write act notes. */}
                         <label className="story-act-notes">
                             <span className="story-note-label">ACT NOTES</span>
-
                             <textarea
                                 rows={2}
-                                value={notes.actNotes[act.id] || ""}
+                                value={notes.actNotes[act.id] ?? ""}
                                 placeholder="Write your act notes..."
                                 onChange={(event) =>
                                     onActNoteChange(act.id, event.target.value)
@@ -99,59 +144,22 @@ export function StoryActList({ template, chapterCount, notes, onActNoteChange, o
                             {actStoryBeats.length} story beats
                         </p>
 
-
-                        <div className="story-beat-grid">
-                            {actStoryBeats.map((beat) => {
-                                // Calculate chapters only when the project has chapters.
-                                const beatRange =
-                                    chapterCount > 0
-                                        ? getBeatChapterRange(
-                                            beat,
-                                            chapterCount
-                                        )
-                                        : undefined;
-                                return (
-                                    <article
-                                        key={beat.id}
-                                        className="story-beat-card"
-                                    >
-                                        <div className="story-beat-position">
-                                            <span>
-                                                {getChapterRangeLabel(
-                                                    beatRange
-                                                )}
-                                            </span>
-
-                                            <span>
-                                                {getPercentRangeLabel(
-                                                    beat.startPercent,
-                                                    beat.endPercent
-                                                )}
-                                            </span>
-                                        </div>
-
-                                        <h4>{beat.name}</h4>
-
-                                        {/* Link the note to the beat ID */}
-                                        <label className="story-beat-notes">
-                                            <span className="story-note-label">NOTES</span>
-
-                                            <textarea
-                                                rows={3}
-                                                value={notes.beatNotes[beat.id] || ""}
-                                                placeholder="Write your story beat notes..."
-                                                onChange={(event) =>
-                                                    onBeatNoteChange(beat.id, event.target.value)
-                                                }
-                                            />
-                                        </label>
-                                    </article>
-                                );
-                            })}
-                        </div>
+                        {renderBeatGrid(actStoryBeats)}
                     </section>
                 );
             })}
+
+            {independentBeats.length > 0 && (
+                <section className="story-act-group">
+                    <header className="story-act-header">
+                        <h3>Story Beats</h3>
+                    </header>
+                    <p className="story-act-description">
+                        {independentBeats.length} story beats without an act
+                    </p>
+                    {renderBeatGrid(independentBeats)}
+                </section>
+            )}
         </section>
     );
 }

@@ -1,8 +1,3 @@
-/*export type StoryStructureId =
-    | "three-act"
-    | "heros-journey"
-    | "save-the-cat";*/
-
 export type StoryStructureId = string;
 export type StoryBeat = {
     id: string;
@@ -383,12 +378,6 @@ export const STORY_STRUCTURE_OPTIONS: StoryStructureTemplate[] = [
 // Three act as the default template when creating a new project
 export const DEFAULT_STORY_STRUCTURE_ID: StoryStructureId =
     "three-act";
-
-
-// Return the total number of story beats
-export function getStoryBeatCount(template: StoryStructureTemplate) {
-    return template.storyBeats.length;
-}
 
 
 // Finds and returns the Story Structure that matches the supplied ID
