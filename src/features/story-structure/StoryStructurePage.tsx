@@ -34,7 +34,6 @@ export function StoryStructurePage({
                 <PageHeader
                     eyebrow="MANUSCRIPT"
                     title="Story Structure"
-                    count="Manage your custom planning structures."
                 />
 
                 <CustomStructureManager

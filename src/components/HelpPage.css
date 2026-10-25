@@ -1,0 +1,81 @@
+.help-page {
+    max-width: 760px;
+}
+
+.help-faq h2 {
+    margin: 0 0 16px;
+    color: var(--ink);
+    font: 500 19px/1.4 var(--serif);
+}
+
+.help-faq-list {
+    border-top: 1px solid var(--divider-warm);
+}
+
+.help-faq-item {
+    border-bottom: 1px solid var(--divider-warm);
+}
+
+.help-faq-item summary {
+    min-height: 48px;
+    padding: 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    list-style: none;
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.6;
+    cursor: pointer;
+}
+
+.help-faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.help-faq-item summary:hover {
+    color: var(--coral-dark);
+}
+
+.help-faq-item summary:focus-visible {
+    outline: 3px solid var(--blue-soft);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.help-faq-item summary svg {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.15s ease;
+}
+
+.help-faq-item[open] summary svg {
+    transform: rotate(90deg);
+}
+
+.help-faq-item p {
+    margin: 0;
+    padding: 0 28px 18px 0;
+    color: var(--ink-soft);
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.help-faq-item strong {
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .help-faq-item p {
+        padding-right: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .help-faq-item summary svg {
+        transition: none;
+    }
+}
