@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { ToolButton } from "../../components/primitives";
 import type { StoryDate } from "../../lib/domain";
+import { isValidBirthday } from "../../test/characterBirthday";
 
 // Form for creating a new character, with fields for name, birthday, description, and location.
 type Props = {
@@ -59,6 +60,9 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
       month: birthMonth ? Number(birthMonth) : undefined,
       day: birthDay ? Number(birthDay) : undefined,
     };
+    if (!isValidBirthday(birthday)) {
+      return;
+    }
     onCreate({
       firstName: firstName.trim(),
       lastName: lastName.trim() || undefined,
