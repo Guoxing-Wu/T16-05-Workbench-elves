@@ -380,12 +380,6 @@ export const DEFAULT_STORY_STRUCTURE_ID: StoryStructureId =
     "three-act";
 
 
-// Return the total number of story beats
-export function getStoryBeatCount(template: StoryStructureTemplate) {
-    return template.storyBeats.length;
-}
-
-
 // Finds and returns the Story Structure that matches the supplied ID
 // from either the built-in or custom structures.
 export function getStoryStructureOption(

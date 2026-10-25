@@ -1,7 +1,4 @@
-import {
-    STORY_STRUCTURE_OPTIONS,
-    getStoryBeatCount,
-} from "./storyStructureTemplate";
+import { STORY_STRUCTURE_OPTIONS } from "./storyStructureTemplate";
 
 import type {
     StoryStructureId,
@@ -59,7 +56,7 @@ export function StoryTemplatePicker({
 
                                 <span className="story-template-summary">
                                     {option.acts.length} acts ·{" "}
-                                    {getStoryBeatCount(option)} story beats
+                                    {option.storyBeats.length} story beats
                                 </span>
                             </button>
                         );
