@@ -118,66 +118,50 @@ export function StoryStructurePage({
         });
     };
 
-    // Update one act note without replacing other notes.
+    const changeNote = (
+        noteType: keyof StoryTemplateNotes,
+        noteId: string,
+        value: string
+    ) => {
+        const templateId = selectedTemplate.id;
+        updateProject(project.id, (currentProject) => {
+            const allNotes = currentProject.storyStructureNotes ?? {};
+            const templateNotes = allNotes[templateId] ?? {
+                actNotes: {},
+                beatNotes: {},
+            };
+
+            // Preserve other templates and all notes except the edited field.
+            return {
+                ...currentProject,
+                storyStructureNotes: {
+                    ...allNotes,
+                    [templateId]: {
+                        ...templateNotes,
+                        [noteType]: {
+                            ...templateNotes[noteType],
+                            [noteId]: value,
+                        },
+                    },
+                },
+            };
+        });
+    };
+
     const changeActNote = (actId: string, value: string) => {
-        const templateId = selectedTemplate.id;
-
-        updateProject(project.id, (currentProject) => {
-            const allNotes = currentProject.storyStructureNotes || {};
-            const templateNotes = allNotes[templateId] || {
-                actNotes: {},
-                beatNotes: {},
-            };
-
-            return {
-                ...currentProject,
-                storyStructureNotes: {
-                    ...allNotes,
-                    [templateId]: {
-                        ...templateNotes,
-                        actNotes: {
-                            ...templateNotes.actNotes,
-                            [actId]: value,
-                        },
-                    },
-                },
-            };
-        });
+        changeNote("actNotes", actId, value);
     };
 
-    // Update one story beat note without replacing other notes.
     const changeBeatNote = (beatId: string, value: string) => {
-        const templateId = selectedTemplate.id;
-
-        updateProject(project.id, (currentProject) => {
-            const allNotes = currentProject.storyStructureNotes || {};
-            const templateNotes = allNotes[templateId] || {
-                actNotes: {},
-                beatNotes: {},
-            };
-
-            return {
-                ...currentProject,
-                storyStructureNotes: {
-                    ...allNotes,
-                    [templateId]: {
-                        ...templateNotes,
-                        beatNotes: {
-                            ...templateNotes.beatNotes,
-                            [beatId]: value,
-                        },
-                    },
-                },
-            };
-        });
+        changeNote("beatNotes", beatId, value);
     };
+
 
     return (
         <div className="page-stack core-page">
             <PageHeader
                 eyebrow="MANUSCRIPT"
                 title="Story Structure"
-                count="Choose the planning structure for this project."
             />
 
             {/* Show template cards and connect them to the project */}

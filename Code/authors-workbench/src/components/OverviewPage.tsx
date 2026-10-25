@@ -8,7 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { PageHeader, EmptyState,  ToolButton} from "./primitives";
+import { PageHeader, EmptyState, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
 import type { WorkbenchView } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
@@ -64,7 +64,12 @@ const MODULES: ModuleCard[] = [
 
 // The overview page shows details of the most recently opened project with clickable submodules. 
 export function OverviewPage() {
-  const {setActiveView, activeProject, updateProject} = useWorkbench();
+  const {
+    setActiveView,
+    activeProject,
+    updateProject,
+    customStoryStructures,
+  } = useWorkbench();
 
   // Shows the project was opened most recently.
   const featured = activeProject;
@@ -74,7 +79,7 @@ export function OverviewPage() {
     setActiveView(view);
   };
 
-// Double-click to rename the title of a project on overview page.
+  // Double-click to rename the title of a project on overview page.
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
 
@@ -121,7 +126,10 @@ export function OverviewPage() {
   const written = wordsWritten(featured);
   const target = featured.targetWordCount || 0;
   const progress = target > 0 ? Math.min(100, Math.round((written / target) * 100)) : 0;
-  const structure = getStoryStructureOption(featured.storyStructure)
+  const structure = getStoryStructureOption(
+    featured.storyStructure,
+    customStoryStructures
+  );
 
   return (
     <div className="page-stack core-page overview-page">

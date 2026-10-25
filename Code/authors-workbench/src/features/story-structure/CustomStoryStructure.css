@@ -42,7 +42,7 @@
     gap: 7px;
 }
 
-.custom-structure-field > span {
+.custom-structure-field>span {
     color: var(--ink-soft);
     font-size: 10px;
     font-weight: 600;
@@ -178,7 +178,7 @@
     gap: 4px;
 }
 
-.custom-structure-range-inputs label > span {
+.custom-structure-range-inputs label>span {
     color: var(--text-muted);
     font-size: 9px;
     text-transform: uppercase;
@@ -207,7 +207,7 @@
     border-color: var(--blue);
 }
 
-.percent-input > span {
+.percent-input>span {
     min-height: 32px;
     padding: 8px 8px;
     display: flex;
@@ -288,7 +288,7 @@
     align-items: end;
 }
 
-.custom-structure-beat-content > input {
+.custom-structure-beat-content>input {
     width: 100%;
     min-height: 34px;
     padding: 7px 9px;
@@ -299,7 +299,7 @@
     font: 500 12px var(--sans);
 }
 
-.custom-structure-beat-content > input:focus {
+.custom-structure-beat-content>input:focus {
     outline: 2px solid rgba(85, 116, 138, .18);
     border-color: var(--blue);
 }
@@ -457,4 +457,24 @@
     .custom-structure-form-actions button {
         flex: 1;
     }
+}
+
+/* Let each beat choose an act without changing its percentage range. */
+.custom-structure-beat-act {
+    grid-column: 1 / -1;
+}
+
+.custom-structure-beat-act select {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 9px;
+    border: 1px solid var(--border-warm);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.custom-structure-beat-act select:focus {
+    outline: 2px solid rgba(85, 116, 138, .18);
+    border-color: var(--blue);
 }

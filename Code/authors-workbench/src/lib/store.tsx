@@ -8,6 +8,7 @@ import { useCollectionSync } from "./useCollectionSync";
 import { mergeById, createBackup, downloadBackup } from "./backup";
 import type { BackupFile, ImportMode } from "./backup";
 import type { CollectionSaveStatus } from "./useCollectionSync";
+import { DEFAULT_STORY_STRUCTURE_ID } from "../features/story-structure/storyStructureTemplate";
 
 //left 
 export type WorkbenchView =
@@ -482,16 +483,29 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  // Delete a custom Story Structure
+  // Reset affected projects to the default template while preserving their notes.
   const deleteCustomStoryStructure = (
     structureId: string
   ) => {
+    const updatedAt = Date.now();
+
     setCustomStoryStructures((list) =>
-      list.filter(
-        (structure) => structure.id !== structureId
+      list.filter((structure) => structure.id !== structureId)
+    );
+
+    setProjects((list) =>
+      list.map((project) =>
+        project.storyStructure === structureId
+          ? {
+            ...project,
+            storyStructure: DEFAULT_STORY_STRUCTURE_ID,
+            updatedAt,
+          }
+          : project
       )
     );
   };
+
 
   // Adds a new location to the project and returns it, so callers can
   // immediately link the fresh id to a story event.

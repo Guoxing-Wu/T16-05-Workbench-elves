@@ -5,6 +5,7 @@ import { EmptyState, Field, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
 import { wordsWritten } from "../lib/domain";
 import type { WritingProject } from "../lib/domain";
+import { getProjectedChapterCount } from "../features/story-structure/storyChapterMapping";
 
 import {
   DEFAULT_STORY_STRUCTURE_ID,
@@ -58,10 +59,10 @@ function ProjectForm({
       ? averageChapterLength
       : 0;
 
-  const estimatedChapters =
-    chapterLength > 0
-      ? Math.round(wordCount / chapterLength)
-      : 0;
+  const estimatedChapters = getProjectedChapterCount(
+    wordCount,
+    chapterLength
+  );
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -226,7 +227,7 @@ function ProjectForm({
 
 // The projects overview shows every project as a card.
 export function ProjectsPage({ onOpen }: { onOpen: (id: string) => void }) {
-  const { projects, deleteProject, activeProjectId} = useWorkbench();
+  const { projects, deleteProject, activeProjectId } = useWorkbench();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -262,9 +263,9 @@ export function ProjectsPage({ onOpen }: { onOpen: (id: string) => void }) {
           {projects.map((project) => {
             const written = wordsWritten(project);
             return (
-              <article key={project.id} 
+              <article key={project.id}
                 className={`project-card ${project.id === activeProjectId ? "active" : ""}`}
-                >
+              >
                 <div className="project-card-icon">
                   <FolderOpen size={22} />
                 </div>
