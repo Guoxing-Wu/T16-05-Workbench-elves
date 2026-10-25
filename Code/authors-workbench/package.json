@@ -67,6 +67,7 @@
     "@vitejs/plugin-react": "^6.0.4",
     "babel-jest": "^30.5.2",
     "eslint": "^9.39.5",
+    "fake-indexeddb": "^6.2.6",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
     "ts-jest": "29.4",
