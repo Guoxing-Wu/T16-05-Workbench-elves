@@ -644,4 +644,3 @@ export function ScenesSection({
     </section>
   );
 }
-
