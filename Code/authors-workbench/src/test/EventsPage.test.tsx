@@ -328,3 +328,255 @@ test("creates a new location and links it to the event", async () => {
     expect.objectContaining({ title: "First Meeting", locationId: "location-1" })
   );
 });
+
+// Links an event to an existing location.
+test("links an event to an existing location", async () => {
+  const user = userEvent.setup();
+  const addStoryEvent = jest.fn();
+  const addLocation = jest.fn();
+
+  const location = {
+    id: "location-1",
+    name: "Melbourne",
+  };
+
+  const project = {
+    ...mockProject,
+    locations: [location],
+  } as WritingProject;
+
+  mockUseWorkbench.mockReturnValue({
+    addStoryEvent,
+    updateStoryEvent: jest.fn(),
+    removeStoryEvent: jest.fn(),
+    addLocation,
+    customStoryStructures: [],
+  } as unknown as ReturnType<typeof useWorkbench>);
+
+  render(<EventsPage project={project} />);
+
+  await user.click(screen.getByRole("button", { name: /add event/i }) );
+
+  await user.type(screen.getByLabelText("Event title *"),"First Meeting");
+
+  await user.type(screen.getByLabelText("Start date *"),"2026-03-01");
+
+  await user.type(screen.getByLabelText("End date *"), "2026-03-02" );
+
+  await user.selectOptions( screen.getByLabelText("Location"),"location-1" );
+
+  await user.click(
+    screen.getByRole("button", { name: /save event/i })
+  );
+
+  expect(addStoryEvent).toHaveBeenCalledWith("project-1",expect.objectContaining({
+      title: "First Meeting",
+      locationId: "location-1",
+    })
+  );
+
+  expect(addLocation).not.toHaveBeenCalled();
+});
+
+// Events should be displayed in chronological order.
+test("sorts events by start date", () => {
+  const events = [
+    {
+      id: "event-3",
+      title: "Third Meeting",
+      description: "",
+      startDate: { year: 2026, month: 5, day: 1 },
+      endDate: { year: 2026, month: 5, day: 2 },
+      chapterIds: [],
+      characterIds: [],
+      isStoryBeat: false,
+    },
+    {
+      id: "event-1",
+      title: "First Meeting",
+      description: "",
+      startDate: { year: 2026, month: 1, day: 1 },
+      endDate: { year: 2026, month: 1, day: 2 },
+      chapterIds: [],
+      characterIds: [],
+      isStoryBeat: false,
+    },
+    {
+      id: "event-2",
+      title: "Second Meeting",
+      description: "",
+      startDate: { year: 2026, month: 3, day: 1 },
+      endDate: { year: 2026, month: 3, day: 2 },
+      chapterIds: [],
+      characterIds: [],
+      isStoryBeat: false,
+    },
+  ];
+
+  mockUseWorkbench.mockReturnValue({
+    addStoryEvent: jest.fn(),
+    updateStoryEvent: jest.fn(),
+    removeStoryEvent: jest.fn(),
+    addLocation: jest.fn(),
+    customStoryStructures: [],
+  } as unknown as ReturnType<typeof useWorkbench>);
+
+  render(
+    <EventsPage
+      project={{ ...mockProject, events } as WritingProject}
+    />
+  );
+
+  const titles = screen
+    .getAllByRole("heading", { level: 3 })
+    .map((heading) => heading.textContent);
+
+  expect(titles).toEqual([
+    "First Meeting",
+    "Second Meeting",
+    "Third Meeting",
+  ]);
+});
+
+// Saves an event as a story beat.
+test("creates an event marked as a story beat", async () => {
+  const user = userEvent.setup();
+  const addStoryEvent = jest.fn();
+
+  mockUseWorkbench.mockReturnValue({
+    addStoryEvent,
+    updateStoryEvent: jest.fn(),
+    removeStoryEvent: jest.fn(),
+    addLocation: jest.fn(),
+    customStoryStructures: [],
+  } as unknown as ReturnType<typeof useWorkbench>);
+
+  render(<EventsPage project={mockProject} />);
+
+  await user.click(
+    screen.getByRole("button", { name: /add event/i })
+  );
+
+  await user.type(
+    screen.getByLabelText("Event title *"),
+    "Major Turning Point"
+  );
+
+  await user.type(
+    screen.getByLabelText("Start date *"),
+    "2026-03-01"
+  );
+
+  await user.type(
+    screen.getByLabelText("End date *"),
+    "2026-03-02"
+  );
+
+  await user.click(
+    screen.getByRole("button", { name: "Story Beat" })
+  );
+
+  expect(
+    screen.getByText(
+      "This event is part of the story structure."
+    )
+  ).toBeInTheDocument();
+
+  // Important: trigger the save operation before checking the mock.
+  await user.click(
+    screen.getByRole("button", { name: /save event/i })
+  );
+
+  expect(addStoryEvent).toHaveBeenCalledWith(
+    "project-1",
+    expect.objectContaining({
+      title: "Major Turning Point",
+      isStoryBeat: true,
+    })
+  );
+});
+
+// Links an event to selected chapters and characters.
+test("links selected chapters and characters to an event", async () => {
+  const user = userEvent.setup();
+  const addStoryEvent = jest.fn();
+
+  const project = {
+    ...mockProject,
+    chapters: [
+      {
+        id: "chapter-1",
+        title: "Chapter One",
+        order: 1,
+      },
+    ],
+    characters: [
+      {
+        id: "character-1",
+        name: "Alex",
+        firstName: "Alex",
+        lastName: "",
+      },
+    ],
+  } as unknown as WritingProject;
+
+  mockUseWorkbench.mockReturnValue({
+    addStoryEvent,
+    updateStoryEvent: jest.fn(),
+    removeStoryEvent: jest.fn(),
+    addLocation: jest.fn(),
+    customStoryStructures: [],
+  } as unknown as ReturnType<typeof useWorkbench>);
+
+  render(<EventsPage project={project} />);
+
+  await user.click(
+    screen.getByRole("button", { name: /add event/i })
+  );
+
+  await user.type(
+    screen.getByLabelText("Event title *"),
+    "First Meeting"
+  );
+
+  await user.type(
+    screen.getByLabelText("Start date *"),
+    "2026-03-01"
+  );
+
+  await user.type(
+    screen.getByLabelText("End date *"),
+    "2026-03-02"
+  );
+
+  await user.click(
+    screen.getByRole("button", { name: "Linked chapters" })
+  );
+
+  await user.click(
+    screen.getByText("Chapter One", {
+      selector: ".multi-select-option span",
+    })
+  );
+
+  await user.click(
+    screen.getByRole("button", { name: "Characters affected" })
+  );
+
+  await user.click(
+    screen.getByRole("button", { name: "Alex" })
+  );
+
+  await user.click(
+    screen.getByRole("button", { name: /save event/i })
+  );
+
+  expect(addStoryEvent).toHaveBeenCalledWith(
+    "project-1",
+    expect.objectContaining({
+      title: "First Meeting",
+      chapterIds: ["chapter-1"],
+      characterIds: ["character-1"],
+    })
+  );
+});
