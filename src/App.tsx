@@ -2,7 +2,6 @@ import {
   BookOpen,
   Calendar,
   FileText,
-  HelpCircle,
   LayoutDashboard,
   MapPin,
   Network,
@@ -26,6 +25,7 @@ import { OverviewPage } from "./components/OverviewPage";
 import { LocationsPage } from "./features/Location/LocationPage";
 import { ProfilePage } from "./components/ProfilePage";
 import type { AuthorProfile } from "./components/ProfilePage";
+import { HelpPage } from "./components/HelpPage";
 
 // Initial author profile used for the current browser session.
 const INITIAL_PROFILE: AuthorProfile = {
@@ -37,7 +37,7 @@ const INITIAL_PROFILE: AuthorProfile = {
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
 const PLACEHOLDER_CONFIG: Record<
-  Exclude<WorkbenchView, "projects" | "profile">,
+  Exclude<WorkbenchView, "projects" | "profile" | "help">,
   { title: string; icon: typeof LayoutDashboard; eyebrow: string; description: string }
 > = {
   overview: {
@@ -96,13 +96,6 @@ const PLACEHOLDER_CONFIG: Record<
     description:
       "Configure the workbench: preferences, defaults, appearance and how your writing data is stored.",
   },
-  help: {
-    title: "Help",
-    icon: HelpCircle,
-    eyebrow: "SUPPORT",
-    description:
-      "Find guides, keyboard shortcuts and answers to common questions about using Author's Workbench.",
-  },
 };
 
 // Defines the profile data and save callback received by CurrentView.
@@ -127,6 +120,10 @@ function CurrentView({
     return (
       <ProjectsPage onOpen={openProject} />
     );
+  }
+
+  if (activeView === "help") {
+    return <HelpPage />;
   }
 
   // Displays and updates the current author profile.
