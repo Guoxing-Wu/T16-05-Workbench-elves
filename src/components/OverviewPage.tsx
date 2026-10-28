@@ -129,16 +129,12 @@ export function OverviewPage() {
   const target = Math.max(0, featured.targetWordCount ?? 0);
 
   const progress = target > 0 ? Math.min(100, Math.round((written / target) * 100)) : 0;
-<<<<<<< HEAD:Code/authors-workbench/src/components/OverviewPage.tsx
-
   const structure = getStoryStructureOption(featured.storyStructure);
-=======
   const structure = getStoryStructureOption(
     featured.storyStructure,
     customStoryStructures
   );
->>>>>>> ebfa933170b359cf5335e9f9db2a8f8a13ced629:src/components/OverviewPage.tsx
-
+  
   return (
     <div className="page-stack core-page overview-page">
       {/* Overview title */}
