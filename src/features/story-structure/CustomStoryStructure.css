@@ -1,0 +1,480 @@
+/* =========================================================
+   Custom Story Structure
+   Follows the Author's Workbench visual system
+   ========================================================= */
+
+.custom-structure-editor {
+    display: grid;
+    gap: 22px;
+}
+
+/* ===== Editor header ===== */
+
+.custom-structure-editor-header {
+    padding-bottom: 2px;
+}
+
+.custom-structure-editor-header h2 {
+    margin: 5px 0 6px;
+    font: 600 24px/1.2 var(--serif);
+    letter-spacing: -.02em;
+    color: var(--ink);
+}
+
+.custom-structure-editor-header p {
+    margin: 0;
+    max-width: 620px;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    line-height: 1.6;
+}
+
+/* ===== Basic information ===== */
+
+.custom-structure-editor-form {
+    display: grid;
+    gap: 20px;
+}
+
+.custom-structure-field {
+    min-width: 0;
+    display: grid;
+    gap: 7px;
+}
+
+.custom-structure-field>span {
+    color: var(--ink-soft);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.custom-structure-field input,
+.custom-structure-field textarea {
+    width: 100%;
+    border: 1px solid var(--border-warm);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.custom-structure-field input {
+    min-height: 40px;
+    padding: 9px 11px;
+}
+
+.custom-structure-field textarea {
+    min-height: 84px;
+    padding: 10px 11px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.custom-structure-field input:focus,
+.custom-structure-field textarea:focus {
+    outline: 2px solid rgba(85, 116, 138, .18);
+    border-color: var(--blue);
+}
+
+/* ===== Story framework section ===== */
+
+.custom-structure-section {
+    display: grid;
+    gap: 14px;
+}
+
+.custom-structure-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.custom-structure-section-header h3 {
+    margin: 4px 0 0;
+    font: 600 19px var(--serif);
+    color: var(--ink);
+}
+
+/* ===== Acts ===== */
+
+.custom-structure-acts {
+    display: grid;
+    gap: 12px;
+}
+
+.custom-structure-act {
+    padding: 20px;
+    border: 1px solid var(--border-warm);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.custom-structure-act-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 17px;
+}
+
+.custom-structure-act-number {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--coral-dark);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .12em;
+}
+
+.custom-structure-act-name {
+    width: 100%;
+    max-width: 420px;
+    min-height: 36px;
+    padding: 5px 0;
+    border: 0 !important;
+    border-bottom: 1px solid var(--border-warm) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--ink);
+    font: 600 17px var(--serif);
+}
+
+.custom-structure-act-name:focus {
+    outline: none;
+    border-bottom-color: var(--blue) !important;
+}
+
+/* ===== Percentage range ===== */
+
+.custom-structure-range {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border: 1px solid var(--divider-warm);
+    border-radius: 6px;
+    background: var(--paper-light);
+}
+
+.custom-structure-range-label {
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.custom-structure-range-inputs {
+    display: flex;
+    align-items: flex-end;
+    gap: 9px;
+}
+
+.custom-structure-range-inputs label {
+    display: grid;
+    gap: 4px;
+}
+
+.custom-structure-range-inputs label>span {
+    color: var(--text-muted);
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
+.percent-input {
+    display: flex;
+    align-items: center;
+}
+
+.percent-input input {
+    width: 64px;
+    min-height: 32px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-warm);
+    border-radius: 6px 0 0 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+}
+
+.percent-input input:focus {
+    outline: 2px solid rgba(85, 116, 138, .18);
+    border-color: var(--blue);
+}
+
+.percent-input>span {
+    min-height: 32px;
+    padding: 8px 8px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-warm);
+    border-left: 0;
+    border-radius: 0 6px 6px 0;
+    background: var(--paper);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 10px;
+}
+
+.range-separator {
+    padding-bottom: 7px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+/* ===== Story beats ===== */
+
+.custom-structure-beats {
+    display: grid;
+    gap: 8px;
+}
+
+.custom-structure-beats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+
+.custom-structure-beats-header h4 {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.custom-structure-beats-header span {
+    color: var(--text-muted);
+    font-size: 9px;
+}
+
+/* ===== Individual beat ===== */
+
+.custom-structure-beat {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 10px;
+    padding: 11px;
+    border: 1px solid var(--divider-warm);
+    border-radius: 6px;
+    background: var(--paper-light);
+}
+
+.custom-structure-beat-number {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border-warm);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 9px;
+}
+
+.custom-structure-beat-content {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.custom-structure-beat-content>input {
+    width: 100%;
+    min-height: 34px;
+    padding: 7px 9px;
+    border: 1px solid var(--border-warm);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font: 500 12px var(--sans);
+}
+
+.custom-structure-beat-content>input:focus {
+    outline: 2px solid rgba(85, 116, 138, .18);
+    border-color: var(--blue);
+}
+
+.custom-structure-beat-range {
+    margin: 0;
+}
+
+/* ===== Add buttons ===== */
+
+.custom-structure-add-button {
+    width: fit-content;
+    min-height: 32px;
+    padding: 6px 2px;
+    border: 0;
+    background: transparent;
+    color: var(--blue);
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.custom-structure-add-button:hover {
+    color: var(--coral-dark);
+}
+
+.add-act-button {
+    width: 100%;
+    min-height: 42px;
+    border: 1px dashed var(--border-warm);
+    border-radius: 7px;
+    background: transparent;
+}
+
+.add-act-button:hover {
+    border-color: var(--blue);
+    background: rgba(220, 230, 234, .25);
+}
+
+/* ===== Empty state ===== */
+
+.custom-structure-empty {
+    margin: 0;
+    padding: 28px;
+    border: 1px dashed #d7cec4;
+    border-radius: 8px;
+    background: rgba(255, 253, 252, .52);
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* ===== Validation ===== */
+
+.custom-structure-validation {
+    margin: 0;
+    padding: 10px 13px;
+    border: 1px solid #e8d9a8;
+    border-radius: 6px;
+    background: #faf3dc;
+    color: #6b5d3f;
+    font-size: 10.5px;
+    line-height: 1.5;
+}
+
+/* ===== Editor actions ===== */
+
+.custom-structure-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 2px;
+    padding-top: 17px;
+    border-top: 1px solid var(--divider-warm);
+}
+
+.custom-structure-form-actions button {
+    min-height: 35px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-warm);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.custom-structure-form-actions button:hover {
+    border-color: #cfc4b8;
+    background: #fff;
+}
+
+.custom-structure-form-actions button:last-child {
+    border-color: var(--coral);
+    background: var(--coral);
+    color: white;
+}
+
+.custom-structure-form-actions button:last-child:hover {
+    background: var(--coral-dark);
+}
+
+.custom-structure-form-actions button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 700px) {
+    .custom-structure-act {
+        padding: 16px;
+    }
+
+    .custom-structure-range {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .custom-structure-beat-content {
+        grid-template-columns: 1fr;
+    }
+
+    .custom-structure-beat-range {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .custom-structure-range-inputs {
+        width: 100%;
+    }
+
+    .custom-structure-range-inputs label {
+        flex: 1;
+    }
+
+    .percent-input {
+        width: 100%;
+    }
+
+    .percent-input input {
+        flex: 1;
+        width: auto;
+    }
+
+    .custom-structure-form-actions {
+        justify-content: stretch;
+    }
+
+    .custom-structure-form-actions button {
+        flex: 1;
+    }
+}
+
+/* Let each beat choose an act without changing its percentage range. */
+.custom-structure-beat-act {
+    grid-column: 1 / -1;
+}
+
+.custom-structure-beat-act select {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 9px;
+    border: 1px solid var(--border-warm);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.custom-structure-beat-act select:focus {
+    outline: 2px solid rgba(85, 116, 138, .18);
+    border-color: var(--blue);
+}

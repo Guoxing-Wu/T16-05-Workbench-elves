@@ -1,0 +1,697 @@
+/* Story Structure: template selection area */
+.story-template-picker {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--border-warm);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.story-template-picker-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.story-template-eyebrow {
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: .08em;
+}
+
+.story-template-picker-header h2 {
+    margin: 7px 0 0;
+    font: 500 21px/1.4 var(--serif);
+}
+
+/* Put cards in rows that fit the page width */
+.story-template-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: 8px;
+}
+
+.story-template-option {
+    min-width: 0;
+    min-height: 96px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid var(--border-warm);
+    border-radius: 7px;
+    background: var(--paper-light);
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+}
+
+.story-template-name {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.story-template-summary {
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* Show the selected card with different colour */
+.story-template-option:hover:not(.is-selected) {
+    border-color: var(--coral);
+}
+
+.story-template-option.is-selected {
+    border-color: var(--coral);
+    background: var(--coral-soft);
+    color: var(--coral-dark);
+}
+
+.story-template-option.is-selected .story-template-summary {
+    color: inherit;
+}
+
+/* Show template information below the cards */
+.story-template-detail h2 {
+    margin: 0 0 5px;
+    font: 500 21px/1.4 var(--serif);
+}
+
+.story-template-detail p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Act overview and story beat groups */
+.story-structure-board {
+    padding: 20px;
+    border: 1px solid var(--border-warm);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+/* Use the same colours in the overview and its matching group */
+.story-act-1 {
+    --story-act-color: var(--coral);
+    --story-act-background: var(--coral-soft);
+}
+
+.story-act-2 {
+    --story-act-color: var(--blue);
+    --story-act-background: var(--blue-soft);
+}
+
+.story-act-3 {
+    --story-act-color: var(--mustard);
+    --story-act-background: var(--mustard-soft);
+}
+
+/* Display the three act overview cards in one row */
+.story-act-overview {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.story-act-overview-item {
+    min-width: 0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-radius: 7px;
+    background: var(--story-act-background);
+}
+
+.story-act-overview-item span {
+    color: var(--ink-soft);
+    font-size: 11px;
+}
+
+.story-act-overview-item strong {
+    font-size: 14px;
+}
+
+/* Separate neighbouring act groups */
+.story-act-group+.story-act-group {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--divider-warm);
+}
+
+.story-act-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.story-act-header h3 {
+    margin: 6px 0 0;
+    font: 500 20px/1.4 var(--serif);
+}
+
+.story-act-count {
+    padding: 8px 12px;
+    border-radius: 16px;
+    background: var(--story-act-background);
+    color: var(--ink);
+    font-size: 11px;
+}
+
+/* Display larger story beat cards in three columns */
+.story-beat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.story-beat-card {
+    min-width: 0;
+    min-height: 110px;
+    padding: 16px;
+    border: 1px solid var(--border-warm);
+    border-left: 4px solid var(--story-act-color, var(--ink-soft));
+    border-radius: 7px;
+    background: var(--paper-light);
+}
+
+.story-beat-card h4 {
+    margin: 0;
+    font: 500 16px/1.5 var(--serif);
+    overflow-wrap: break-word;
+}
+
+/* Use two columns when the browser becomes narrower */
+@media (max-width: 1100px) {
+    .story-beat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Use one column on smaller screens */
+@media (max-width: 760px) {
+
+    .story-act-overview,
+    .story-beat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Show project settings in three columns. */
+.story-plan-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid var(--border-warm);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.story-plan-summary>div {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-radius: 7px;
+}
+
+.story-plan-summary span {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.story-plan-summary strong {
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.story-plan-summary>div:last-child {
+    padding: 12px;
+    background: var(--blue-soft);
+}
+
+/* Display chapter numbers and percentages above beat names. */
+.story-beat-position {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.story-beat-position span:first-child {
+    color: var(--story-act-color, var(--ink-soft));
+}
+
+.story-act-description,
+.story-mapping-note {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+    .story-plan-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Style only the Story Structure settings inputs. */
+.story-plan-summary input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-warm);
+    border-radius: 5px;
+    background: var(--paper-light);
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+}
+
+/* Show an error when the word counts are invalid. */
+.story-settings-error {
+    margin: 0;
+    color: var(--coral-dark);
+    font-size: 12px;
+}
+
+/* Leave space between act notes and story beat cards. */
+.story-act-notes {
+    display: block;
+    margin-bottom: 18px;
+}
+
+/* Leave space below the story beat title. */
+.story-beat-notes {
+    display: block;
+    margin-top: 14px;
+}
+
+.story-note-label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* Style note fields only within Story Structure. */
+.story-act-notes textarea,
+.story-beat-notes textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border-warm);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px;
+    resize: vertical;
+}
+
+/* ===== Custom structure manager ===== */
+
+.custom-structure-manager {
+    display: grid;
+    gap: 14px;
+}
+
+.custom-structure-manager-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.custom-structure-manager-header>div {
+    min-width: 0;
+}
+
+.custom-structure-manager-header h2 {
+    margin: 5px 0 3px;
+    font: 600 19px/1.35 var(--serif);
+    color: var(--ink);
+}
+
+.custom-structure-manager-header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    line-height: 1.5;
+}
+
+/* ===== Empty state ===== */
+
+.custom-structure-manager-empty {
+    min-height: 230px;
+    padding: 38px 30px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 9px;
+
+    border: 1px dashed #d7cec4;
+    border-radius: 8px;
+    background: rgba(255, 253, 252, .52);
+    text-align: center;
+}
+
+.custom-structure-manager-empty-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 3px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue);
+}
+
+.custom-structure-manager-empty h3 {
+    margin: 0;
+    font: 600 18px/1.35 var(--serif);
+    color: var(--ink);
+}
+
+.custom-structure-manager-empty p {
+    max-width: 410px;
+    margin: 0 0 8px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+/* ===== Custom structure cards ===== */
+
+.custom-structure-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.custom-structure-card {
+    min-width: 0;
+    min-height: 175px;
+    padding: 19px 20px;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid var(--border-warm);
+    border-radius: 8px;
+    background: var(--surface);
+
+    transition:
+        border-color .15s ease,
+        box-shadow .15s ease,
+        transform .15s ease;
+}
+
+.custom-structure-card:hover {
+    border-color: #d5c9bc;
+    box-shadow: 0 6px 18px rgba(41, 39, 37, .07);
+    transform: translateY(-1px);
+}
+
+.custom-structure-card h3 {
+    margin: 6px 0 5px;
+    color: var(--ink);
+    font: 600 17px/1.35 var(--serif);
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-structure-card p {
+    min-height: 33px;
+    margin: 0;
+
+    color: var(--text-muted);
+    font-size: 10.5px;
+    line-height: 1.55;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.custom-structure-card-stats span {
+    color: var(--text-muted);
+    font-size: 9px;
+}
+
+/* ===== Project placeholder ===== */
+
+.story-project-placeholder {
+    min-height: 125px;
+    padding: 22px 24px;
+
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    border: 1px dashed #d7cec4;
+    border-radius: 8px;
+    background: rgba(255, 253, 252, .52);
+}
+
+.story-project-placeholder-icon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    background: var(--sage-soft);
+    color: var(--sage);
+}
+
+.story-project-placeholder h2 {
+    margin: 5px 0 4px;
+    color: var(--ink);
+    font: 600 17px/1.35 var(--serif);
+}
+
+.story-project-placeholder p {
+    max-width: 600px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    line-height: 1.55;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 700px) {
+    .custom-structure-manager-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .custom-structure-list {
+        grid-template-columns: 1fr;
+    }
+
+    .story-project-placeholder {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .story-project-placeholder {
+        padding: 18px;
+    }
+}
+
+/* ---------------------------------------------------------
+   Custom structures inside the selected-project view
+   --------------------------------------------------------- */
+
+.story-custom-structures-section {
+    margin-top: 24px;
+}
+
+.story-custom-structures-header {
+    margin-bottom: 12px;
+}
+
+.story-custom-structures-header h3 {
+    margin: 0;
+    font: 500 17px/1.4 var(--serif);
+    color: var(--ink);
+}
+
+.story-custom-structures-header p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.custom-structure-manager.compact {
+    display: grid;
+    gap: 10px;
+}
+
+.custom-structure-compact-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-warm);
+    border-radius: 7px;
+    background: var(--paper-light);
+}
+
+.custom-structure-compact-toolbar>span {
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.custom-structure-list.compact {
+    display: grid;
+    gap: 8px;
+}
+
+.custom-structure-card.compact {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--border-warm);
+    border-radius: 7px;
+    background: var(--surface);
+}
+
+.custom-structure-card.compact.is-selected {
+    border-color: var(--coral);
+    background: var(--coral-soft);
+}
+
+.custom-structure-card-main {
+    flex: 1;
+    min-width: 0;
+    padding: 18px 24px;
+}
+
+.custom-structure-card-eyebrow {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    font: 10px/1.4 var(--mono);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.custom-structure-card-main h3 {
+    margin: 0;
+    font: 500 16px/1.35 var(--serif);
+    color: var(--ink);
+}
+
+.custom-structure-card-main p {
+    margin: 4px 0 9px;
+    max-width: 680px;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-structure-card-stats {
+    margin-top: 14px;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid var(--divider-warm);
+    color: var(--text-muted);
+    font-size: 10px;
+}
+
+.custom-structure-card-stats strong {
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.custom-structure-actions {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    padding: 0 10px 0 0;
+}
+
+.custom-structure-compact-empty {
+    padding: 14px 15px;
+    border: 1px dashed var(--border-warm);
+    border-radius: 7px;
+    background: var(--paper-light);
+}
+
+.custom-structure-compact-empty p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* Keep the compact manager's editor separated from the picker. */
+.custom-structure-manager.compact .custom-structure-editor {
+    margin-top: 0;
+}
+
+@media (max-width: 700px) {
+    .custom-structure-compact-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .custom-structure-card.compact {
+        flex-direction: column;
+    }
+
+    .custom-structure-actions {
+        justify-content: flex-end;
+        padding: 0 10px 10px;
+    }
+
+    .custom-structure-card-main p {
+        white-space: normal;
+    }
+}
