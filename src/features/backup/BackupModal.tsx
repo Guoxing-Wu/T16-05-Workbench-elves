@@ -27,7 +27,13 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 // "Backup & Restore" dialog: download everything as JSON, or restore from a JSON file.
 export function BackupModal({ onClose }: { onClose: () => void }) {
-  const { projects, customStoryStructures, importBackup, exportBackup } = useWorkbench();
+  const {
+    projects,
+    customStoryStructures,
+    persistenceStatus,
+    importBackup,
+    exportBackup,
+  } = useWorkbench();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [staged, setStaged] = useState<StagedBackup | null>(null);
@@ -36,21 +42,34 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
   const [saveCurrentFirst, setSaveCurrentFirst] = useState(true);
   const [message, setMessage] = useState<Message | null>(null);
 
-  const hasData = projects.length > 0 || customStoryStructures.length > 0;
+  // A profile or notebook-only backup is still useful when there are no projects.
+  const hasData =
+    projects.length > 0 ||
+    customStoryStructures.length > 0 ||
+    persistenceStatus === "ready";
 
   /* ---------- Export ---------- */
 
-  const handleExport = () => {
-    exportBackup();
-    setMessage({
-      kind: "success",
-      text: `Backup downloaded: ${plural(projects.length, "project")} and ${plural(
-        customStoryStructures.length,
-        "custom structure"
-      )}.`,
-    });
+  const handleExport = async () => {
+    setMessage(null);
+    try {
+      await exportBackup();
+      setMessage({
+        kind: "success",
+        text:
+          "Backup downloaded: " +
+          plural(projects.length, "project") +
+          " and " +
+          plural(customStoryStructures.length, "custom structure") +
+          ". Profile and notebook settings are included when present.",
+      });
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : "The backup could not be created.",
+      });
+    }
   };
-
   // read and check the file
   const handleFileChosen = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -73,43 +92,86 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
   };
 
   // the user confirms
-  const handleRestore = () => {
+  const handleRestore = async () => {
     if (!staged) return;
     const { projects: incomingProjects, customStructures: incomingStructures } = staged.backup.data;
+    const hasProfileField = staged.backup.data.profile !== undefined;
+    const hasNotebookField = staged.backup.data.notebook !== undefined;
+    const hasSettingsFields = hasProfileField || hasNotebookField;
 
     if (mode === "replace") {
+      const settingsWarning = hasSettingsFields
+        ? " Any profile or notebook settings included in the backup will also be restored. "
+        : " This older backup has no profile or notebook fields, so those settings will be kept. ";
       const ok = window.confirm(
         "Replace everything?\n\nAll current projects and custom story structures will be " +
-        "removed and replaced by the contents of this backup. This cannot be undone."
+          "removed and replaced by the contents of this backup." +
+          settingsWarning +
+          "This cannot be undone."
       );
       if (!ok) return;
+
       // Safety net: keep a copy of what is about to be replaced.
       if (saveCurrentFirst && hasData) {
-        exportBackup();
+        try {
+          await exportBackup();
+        } catch (error) {
+          setMessage({
+            kind: "error",
+            text:
+              error instanceof Error
+                ? "The safety backup could not be created: " + error.message
+                : "The safety backup could not be created.",
+          });
+          return;
+        }
       }
     }
 
-    importBackup(staged.backup, mode);
-    setMessage({
-      kind: "success",
-      text:
-        mode === "replace"
-          ? `Restored ${plural(incomingProjects.length, "project")} and ${plural(
-            incomingStructures.length,
-            "custom structure"
-          )}. Your previous data was replaced.`
-          : `Merged ${plural(incomingProjects.length, "project")} and ${plural(
-            incomingStructures.length,
-            "custom structure"
-          )} into your workbench.`,
-    });
-    setStaged(null);
+    try {
+      await importBackup(staged.backup, mode);
+      const settingsFields = [
+        hasProfileField ? "profile" : "",
+        hasNotebookField ? "notebook" : "",
+      ]
+        .filter(Boolean)
+        .join(" and ");
+      const settingsMessage = !hasSettingsFields
+        ? " Profile and notebook settings were left unchanged because this backup does not contain them."
+        : mode === "replace"
+          ? " The " + settingsFields + " settings from the backup were restored."
+          : " Non-empty " + settingsFields + " settings were merged; null settings were kept.";
+      setMessage({
+        kind: "success",
+        text:
+          mode === "replace"
+            ? "Restored " +
+              plural(incomingProjects.length, "project") +
+              " and " +
+              plural(incomingStructures.length, "custom structure") +
+              ". Your previous data was replaced." +
+              settingsMessage
+            : "Merged " +
+              plural(incomingProjects.length, "project") +
+              " and " +
+              plural(incomingStructures.length, "custom structure") +
+              " into your workbench." +
+              settingsMessage,
+      });
+      setStaged(null);
+    } catch (error) {
+      setMessage({
+        kind: "error",
+        text: error instanceof Error ? error.message : "The backup could not be restored.",
+      });
+    }
   };
-
   // Preview numbers for the staged backup
   let preview: {
     incomingProjects: number;
     incomingStructures: number;
+    profileIncluded: boolean;
+    notebookIncluded: boolean;
     overwritten: number;
     removed: number;
     missingStructure: number;
@@ -131,6 +193,8 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
     preview = {
       incomingProjects: incoming.projects.length,
       incomingStructures: incoming.customStructures.length,
+      profileIncluded: incoming.profile !== undefined,
+      notebookIncluded: incoming.notebook !== undefined,
       overwritten: incoming.projects.filter((p) => existingIds.has(p.id)).length,
       removed: projects.filter((p) => !incomingIds.has(p.id)).length,
       missingStructure: projectsWithMissingStructure(projectsAfter, structuresAfter).length,
@@ -148,8 +212,8 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
         <h3>Back up your data</h3>
         <p>
           Download all your work ({plural(projects.length, "project")} and{" "}
-          {plural(customStoryStructures.length, "custom structure")}) as a single JSON file. Keep it
-          somewhere safe — browser data can be lost if you clear your site data.
+          {plural(customStoryStructures.length, "custom structure")}), including your profile and notebook
+          note, as a single JSON file. Keep it somewhere safe — browser data can be lost if you clear your site data.
         </p>
         <ToolButton primary onClick={handleExport} disabled={!hasData}>
           <Download size={15} /> Download backup
@@ -186,6 +250,14 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
               Contains <strong>{plural(preview.incomingProjects, "project")}</strong> and{" "}
               <strong>{plural(preview.incomingStructures, "custom structure")}</strong>.
             </p>
+            <p className="backup-note">
+              {preview.profileIncluded
+                ? "Profile data is included. "
+                : "Profile data is not in this backup. "}
+              {preview.notebookIncluded
+                ? "Notebook data is included."
+                : "Notebook data is not in this backup."}
+            </p>
 
             <div className="backup-modes" role="radiogroup" aria-label="Restore mode">
               <label className={`backup-mode ${mode === "merge" ? "selected" : ""}`}>
@@ -199,7 +271,8 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
                   <strong>Merge with current data</strong>
                   <span>
                     Adds the backup's projects. {plural(preview.overwritten, "project")} with the same
-                    id will be overwritten by the backup's version; nothing else is deleted.
+                    id will be overwritten by the backup's version. Non-empty profile and notebook values
+                    overwrite their current values; null or missing settings are kept.
                   </span>
                 </div>
               </label>
@@ -214,7 +287,8 @@ export function BackupModal({ onClose }: { onClose: () => void }) {
                 <div>
                   <strong>Replace everything</strong>
                   <span>
-                    Your current data becomes exactly what is in the backup.{" "}
+                    Your current project and structure data becomes exactly what is in the backup. Included
+                    profile and notebook values are restored; settings missing from older backups are kept.{" "}
                     {preview.removed > 0
                       ? `${plural(preview.removed, "current project")} not in the backup will be deleted.`
                       : "No current project will be lost."}
