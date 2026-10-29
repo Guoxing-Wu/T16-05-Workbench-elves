@@ -188,6 +188,22 @@ export function ChapterEditor({
         <input value={chapter.title} onChange={(e) => onChange({ title: e.target.value })} />
       </Field>
 
+      <Field label="Actual words written" full>
+        <input
+          type="number"
+          min={0}
+          step={1}
+          inputMode="numeric"
+          value={chapter.actualWordCount ?? 0}
+          onChange={(e) => {
+            const value = e.target.value === "" ? 0 : Number(e.target.value);
+            onChange({ actualWordCount: Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0 });
+          }}
+          aria-label="Actual words written for this chapter"
+        />
+        <small className="muted-copy">Enter the number of words written in your manuscript for this chapter. This updates the Overview progress.</small>
+      </Field>
+
       <Field label="Characters" full>
         <div className="chip-row" onClick={(e) => e.preventDefault()}>
           {project.characters

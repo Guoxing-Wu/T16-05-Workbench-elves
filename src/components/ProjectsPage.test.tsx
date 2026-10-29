@@ -42,6 +42,12 @@ beforeEach(() => {
   updateProjectMock.mockClear();
   deleteProjectMock.mockClear();
   onOpenMock.mockClear();
+
+  jest.spyOn(window, "confirm").mockReturnValue(true);
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 describe("ProjectsPage without any projects", () => {

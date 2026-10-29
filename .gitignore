@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 # Ignore installed dependencies 
 node_modules/
 coverage
-=======
 # Logs
 logs
 *.log
@@ -36,4 +34,3 @@ dist-ssr
 coverage/
 .playwright-cli/
 *.tsbuildinfo
->>>>>>> 2fbe02a561931a9ecd1ef35ca1a1aebe9c0b36c8

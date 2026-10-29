@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { ChevronRight, FolderOpen, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { EmptyState, Field, Modal, PageHeader, ToolButton } from "./primitives";
 import { useWorkbench } from "../lib/store";
-import { wordsWritten } from "../lib/domain";
+import { makeChapter, wordsWritten } from "../lib/domain";
 import type { WritingProject } from "../lib/domain";
 import { getProjectedChapterCount } from "../features/story-structure/storyChapterMapping";
 
@@ -83,13 +83,68 @@ function ProjectForm({
     };
 
     if (initial) {
-      // Edit mode: patch the existing project in place.
-      updateProject(initial.id, (project) => ({
-        ...project,
-        ...input,
-      }));
+       // Recalculate the required chapter count based on the updated target words and average chapter length.
+      const nextChapterCount = getProjectedChapterCount(
+        input.targetWordCount,
+        input.averageChapterLength
+      );
+
+      const currentChapterCount = initial.chapters?.length ?? 0;
+
+      if (
+        nextChapterCount < currentChapterCount &&
+        !window.confirm(
+          `This change will reduce the plan from ${currentChapterCount} to ${nextChapterCount} chapters. Extra chapters and their chapter links will be removed. Continue?`
+        )
+      ) {
+        return;
+      }
+
+      updateProject(initial.id, (project) => {
+        const previousChapters = project.chapters ?? [];
+
+        const chapters = Array.from(
+          { length: nextChapterCount },
+          (_, index) => {
+            const existing = previousChapters[index];
+
+            return {
+              ...(existing ?? makeChapter(index, index + 1)),
+              order: index,
+              targetWordCount: input.averageChapterLength,
+            };
+          }
+        );
+
+        const retainedChapterIds = new Set(
+          chapters.map((chapter) => chapter.id)
+        );
+
+        return {
+          ...project,
+          title: input.title,
+          targetWordCount: input.targetWordCount,
+          averageChapterLength: input.averageChapterLength,
+          storyStructure: input.storyStructure,
+          chapters,
+
+          // Keep event and scene consistent with the updated chapter plan.
+          events: (project.events ?? []).map((storyEvent) => ({
+            ...storyEvent,
+            chapterIds: storyEvent.chapterIds.filter((id) =>
+              retainedChapterIds.has(id)
+            ),
+          })),
+
+          scenes: (project.scenes ?? []).map((scene) => ({
+            ...scene,
+            chapterIds: scene.chapterIds.filter((id) =>
+              retainedChapterIds.has(id)
+            ),
+          })),
+        };
+      });
     } else {
-      // Create mode: make a brand-new project.
       createProject(input);
     }
 
