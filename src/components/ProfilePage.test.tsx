@@ -216,7 +216,7 @@ describe("ProfilePage", () => {
         // so saving cannot race the reader.onload state update.
         const readAsDataURLSpy = jest
             .spyOn(FileReader.prototype, "readAsDataURL")
-            .mockImplementation(function (this: FileReader, _file: Blob) {
+            .mockImplementation(function (this: FileReader) {
                 Object.defineProperty(this, "result", {
                     configurable: true,
                     value: "data:image/png;base64,aW1hZ2UgZGF0YQ==",
