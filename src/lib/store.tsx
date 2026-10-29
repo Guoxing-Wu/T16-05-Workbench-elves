@@ -618,15 +618,6 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   // Restore collection state and the profile/notebook records from the JSON backup.
   const importBackup: WorkbenchStoreValue["importBackup"] = async (backup, mode) => {
     const { projects: incomingProjects, customStructures: incomingStructures } = backup.data;
-    const [profileChange, notebookChange] = await Promise.all([
-      restoreSetting(STORES.profile, PROFILE_RECORD_ID, backup.data.profile, mode),
-      restoreSetting(STORES.notebook, NOTEBOOK_RECORD_ID, backup.data.notebook, mode),
-    ]);
-    const settingChanges = [profileChange, notebookChange].filter(
-      (change): change is ImportedDbRecordChange => change !== null
-    );
-    notifyDbRecordsImported(settingChanges);
-
     // Same ordering the app uses when it loads from IndexedDB.
     const newestFirst = (list: WritingProject[]) =>
       [...list].sort((a, b) => b.createdAt - a.createdAt);
@@ -640,12 +631,22 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       // The open project may no longer exist, so go back to the projects list.
       setActiveProjectIdState(null);
       setActiveView("projects");
-      return;
+    } else {
+      // The backup's version is prior when there are same ids, and everything else is kept.
+      setProjects((list) => newestFirst(mergeById(list, incomingProjects)));
+      setCustomStoryStructures((list) => byId(mergeById(list, incomingStructures)));
     }
 
-    // The backup's version is prior when there are same ids, and everything else is kept.
-    setProjects((list) => newestFirst(mergeById(list, incomingProjects)));
-    setCustomStoryStructures((list) => byId(mergeById(list, incomingStructures)));
+    // Keep collection state updates synchronous, as they were before settings
+    // were added to backups. The modal can await the settings writes below.
+    const [profileChange, notebookChange] = await Promise.all([
+      restoreSetting(STORES.profile, PROFILE_RECORD_ID, backup.data.profile, mode),
+      restoreSetting(STORES.notebook, NOTEBOOK_RECORD_ID, backup.data.notebook, mode),
+    ]);
+    const settingChanges = [profileChange, notebookChange].filter(
+      (change): change is ImportedDbRecordChange => change !== null
+    );
+    notifyDbRecordsImported(settingChanges);
   };
 
   const value = useMemo<WorkbenchStoreValue>(
