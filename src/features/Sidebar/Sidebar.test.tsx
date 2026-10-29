@@ -157,7 +157,7 @@ describe("RightSidebar — signature note", () => {
     expect(
       screen.getByText("Stories are like secret drawers — full of things we forgot we knew.")
     ).toBeInTheDocument();
-    expect(screen.getByText("— from Imbi's notebook")).toBeInTheDocument();
+    expect(screen.getByText("— from your notebook")).toBeInTheDocument();
   });
 
   it("edits the signature on Enter and closes the textarea", async () => {
@@ -190,31 +190,17 @@ describe("RightSidebar — signature note", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
-  it("edits the author on Enter", async () => {
+  it("keeps the notebook attribution fixed when double-clicked", async () => {
     const user = userEvent.setup();
     mockStore({ activeProject: null });
     render(<RightSidebar />);
 
-    await user.dblClick(screen.getByText("— from Imbi's notebook"));
-    const input = screen.getByRole("textbox");
-    await user.clear(input);
-    await user.type(input, "from my journal{Enter}");
+    await user.dblClick(screen.getByText("— from your notebook"));
 
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    expect(screen.getByText("— from my journal")).toBeInTheDocument();
+    expect(screen.getByText("— from your notebook")).toBeInTheDocument();
   });
 
-  it("closes the author edit when focus leaves the input", async () => {
-    const user = userEvent.setup();
-    mockStore({ activeProject: null });
-    render(<RightSidebar />);
-
-    await user.dblClick(screen.getByText("— from Imbi's notebook"));
-    await user.tab();
-
-    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
-    expect(screen.getByText("— from Imbi's notebook")).toBeInTheDocument();
-  });
 });
 
 describe("RightSidebar — recently edited", () => {
