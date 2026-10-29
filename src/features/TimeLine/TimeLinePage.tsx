@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { ChevronDown, ChevronRight, MapPin, Plus } from "lucide-react";
 import { PageHeader, ToolButton } from "../../components/primitives";
 import { characterAgeAtYear } from "../../lib/domain";
-import { LoadTimelineTestButton } from "../../features/TimeLine/LoadTimelineTestButton";
+
 import type {
   StoryDate,
   StoryEvent,
@@ -25,29 +25,29 @@ const EVENT_COLORS = [
   "#AC7D80",
 ];
 const CHAPTER_COLORS = [
-  "#648C96", 
-  "#AB8B70", 
-  "#8C7A98", 
-  "#7F9575", 
-  "#B47F83", 
+  "#648C96",
+  "#AB8B70",
+  "#8C7A98",
+  "#7F9575",
+  "#B47F83",
 ];
 
 type TimelineNode =
   | {
-      kind: "event-start";
-      date: StoryDate;
-      event: StoryEvent;
-    }
+    kind: "event-start";
+    date: StoryDate;
+    event: StoryEvent;
+  }
   | {
-      kind: "event-end";
-      date: StoryDate;
-      event: StoryEvent;
-    }
+    kind: "event-end";
+    date: StoryDate;
+    event: StoryEvent;
+  }
   | {
-      kind: "scene";
-      date: StoryDate;
-      scene: StoryScene;
-    };
+    kind: "scene";
+    date: StoryDate;
+    scene: StoryScene;
+  };
 
 type EventRange = {
   event: StoryEvent;
@@ -298,10 +298,10 @@ export function TimelinePage({
 
     return chapter
       ? CHAPTER_COLORS[
-          ((chapter.order % CHAPTER_COLORS.length) +
-            CHAPTER_COLORS.length) %
-            CHAPTER_COLORS.length
-        ]
+      ((chapter.order % CHAPTER_COLORS.length) +
+        CHAPTER_COLORS.length) %
+      CHAPTER_COLORS.length
+      ]
       : "#648C96";
   }
 
@@ -318,15 +318,13 @@ export function TimelinePage({
       <PageHeader
         eyebrow="AUTHOR’S WORKBENCH"
         title="Story Chronology"
-        count={`${project.events?.length ?? 0} events · ${
-          project.scenes?.length ?? 0
-        } scenes`}
+        count={`${project.events?.length ?? 0} events · ${project.scenes?.length ?? 0
+          } scenes`}
       >
         <ToolButton primary onClick={onManageEvents}>
           <Plus size={18} />
           Manage Events & Scenes
         </ToolButton>
-        <LoadTimelineTestButton storyStructure={project.storyStructure} />
       </PageHeader>
 
       {nodes.length === 0 ? (
@@ -347,8 +345,8 @@ export function TimelinePage({
                 const isScene = node.kind === "scene";
 
                 const color = node.kind === "scene"
-                ? getSceneColor(node.scene)
-                : eventColors.get(node.event.id) ?? EVENT_COLORS[0];
+                  ? getSceneColor(node.scene)
+                  : eventColors.get(node.event.id) ?? EVENT_COLORS[0];
 
                 const rowStyle: TimelineStyle = {
                   "--event-color": color,
@@ -363,13 +361,13 @@ export function TimelinePage({
                 const endpointRange = isScene
                   ? undefined
                   : ranges.find(
-                      (range) => range.event.id === node.event.id
-                    );
+                    (range) => range.event.id === node.event.id
+                  );
 
                 const linkedEvent = isScene
                   ? project.events.find(
-                      (event) => event.id === node.scene.eventId
-                    )
+                    (event) => event.id === node.scene.eventId
+                  )
                   : undefined;
 
                 const expanded =
@@ -464,11 +462,10 @@ export function TimelinePage({
                       ))}
 
                       <span
-                        className={`tl-dot ${
-                          node.kind === "event-end"
-                            ? "tl-dot--end"
-                            : ""
-                        }`}
+                        className={`tl-dot ${node.kind === "event-end"
+                          ? "tl-dot--end"
+                          : ""
+                          }`}
                         style={{
                           left: isScene
                             ? `${axisWidth - 10}px`
