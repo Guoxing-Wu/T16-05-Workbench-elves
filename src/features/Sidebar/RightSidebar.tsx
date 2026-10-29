@@ -18,8 +18,8 @@ function SignatureNote() {
   const [signature, setSignature] = useState(
     "Stories are like secret drawers — full of things we forgot we knew."
   );
-  const [author, setAuthor] = useState("from Imbi's notebook");
-  const [editing, setEditing] = useState<"signature" | "author" | null>(null);
+
+  const [editing, setEditing] = useState<"signature" | null>(null);
 
   return (
     <div className="sticky-note">
@@ -43,22 +43,8 @@ function SignatureNote() {
           {signature}
         </p>
       )}
-      {editing === "author" ? (
-        <input
-          className="sticky-note-author-edit"
-          value={author}
-          autoFocus
-          onChange={(e) => setAuthor(e.target.value)}
-          onBlur={() => setEditing(null)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") setEditing(null);
-          }}
-        />
-      ) : (
-        <p className="sticky-note-author" onDoubleClick={() => setEditing("author")}>
-          — {author}
-        </p>
-      )}
+
+      <p className="sticky-note-author">— from your notebook</p>
     </div>
   );
 }
