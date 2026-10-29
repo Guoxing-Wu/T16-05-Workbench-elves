@@ -6,11 +6,13 @@
 
 const DB_NAME = "authors-workbench";
 
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const STORES = {
   projects: "projects",
   customStructures: "customStructures",
+  profile: "profile",
+  notebook: "notebook",
 } as const;
 
 export type StoreName = (typeof STORES)[keyof typeof STORES];

@@ -8,8 +8,9 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { useState } from "react";
 import { WorkbenchProvider, useWorkbench } from "./lib/store";
+import { useDbRecord } from "./lib/useDbRecord";
+import { STORES } from "./lib/db";
 import type { WorkbenchView } from "./lib/store";
 import { ProjectsPage } from "./components/ProjectsPage";
 import { Sidebar } from "./features/Sidebar/Sidebar";
@@ -250,8 +251,28 @@ function CurrentView({
 // The root layout: collapsible sidebar on the left, main content on the right.
 function WorkbenchApp() {
   const { persistenceStatus } = useWorkbench();
-  const [profile, setProfile] = useState<AuthorProfile>(INITIAL_PROFILE);
-  const persistenceReady = persistenceStatus === "ready";
+  const {
+    value: storedProfile,
+    setValue: setProfile,
+    loaded: profileLoaded,
+  } = useDbRecord(
+    STORES.profile,
+    "author-profile",
+    INITIAL_PROFILE
+  );
+
+  // Restore the saved image data instead of reusing an expired blob URL.
+  const profile: AuthorProfile =
+    storedProfile.avatarUrl?.startsWith("blob:") &&
+    storedProfile.avatarDataUrl
+      ? {
+          ...storedProfile,
+          avatarUrl: storedProfile.avatarDataUrl,
+        }
+      : storedProfile;
+
+  const persistenceReady =
+    persistenceStatus === "ready" && profileLoaded;
 
   return (
     <div className="app-layout">
