@@ -16,18 +16,34 @@ beforeEach(async () => {
 const rec = (id: string, extra: Record<string, unknown> = {}) => ({ id, ...extra });
 
 describe("openDb", () => {
-  it("creates the database with both stores on first run", async () => {
+  it("creates the database with all stores on first run", async () => {
     const conn = await db.openDb();
+
     expect(conn.name).toBe("authors-workbench");
-    expect(conn.version).toBe(1);
-    expect([...conn.objectStoreNames].sort()).toEqual(["customStructures", "projects"]);
+    expect(conn.version).toBe(2);
+    expect([...conn.objectStoreNames].sort()).toEqual([
+      "customStructures",
+      "notebook",
+      "profile",
+      "projects",
+    ]);
   });
 
-  it("uses `id` as the key of every store", async () => {
+  it("uses id as the key of every store", async () => {
     const conn = await db.openDb();
-    const tx = conn.transaction(["projects", "customStructures"], "readonly");
-    expect(tx.objectStore("projects").keyPath).toBe("id");
-    expect(tx.objectStore("customStructures").keyPath).toBe("id");
+
+    const storeNames = [
+      "projects",
+      "customStructures",
+      "profile",
+      "notebook",
+    ] as const;
+
+    const tx = conn.transaction([...storeNames], "readonly");
+
+    for (const name of storeNames) {
+      expect(tx.objectStore(name).keyPath).toBe("id");
+    }
   });
 
   it("shares one connection between callers", async () => {
@@ -36,7 +52,12 @@ describe("openDb", () => {
   });
 
   it("exposes the store names", () => {
-    expect(db.STORES).toEqual({ projects: "projects", customStructures: "customStructures" });
+    expect(db.STORES).toEqual({
+      projects: "projects",
+      customStructures: "customStructures",
+      profile: "profile",
+      notebook: "notebook",
+    });
   });
 
   it("rejects with a clear message when IndexedDB does not exist, then recovers", async () => {

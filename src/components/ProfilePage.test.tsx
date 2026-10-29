@@ -212,11 +212,24 @@ describe("ProfilePage", () => {
             fileInputClickSpy
         ).toHaveBeenCalledTimes(1);
 
+        // FileReader is asynchronous in jsdom. Complete the read deterministically
+        // so saving cannot race the reader.onload state update.
+        const readAsDataURLSpy = jest
+            .spyOn(FileReader.prototype, "readAsDataURL")
+            .mockImplementation(function (this: FileReader, _file: Blob) {
+                Object.defineProperty(this, "result", {
+                    configurable: true,
+                    value: "data:image/png;base64,aW1hZ2UgZGF0YQ==",
+                });
+                this.dispatchEvent(new ProgressEvent("load"));
+            });
+
         fireEvent.change(fileInput, {
             target: {
                 files: [file],
             },
         });
+        readAsDataURLSpy.mockRestore();
 
         expect(
             createObjectURLMock
@@ -246,6 +259,7 @@ describe("ProfilePage", () => {
         expect(onSave).toHaveBeenCalledWith({
             ...TEST_PROFILE,
             avatarUrl: PREVIEW_URL,
+            avatarDataUrl: "data:image/png;base64,aW1hZ2UgZGF0YQ==",
         });
     });
 
@@ -373,6 +387,7 @@ describe("ProfilePage", () => {
         expect(onSave).toHaveBeenCalledWith({
             ...TEST_PROFILE,
             avatarUrl: null,
+            avatarDataUrl: null,
         });
     });
 });
