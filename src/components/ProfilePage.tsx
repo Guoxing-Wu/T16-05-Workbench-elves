@@ -9,6 +9,7 @@ export interface AuthorProfile {
     penName: string;
     bio: string;
     avatarUrl: string | null; /* Stores the avatar preview URL, or null when no avatar is available. */
+    avatarDataUrl?: string | null;
 }
 
 // Defines the data and callbacks received by the Profile page from its parent.
@@ -89,6 +90,20 @@ export function ProfilePage({
         const previewUrl =
             URL.createObjectURL(file);
 
+        // Store a persistent image representation alongside the temporary preview URL.
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            if (typeof reader.result === "string") {
+                setDraft((current) => ({
+                    ...current,
+                    avatarDataUrl: reader.result as string,
+                }));
+            }
+        };
+
+        reader.readAsDataURL(file);
+
         setDraft((current) => ({
             ...current, /* Keeps the existing Profile fields while the next line updates only avatarUrl. */
             avatarUrl: previewUrl,
@@ -107,6 +122,7 @@ export function ProfilePage({
         setDraft((current) => ({
             ...current,
             avatarUrl: null,
+            avatarDataUrl: null,
         }));
 
         // Clears the current file selection, user can select the image again.
