@@ -3,12 +3,54 @@ import type { ReactNode } from "react";
 import { createProject as createProjectRecord, makeChapter, makeCharacter, makeStoryEvent, makeStoryScene, makeLocation } from "./domain";
 import type { Chapter, WritingProject, Character, StoryEvent, StoryScene, StoryDate, Location } from "./domain";
 import type { StoryStructureId, StoryStructureTemplate, } from "../features/story-structure/storyStructureTemplate";
-import { STORES, getAll } from "./db";
+import { STORES, getAll, writeChanges } from "./db";
+import type { StoreName } from "./db";
 import { useCollectionSync } from "./useCollectionSync";
 import { mergeById, createBackup, downloadBackup } from "./backup";
-import type { BackupFile, ImportMode } from "./backup";
+import type { BackupFile, BackupProfile, ImportMode } from "./backup";
 import type { CollectionSaveStatus } from "./useCollectionSync";
 import { DEFAULT_STORY_STRUCTURE_ID } from "../features/story-structure/storyStructureTemplate";
+import {
+  flushPendingDbRecordWrites,
+  notifyDbRecordsImported,
+} from "./useDbRecord";
+import type { ImportedDbRecordChange } from "./useDbRecord";
+
+const PROFILE_RECORD_ID = "author-profile";
+const NOTEBOOK_RECORD_ID = "signature";
+
+interface StoredValue<T> {
+  id: string;
+  value: T;
+}
+
+async function restoreSetting<T>(
+  storeName: StoreName,
+  recordId: string,
+  incoming: T | null | undefined,
+  mode: ImportMode
+): Promise<ImportedDbRecordChange | null> {
+  // Old version 1 backups have no settings fields; preserve the current settings.
+  if (incoming === undefined || (mode === "merge" && incoming === null)) return null;
+
+  let deleteIds: string[] = [];
+  if (mode === "replace") {
+    const existing = await getAll<{ id: string }>(storeName);
+    deleteIds = existing
+      .map((record) => record.id)
+      .filter((id) => incoming === null || id !== recordId);
+  }
+
+  const puts = incoming === null ? [] : [{ id: recordId, value: incoming }];
+  await writeChanges(storeName, puts, deleteIds);
+
+  return {
+    storeName,
+    recordId,
+    value: incoming === null ? undefined : incoming,
+    deleted: incoming === null,
+  };
+}
 
 //left 
 export type WorkbenchView =
@@ -38,7 +80,7 @@ interface WorkbenchStoreValue {
   persistenceStatus: PersistenceStatus;
   saveStatus: SaveStatus;
   retrySave: () => Promise<void>;
-  exportBackup: () => void;
+  exportBackup: () => Promise<void>;
   projects: WritingProject[];
   // The project currently open, or null when on the projects overview.
   activeProject: WritingProject | null;
@@ -154,7 +196,7 @@ interface WorkbenchStoreValue {
   ) => void;
 
   // Restore data from a (already parsed and validated) backup file.
-  importBackup: (backup: BackupFile, mode: ImportMode) => void;
+  importBackup: (backup: BackupFile, mode: ImportMode) => Promise<void>;
 }
 const WorkbenchStore = createContext<WorkbenchStoreValue | null>(null);
 
@@ -254,9 +296,20 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     structuresSync.retry,
   ]);
 
-  const exportBackup = useCallback(() => {
-    // Include submitted changes even if local saving has failed.
-    downloadBackup(createBackup(projects, customStoryStructures));
+  const exportBackup = useCallback(async () => {
+    // Flush debounced profile/notebook edits before reading their stored records.
+    await flushPendingDbRecordWrites();
+    const [profileRecords, notebookRecords] = await Promise.all([
+      getAll<StoredValue<BackupProfile>>(STORES.profile),
+      getAll<StoredValue<string>>(STORES.notebook),
+    ]);
+    const profile = profileRecords.find((record) => record.id === PROFILE_RECORD_ID)?.value ?? null;
+    const notebook = notebookRecords.find((record) => record.id === NOTEBOOK_RECORD_ID)?.value ?? null;
+
+    // Project data comes from current React state; settings are flushed from their hooks above.
+    downloadBackup(
+      createBackup(projects, customStoryStructures, new Date(), profile, notebook)
+    );
   }, [projects, customStoryStructures]);
 
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
@@ -562,11 +615,9 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  // Restores a backup with only React state is touched. useCollectionSync notices the
-  // change and writes/deletes the matching IndexedDB records on its own.
-  const importBackup: WorkbenchStoreValue["importBackup"] = (backup, mode) => {
+  // Restore collection state and the profile/notebook records from the JSON backup.
+  const importBackup: WorkbenchStoreValue["importBackup"] = async (backup, mode) => {
     const { projects: incomingProjects, customStructures: incomingStructures } = backup.data;
-
     // Same ordering the app uses when it loads from IndexedDB.
     const newestFirst = (list: WritingProject[]) =>
       [...list].sort((a, b) => b.createdAt - a.createdAt);
@@ -580,12 +631,22 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       // The open project may no longer exist, so go back to the projects list.
       setActiveProjectIdState(null);
       setActiveView("projects");
-      return;
+    } else {
+      // The backup's version is prior when there are same ids, and everything else is kept.
+      setProjects((list) => newestFirst(mergeById(list, incomingProjects)));
+      setCustomStoryStructures((list) => byId(mergeById(list, incomingStructures)));
     }
 
-    // The backup's version is prior when there are same ids, and everything else is kept.
-    setProjects((list) => newestFirst(mergeById(list, incomingProjects)));
-    setCustomStoryStructures((list) => byId(mergeById(list, incomingStructures)));
+    // Keep collection state updates synchronous, as they were before settings
+    // were added to backups. The modal can await the settings writes below.
+    const [profileChange, notebookChange] = await Promise.all([
+      restoreSetting(STORES.profile, PROFILE_RECORD_ID, backup.data.profile, mode),
+      restoreSetting(STORES.notebook, NOTEBOOK_RECORD_ID, backup.data.notebook, mode),
+    ]);
+    const settingChanges = [profileChange, notebookChange].filter(
+      (change): change is ImportedDbRecordChange => change !== null
+    );
+    notifyDbRecordsImported(settingChanges);
   };
 
   const value = useMemo<WorkbenchStoreValue>(
@@ -651,6 +712,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       activeProjectId,
       activeView,
       customStoryStructures,
+      importBackup,
     ]
   );
 

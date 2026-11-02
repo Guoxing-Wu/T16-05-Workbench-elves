@@ -62,7 +62,9 @@ describe("backup restore → IndexedDB", () => {
     await renderWorkbench();
 
     const backup = createBackup([buildProject({ id: "incoming", createdAt: 2 })], [buildCustomStructure()]);
-    act(() => store.importBackup(backup, "merge"));
+    await act(async () => {
+      await store.importBackup(backup, "merge");
+    });
 
     await waitFor(async () => {
       expect(await storedIds()).toEqual({ projects: ["existing", "incoming"], structures: ["custom-1"] });
@@ -73,7 +75,12 @@ describe("backup restore → IndexedDB", () => {
     await writeChanges("projects", [buildProject({ id: "p1", title: "Local title" })], []);
     await renderWorkbench();
 
-    act(() => store.importBackup(createBackup([buildProject({ id: "p1", title: "Backup title" })], []), "merge"));
+    await act(async () => {
+      await store.importBackup(
+        createBackup([buildProject({ id: "p1", title: "Backup title" })], []),
+        "merge"
+      );
+    });
 
     await waitFor(async () => {
       const [saved] = await getAll<WritingProject>("projects");
@@ -86,7 +93,12 @@ describe("backup restore → IndexedDB", () => {
     await writeChanges("customStructures", [buildCustomStructure({ id: "old-structure" })], []);
     await renderWorkbench();
 
-    act(() => store.importBackup(createBackup([buildProject({ id: "new" })], [buildCustomStructure()]), "replace"));
+    await act(async () => {
+      await store.importBackup(
+        createBackup([buildProject({ id: "new" })], [buildCustomStructure()]),
+        "replace"
+      );
+    });
 
     await waitFor(async () => {
       expect(await storedIds()).toEqual({ projects: ["new"], structures: ["custom-1"] });
@@ -99,7 +111,9 @@ describe("backup restore → IndexedDB", () => {
     act(() => store.setActiveProjectId("open-me"));
     expect(store.activeProject?.id).toBe("open-me");
 
-    act(() => store.importBackup(createBackup([], []), "replace"));
+    await act(async () => {
+      await store.importBackup(createBackup([], []), "replace");
+    });
 
     expect(store.activeProject).toBeNull();
     expect(store.activeView).toBe("projects");
@@ -109,7 +123,9 @@ describe("backup restore → IndexedDB", () => {
     await writeChanges("projects", [buildProject({ id: "gone" })], []);
     await renderWorkbench();
 
-    act(() => store.importBackup(createBackup([], []), "replace"));
+    await act(async () => {
+      await store.importBackup(createBackup([], []), "replace");
+    });
 
     await waitFor(async () => expect(await storedIds()).toEqual({ projects: [], structures: [] }), SAVE_TIMEOUT);
   });
@@ -120,7 +136,9 @@ describe("backup restore → IndexedDB", () => {
       [buildProject({ id: "a", createdAt: 1 }), buildProject({ id: "c", createdAt: 3 }), buildProject({ id: "b", createdAt: 2 })],
       []
     );
-    act(() => store.importBackup(backup, "replace"));
+    await act(async () => {
+      await store.importBackup(backup, "replace");
+    });
     expect(store.projects.map((p) => p.id)).toEqual(["c", "b", "a"]);
   });
 
@@ -137,7 +155,9 @@ describe("backup restore → IndexedDB", () => {
     await writeChanges("customStructures", [], ["custom-1"]);
 
     // ...and restore from the file text.
-    act(() => store.importBackup(parseBackup(fileText), "replace"));
+    await act(async () => {
+      await store.importBackup(parseBackup(fileText), "replace");
+    });
 
     await waitFor(async () => {
       expect(await storedIds()).toEqual({ projects: ["story"], structures: ["custom-1"] });
