@@ -1,11 +1,13 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { Plus } from "lucide-react";
-import { ToolButton } from "../../components/primitives";
-import type { StoryDate } from "../../lib/domain";
+import { Field, ToolButton } from "../../components/primitives";
+import type { StoryDate, WritingProject } from "../../lib/domain";
+import { useWorkbench } from "../../lib/store";
 import { isValidBirthday } from "../../test/characterBirthday";
 
-// Form for creating a new character, with fields for name, birthday, description, and location.
 type Props = {
+  project: WritingProject;
   onCancel: () => void;
   onCreate: (input: {
     firstName: string;
@@ -16,21 +18,30 @@ type Props = {
     location?: string;
     role?: string[];
     gender?: string;
-
-  }) => void; 
+  }) => void;
 };
+
 const roleOptions = [
-    "Protagonist",
-    "Antagonist",
-    "Love interest",
-    "Confidant",
-    "Deuteragonists",
-    "Tertiary characters",
-    "Foils",
+  "Protagonist",
+  "Antagonist",
+  "Love interest",
+  "Confidant",
+  "Deuteragonists",
+  "Tertiary characters",
+  "Foils",
 ];
 
-// Form for creating a new character, with fields for name, birthday, description, and location.
-export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
+const LOCATION_NEW = "**new**";
+
+// Form for creating a character and selecting or creating a project location.
+export default function CreateCharacterForm({
+  project,
+  onCancel,
+  onCreate,
+}: Props) {
+  const { addLocation } = useWorkbench();
+  const locations = project.locations ?? [];
+
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -39,30 +50,61 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
   const [birthYear, setBirthYear] = useState("");
   const [birthMonth, setBirthMonth] = useState("");
   const [birthDay, setBirthDay] = useState("");
-
   const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
- // Handle form submission: validate input, construct character object, call onCreate, and reset form fields.
-  const handleSubmit = (event: React.FormEvent) => {
+  const [locationId, setLocationId] = useState("");
+  const [newLocationName, setNewLocationName] = useState("");
+  const [locationError, setLocationError] = useState("");
+
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
 
-    if (!firstName.trim() || !birthYear) {
-      return;
-    }
+    if (!firstName.trim() || !birthYear) return;
 
     const year = Number(birthYear);
-    if (!Number.isInteger(year)) {
-      return;
-    }
+    if (!Number.isInteger(year)) return;
 
     const birthday: StoryDate = {
       year,
       month: birthMonth ? Number(birthMonth) : undefined,
       day: birthDay ? Number(birthDay) : undefined,
     };
-    if (!isValidBirthday(birthday)) {
-      return;
+
+    if (!isValidBirthday(birthday)) return;
+
+    // Validate the character before making any change to the location list.
+    let finalLocation: string | undefined;
+
+    if (locationId === LOCATION_NEW) {
+      const name = newLocationName.trim();
+
+      if (!name) {
+        setLocationError("Please enter a location name.");
+        return;
+      }
+
+      const existing = locations.find(
+        (location) => location.name.trim().toLowerCase() === name.toLowerCase()
+      );
+
+      try {
+        const location = existing ?? addLocation(project.id, { name });
+        finalLocation = location.name;
+      } catch {
+        setLocationError("Could not create the location. Please try again.");
+        return;
+      }
+    } else if (locationId) {
+      const location = locations.find((item) => item.id === locationId);
+
+      if (!location) {
+        setLocationError("This location is no longer available. Please select another.");
+        return;
+      }
+
+      finalLocation = location.name;
     }
+
+    setLocationError("");
     onCreate({
       firstName: firstName.trim(),
       lastName: lastName.trim() || undefined,
@@ -71,7 +113,7 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
       gender: gender.trim() || undefined,
       birthday,
       description: description.trim() || undefined,
-      location: location.trim() || undefined,
+      location: finalLocation,
     });
 
     setFirstName("");
@@ -83,23 +125,22 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
     setBirthMonth("");
     setBirthDay("");
     setDescription("");
-    setLocation("");
+    setLocationId("");
+    setNewLocationName("");
+    setLocationError("");
   };
-  function toggleRole(option: string) {
-  setRole((previous) =>
-    previous.includes(option)
-      ? previous.filter((item) => item !== option)
-      : [...previous, option]
-  );
-}
-  
-  return (
-    <form
-      className="workbench-form"
-      onSubmit={handleSubmit}
-    >
-      <div className="form-grid">
 
+  function toggleRole(option: string) {
+    setRole((previous) =>
+      previous.includes(option)
+        ? previous.filter((item) => item !== option)
+        : [...previous, option]
+    );
+  }
+
+  return (
+    <form className="workbench-form" onSubmit={handleSubmit}>
+      <div className="form-grid">
         <label className="form-field">
           <span>First name</span>
           <input
@@ -164,33 +205,66 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
           />
         </label>
 
-        <label className="form-field">
-          <span>Location</span>
-          <input
-            value={location}
-            onChange={(event) => setLocation(event.target.value)}
-            placeholder="Location"
-          />
-        </label>
+        <Field label="Location" full>
+          <select
+            aria-label="Character location"
+            value={locationId}
+            onChange={(event) => {
+              setLocationId(event.target.value);
+              setLocationError("");
+
+              if (event.target.value !== LOCATION_NEW) {
+                setNewLocationName("");
+              }
+            }}
+          >
+            <option value="">No location</option>
+
+            {locations.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.name}
+              </option>
+            ))}
+
+            {locationId &&
+              locationId !== LOCATION_NEW &&
+              !locations.some((location) => location.id === locationId) && (
+                <option value={locationId}>Unknown location</option>
+              )}
+
+            <option value={LOCATION_NEW}>＋ Create new location…</option>
+          </select>
+
+          {locationId === LOCATION_NEW && (
+            <input
+              required
+              aria-label="New location name"
+              value={newLocationName}
+              onChange={(event) => {
+                setNewLocationName(event.target.value);
+                setLocationError("");
+              }}
+              placeholder="New location name"
+              style={{ marginTop: 8 }}
+            />
+          )}
+
+          {locationError && <p role="alert">{locationError}</p>}
+        </Field>
 
         <label className="form-field">
           <span>Gender</span>
-          <select
-            value={gender}
-            onChange={(event) => setGender(event.target.value)}
-            > 
-             <option value="">Select gender</option>
+          <select value={gender} onChange={(event) => setGender(event.target.value)}>
+            <option value="">Select gender</option>
             <option value="Female">Female</option>
             <option value="Male">Male</option>
             <option value="Non-binary">Non-binary</option>
             <option value="Other">Other</option>
             <option value="Unknown">Unknown</option>
-            </select>
+          </select>
         </label>
-
-        <div>
-          <label>Character Role (multiple)</label>
-
+        <div className="form-field full">
+          <span>Character Role (multiple)</span>
           <div className="role-tags">
             {roleOptions.map((option) => {
               const selected = role.includes(option);
@@ -210,6 +284,7 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
             })}
           </div>
         </div>
+
         <label className="form-field full">
           <span>Description</span>
           <textarea
@@ -218,13 +293,12 @@ export default function CreateCharacterForm({ onCancel,  onCreate }: Props) {
             placeholder="Character description"
           />
         </label>
-
       </div>
+
       <div className="character-form-actions">
         <ToolButton type="button" onClick={onCancel}>
           Cancel
         </ToolButton>
-
         <ToolButton primary type="submit">
           <Plus size={15} /> Save character
         </ToolButton>
