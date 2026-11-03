@@ -1,0 +1,62 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap");
+
+.home { position: relative; min-height: 100vh; overflow: hidden; background: #F7F3EC; color: #2F2A26; font-family: Inter, system-ui, sans-serif; }
+.home > *:not(.home-floral) { position: relative; z-index: 1; }
+
+.home-header { max-width: 1200px; margin: 0 auto; padding: 28px 32px; display: flex; align-items: center; gap: 14px; }
+.home-logo { width: 46px; height: 46px; border-radius: 50%; background: #FCFAF6; border: 1px solid #E6DED2; display: flex; align-items: center; justify-content: center; }
+.home-brand { display: flex; flex-direction: column; line-height: 1.1; }
+.home-brand span { font-size: 11px; letter-spacing: .2em; color: #6B635B; }
+.home-brand strong { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 20px; letter-spacing: .04em; }
+
+.home-hero { max-width: 1200px; margin: 0 auto; padding: 72px 32px 96px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center; }
+.home-copy { flex: 1 1 480px; }
+.home-kicker { margin: 0; font-size: 12px; letter-spacing: .18em; font-weight: 600; color: #4F6F8F; text-transform: uppercase; }
+.home-copy h1 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 72px; line-height: 1.1; margin: 18px 0 22px; }
+.home-lead { font-size: 19px; line-height: 1.6; color: #5A524A; margin: 0 0 32px; max-width: 520px; }
+.home-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.home-btn { display: inline-flex; align-items: center; gap: 8px; padding: 16px 28px; border-radius: 12px; font: 600 16px Inter, system-ui, sans-serif; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.home-btn:hover { transform: translateY(-1px); }
+.home-btn:focus-visible { outline: 3px solid #4F6F8F; outline-offset: 3px; }
+.home-btn-primary { background: #D9726E; color: #fff; border: 1px solid #D9726E; }
+.home-btn-primary:hover { box-shadow: 0 6px 16px rgba(217, 114, 110, .35); }
+.home-btn-secondary { background: #FCFAF6; color: #2F2A26; border: 1px solid #E0D6C8; }
+
+.home-visual { flex: 1 1 420px; position: relative; min-height: 380px; }
+.home-note { position: absolute; top: 0; right: 0; width: 330px; margin: 0; background: #F6E4D2; padding: 30px 28px 26px; transform: rotate(1.5deg); box-shadow: 0 10px 24px rgba(90, 60, 30, .12); border-radius: 4px; }
+.home-tape { position: absolute; top: -14px; right: 36px; width: 96px; height: 26px; background: #E7B9B3; transform: rotate(-3deg); }
+.home-note blockquote { margin: 0 0 18px; font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 26px; line-height: 1.55; }
+.home-note figcaption { font-size: 14px; font-style: italic; color: #6B5C4E; }
+
+.home-current { position: absolute; bottom: 0; left: 0; width: 340px; text-align: left; display: flex; flex-direction: column; background: #FCFAF6; border: 1px solid #E6DED2; border-radius: 18px; padding: 24px; box-shadow: 0 8px 20px rgba(60, 40, 20, .06); cursor: pointer; font-family: inherit; color: inherit; }
+.home-current:focus-visible { outline: 3px solid #4F6F8F; outline-offset: 3px; }
+.home-current-label { font-size: 13px; color: #4F6F8F; font-weight: 600; }
+.home-current-title { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 28px; margin-top: 6px; }
+.home-current-meta { font-size: 14px; color: #6B635B; margin: 4px 0 16px; }
+.home-progress { display: block; height: 8px; background: #EFE8DD; border-radius: 99px; }
+.home-progress span { display: block; height: 8px; background: #D9726E; border-radius: 99px; }
+
+/* Flowers */
+.home-floral { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.hf { position: absolute; opacity: 0; animation: hf-bloom 2s cubic-bezier(.2, .8, .2, 1) forwards; }
+.hf svg { display: block; width: 100%; height: auto; transform-origin: 50% 100%; animation: hf-sway 8s ease-in-out 2.4s infinite; }
+.hf-a { left: -60px; top: 20px; width: 360px; transform-origin: 10% 40%; animation-delay: .2s; }
+.hf-b { right: -40px; top: 10px; width: 300px; transform-origin: 90% 20%; animation-delay: .6s; }
+.hf-c { right: -50px; bottom: 40px; width: 280px; transform-origin: 80% 80%; animation-delay: 1s; }
+.hf-d { left: -40px; bottom: 0; width: 260px; transform-origin: 20% 90%; animation-delay: 1.4s; }
+@keyframes hf-bloom { 0% { opacity: 0; transform: scale(.5) rotate(-12deg); } 60% { opacity: 1; } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes hf-sway { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(1.8deg); } }
+
+@media (max-width: 900px) {
+  .home-copy h1 { font-size: 52px; }
+  .hf-a { width: 200px; } .hf-b { width: 170px; } .hf-c, .hf-d { display: none; }
+  .hf svg { opacity: .55; }
+  .home-note, .home-current { position: relative; width: auto; max-width: 340px; margin-bottom: 24px; }
+  .home-visual { min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hf { animation: none; opacity: 1; }
+  .hf svg { animation: none; }
+  .home-btn { transition: none; }
+}

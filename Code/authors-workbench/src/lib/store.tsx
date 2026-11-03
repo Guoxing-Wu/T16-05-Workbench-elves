@@ -12,6 +12,7 @@ import { DEFAULT_STORY_STRUCTURE_ID } from "../features/story-structure/storyStr
 
 //left 
 export type WorkbenchView =
+  |"home"
   | "projects"
   | "overview"
   | "storyStructure"
@@ -261,7 +262,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
 
   const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
 
-  const [activeView, setActiveView] = useState<WorkbenchView>("projects");
+  const [activeView, setActiveView] = useState<WorkbenchView>("home");
 
   // Get the project matches the active id.
   const activeProject = projects.find((p) => p.id === activeProjectId) || null;

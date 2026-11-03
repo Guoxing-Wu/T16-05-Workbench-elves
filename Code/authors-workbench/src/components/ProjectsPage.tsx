@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { ChevronRight, FolderOpen, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { EmptyState, Field, Modal, PageHeader, ToolButton } from "./primitives";
@@ -226,15 +226,20 @@ function ProjectForm({
 }
 
 // The projects overview shows every project as a card.
-export function ProjectsPage({ onOpen }: { onOpen: (id: string) => void }) {
+export function ProjectsPage({ onOpen, startCreating = false, onStartCreatingHandled,}: { onOpen: (id: string) => void;
+  startCreating?: boolean;
+  onStartCreatingHandled?: () => void;
+}) {
   const { projects, deleteProject, activeProjectId } = useWorkbench();
-  const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-
+  const [creating, setCreating] = useState(startCreating);
   // Confirm before delete one project while there is no undo once a project is deleted.
   const remove = (id: string, title: string) => {
     if (window.confirm(`Delete “${title}”? This removes it from this session.`)) deleteProject(id);
   };
+  useEffect(() => {
+    if (startCreating) onStartCreatingHandled?.();
+  }, []);
 
   return (
     <div className="page-stack core-page">

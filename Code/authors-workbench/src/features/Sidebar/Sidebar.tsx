@@ -8,6 +8,7 @@ import {
   Feather,
   FileText,
   HelpCircle,
+  Home,   
   LayoutDashboard,
   MapPin,
   Network,
@@ -39,6 +40,7 @@ interface NavGroup {
 const NAV_GROUPS: NavGroup[] = [
   {
     items: [
+      { icon: Home, label: "Home", view: "home" }, 
       { icon: FolderOpen, label: "Projects", view: "projects" },
       { icon: LayoutDashboard, label: "Overview", view: "overview" },
     ],
@@ -130,15 +132,24 @@ export function Sidebar() {
       <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>
         {/* Brand mark + collapse toggle */}
         <div className="sidebar-brand">
-          <div className="brand-mark">
-            <Feather size={18} strokeWidth={1.6} />
-          </div>
-          {!collapsed && (
-            <div className="sidebar-brand-text">
-              <span>AUTHOR'S</span>
-              <strong>WORKBENCH</strong>
+          <button
+            type="button"
+            className="sidebar-brand-link"
+            onClick={() => setActiveView("home")}
+            title="Back to home"
+            aria-label="Back to home"
+          >
+            <div className="brand-mark">
+              <Feather size={18} strokeWidth={1.6} />
             </div>
-          )}
+            {!collapsed && (
+              <div className="sidebar-brand-text">
+                <span>AUTHOR'S</span>
+                <strong>WORKBENCH</strong>
+              </div>
+            )}
+          </button>
+
           <button
             type="button"
             className="sidebar-collapse-btn"

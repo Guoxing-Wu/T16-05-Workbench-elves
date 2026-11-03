@@ -163,6 +163,21 @@
   flex-direction: column;
   gap: 4px;
 }
+.sidebar-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;         
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
 
 /* ===== Main area (top bar + content) ===== */
 .main-area {
