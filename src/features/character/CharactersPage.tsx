@@ -62,10 +62,8 @@ function getAgeToday(birthday: Character["birthday"]): string {
 
 export function CharactersPage({
   project,
-  onBack,
 }: {
   project: WritingProject;
-  onBack: () => void;
 }) {
   const { addCharacter, updateCharacter, removeCharacter } = useWorkbench();
   const characters = project.characters ?? [];
@@ -121,14 +119,6 @@ export function CharactersPage({
 
   return (
     <div className="page-stack core-page characters-page">
-      <button
-        type="button"
-        className="text-link back-link"
-        onClick={onBack}
-      >
-        Back
-      </button>
-
       <div className="characters-page-heading">
         <PageHeader
           eyebrow="AUTHOR'S WORKBENCH"
