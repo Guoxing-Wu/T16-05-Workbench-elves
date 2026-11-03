@@ -11,7 +11,7 @@ import type {
   StoryScene,
   WritingProject,
 } from "../../lib/domain";
-import "./CharacterTimeline.css";
+import "./TimelineTemp.css";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
