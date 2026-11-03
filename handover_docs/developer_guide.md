@@ -179,7 +179,7 @@ The preview server is intended for local verification. Running `npm run preview`
 ## Deployment and Maintenance
 ### Deployment Overview
 
-**Application URL:** 
+**Application URL:** https://mackenziekk.github.io/T16-05-Workbench-elves/
 
 - The repository is configured to deploy Author’s Workbench as a static web application to GitHub Pages through GitHub Actions.
 
