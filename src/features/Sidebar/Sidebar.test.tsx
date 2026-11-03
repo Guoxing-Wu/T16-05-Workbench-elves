@@ -150,13 +150,16 @@ describe("Sidebar", () => {
 });
 
 describe("RightSidebar — signature note", () => {
-  it("renders the default signature and author", () => {
+  it("renders the default signature and author", async () => {
     mockStore({ activeProject: null });
     render(<RightSidebar />);
 
     expect(
-      screen.getByText("Stories are like secret drawers — full of things we forgot we knew.")
+      await screen.findByText(
+        "Stories are like secret drawers — full of things we forgot we knew."
+      )
     ).toBeInTheDocument();
+
     expect(screen.getByText("— from your notebook")).toBeInTheDocument();
   });
 
@@ -165,7 +168,10 @@ describe("RightSidebar — signature note", () => {
     mockStore({ activeProject: null });
     render(<RightSidebar />);
 
-    await user.dblClick(screen.getByText("Stories are like secret drawers — full of things we forgot we knew."));
+    const signature = await screen.findByText(
+      "Stories are like secret drawers — full of things we forgot we knew."
+    );
+    await user.dblClick(signature);
     const textarea = screen.getByRole("textbox");
     await user.clear(textarea);
     await user.type(textarea, "A new signature{Enter}");
@@ -179,7 +185,10 @@ describe("RightSidebar — signature note", () => {
     mockStore({ activeProject: null });
     render(<RightSidebar />);
 
-    await user.dblClick(screen.getByText("Stories are like secret drawers — full of things we forgot we knew."));
+    const signature = await screen.findByText(
+      "Stories are like secret drawers — full of things we forgot we knew."
+    );
+    await user.dblClick(signature);
     const textarea = screen.getByRole("textbox");
     // Shift+Enter should NOT close the edit.
     await user.type(textarea, "{Shift>}{Enter}{/Shift}");

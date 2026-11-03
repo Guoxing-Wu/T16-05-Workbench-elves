@@ -3,6 +3,7 @@
 // Backed up everything the app persists in IndexedDB:
 //   - every writing project (chapters, characters, locations, events, scenes, notes)
 //   - every custom story structure template
+//   - the author profile and the notebook signature
 // UI state (open project, active view) is not part of a backup.
 
 
@@ -26,11 +27,19 @@ import type {
 } from "../features/story-structure/storyStructureTemplate";
 
 export const BACKUP_FORMAT = "authors-workbench-backup";
-export const BACKUP_VERSION = 1;
+export const BACKUP_VERSION = 2;
 
 // "merge"   -> add the backup's records without deletong anything; a record with the same id is overwritten.
 // "replace" -> the backup's records replace every thing, current data is removed
 export type ImportMode = "merge" | "replace";
+
+export interface BackupProfile {
+  displayName: string;
+  penName: string;
+  bio: string;
+  avatarUrl: string | null;
+  avatarDataUrl?: string | null;
+}
 
 export interface BackupFile {
   format: typeof BACKUP_FORMAT;
@@ -39,6 +48,9 @@ export interface BackupFile {
   data: {
     projects: WritingProject[];
     customStructures: StoryStructureTemplate[];
+    // Optional so version 1 backups (which predate these fields) remain importable.
+    profile?: BackupProfile | null;
+    notebook?: string | null;
   };
 }
 
@@ -60,13 +72,19 @@ export class BackupError extends Error {
 export function createBackup(
   projects: WritingProject[],
   customStructures: StoryStructureTemplate[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  profile?: BackupProfile | null,
+  notebook?: string | null
 ): BackupFile {
+  const data: BackupFile["data"] = { projects, customStructures };
+  if (profile !== undefined) data.profile = profile;
+  if (notebook !== undefined) data.notebook = notebook;
+
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
     exportedAt: now.toISOString(),
-    data: { projects, customStructures },
+    data,
   };
 }
 
@@ -267,6 +285,34 @@ function normalizeStructure(raw: unknown, path: string): StoryStructureTemplate 
   });
 }
 
+function normalizeProfile(raw: unknown, path: string): BackupProfile {
+  if (!isRecord(raw)) throw new BackupError(`${path} must be an object.`);
+
+  if (
+    raw.avatarDataUrl !== undefined &&
+    raw.avatarDataUrl !== null &&
+    typeof raw.avatarDataUrl !== "string"
+  ) {
+    throw new BackupError(`${path}.avatarDataUrl must be text or null.`);
+  }
+
+  const avatarUrl =
+    raw.avatarUrl === null || typeof raw.avatarUrl === "string" ? raw.avatarUrl : null;
+
+  const profile: BackupProfile = {
+    displayName: asString(raw.displayName),
+    penName: asString(raw.penName),
+    bio: asString(raw.bio),
+    avatarUrl,
+  };
+
+  if (raw.avatarDataUrl === null || typeof raw.avatarDataUrl === "string") {
+    profile.avatarDataUrl = raw.avatarDataUrl;
+  }
+
+  return withOverrides<BackupProfile>(raw, profile);
+}
+
 // Throw if any two items share the same id.
 function assertUniqueIds(items: { id: string }[], what: string): void {
   const seen = new Set<string>();
@@ -312,6 +358,19 @@ export function parseBackup(text: string): BackupFile {
 
   const projects = readList(data.projects, "projects", normalizeProject);
   const customStructures = readList(data.customStructures, "customStructures", normalizeStructure);
+  const normalizedData: BackupFile["data"] = { projects, customStructures };
+
+  if (Object.prototype.hasOwnProperty.call(data, "profile")) {
+    normalizedData.profile =
+      data.profile === null ? null : normalizeProfile(data.profile, "profile");
+  }
+  if (Object.prototype.hasOwnProperty.call(data, "notebook")) {
+    if (data.notebook !== null && typeof data.notebook !== "string") {
+      throw new BackupError("notebook must be text or null.");
+    }
+    normalizedData.notebook = data.notebook as string | null;
+  }
+
   assertUniqueIds(projects, "projects");
   assertUniqueIds(customStructures, "story structures");
 
@@ -319,7 +378,7 @@ export function parseBackup(text: string): BackupFile {
     format: BACKUP_FORMAT,
     version,
     exportedAt: asString(raw.exportedAt),
-    data: { projects, customStructures },
+    data: normalizedData,
   };
 }
 
