@@ -64,8 +64,6 @@ T16-05-Workbench-elves/
 ├── package-lock.json
 ├── eslint.config.js
 ├── vite.config.ts
-├── jest.character.config.cjs
-├── jest.character.operations.config.cjs
 ├── tsconfig.json
 ├── tsconfig.app.json
 └── tsconfig.node.json
