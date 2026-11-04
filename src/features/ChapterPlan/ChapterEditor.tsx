@@ -6,6 +6,7 @@ import { useWorkbench } from "../../lib/store";
 import "./ChapterPage.css";
 import type { Chapter, WritingProject } from "../../lib/domain";
 import type { ReactNode } from "react";
+import { ChapterStructureNotes } from "./ChapterStructureNotes";
 
 // ---------------------------------------------------------------------------
 // ChapterEditor — right-side editing panel: chapter title + chapter notes
@@ -372,6 +373,8 @@ export function ChapterEditor({
           onChange={(e) => onChange({ notes: e.target.value })}
         />
       </Field>
+
+      <ChapterStructureNotes project={project} chapter={chapter} />
 
       {createKind &&
         createPortal(

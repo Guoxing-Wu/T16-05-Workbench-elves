@@ -53,6 +53,8 @@ function baseProject(): WritingProject {
 // A three-act project with three chapters and a full set of linked entities.
 function populatedProject() {
   const project = baseProject();
+  project.targetWordCount = 9000;
+  project.averageChapterLength = 3000;
   const ch1 = makeChapter(0, 1);
   ch1.title = "Opening";
   ch1.characterIds = ["p1", "p2"];

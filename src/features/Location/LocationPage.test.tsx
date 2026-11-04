@@ -151,7 +151,11 @@ describe("LocationsPage — a location card", () => {
     const location = makeLocation({ name: "Carlton House", description: "A manor by the lake." });
     const chapter = makeChapter(0, 1);
     chapter.title = "The Beginning";
-    const character = makeCharacter({ firstName: "Ava", birthday: { year: 1990 } });
+    const character = makeCharacter({
+      firstName: "Ava",
+      birthday: { year: 1990 },
+      location: location.name,
+    });
     const event = makeStoryEvent({
       chapterIds: [chapter.id],
       title: "Arrival",
@@ -192,6 +196,20 @@ describe("LocationsPage — a location card", () => {
     expect(cardScope.getByRole("button", { name: "Open location histories" })).toBeInTheDocument();
   });
 
+  it("counts characters from their profile location without event links", () => {
+    const { project, location } = singleCardProject();
+    project.events[0].characterIds = [];
+    renderPage(project);
+
+    const card = screen
+      .getByRole("heading", { name: location.name })
+      .closest(".location-card") as HTMLElement;
+    const stats = card.querySelector(".location-stats");
+
+    expect(stats).toHaveTextContent("1 character");
+    expect(card.querySelector(".location-people")).toHaveTextContent("Ava");
+  });
+
   it("does not render a description paragraph when the location has none", () => {
     const project = baseProject();
     project.locations = [makeLocation({ name: "Riverfront" })];
@@ -217,8 +235,16 @@ describe("LocationsPage — history grouping and date formatting", () => {
     // A chapter can link a location directly, even with no events.
     ch2.locationIds = [carlton.id];
 
-    const ava = makeCharacter({ firstName: "Ava", birthday: { year: 1990 } });
-    const ben = makeCharacter({ firstName: "Ben", birthday: { year: 1990 } });
+    const ava = makeCharacter({
+      firstName: "Ava",
+      birthday: { year: 1990 },
+      location: carlton.name,
+    });
+    const ben = makeCharacter({
+      firstName: "Ben",
+      birthday: { year: 1990 },
+      location: carlton.name,
+    });
 
     const eveRange = makeStoryEvent({
       chapterIds: [ch1.id],
