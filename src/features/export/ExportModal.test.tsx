@@ -135,16 +135,27 @@ describe("ExportModal", () => {
     expect(exportMock).not.toHaveBeenCalled();
   });
 
-  it("closes from the X button and from a click on the backdrop", async () => {
-    const user = userEvent.setup();
-    const onClose = jest.fn();
-    openProject(buildProject());
-    const { container } = render(<ExportModal onClose={onClose} />);
+  
+it("closes from the X button but not from a click on the backdrop", async () => {
+  const user = userEvent.setup();
+  const onClose = jest.fn();
+  openProject(buildProject());
 
-    await user.click(container.querySelector(".icon-button")!);
-    expect(onClose).toHaveBeenCalledTimes(1);
+  const { container } = render(
+    <ExportModal onClose={onClose} />
+  );
 
-    await user.pointer({ keys: "[MouseLeft]", target: container.querySelector(".modal-backdrop")! });
-    expect(onClose).toHaveBeenCalledTimes(2);
+  // Clicking the X button should close the modal.
+  await user.click(container.querySelector(".icon-button")!);
+  expect(onClose).toHaveBeenCalledTimes(1);
+
+  // Clicking the backdrop should not close the modal.
+  await user.pointer({
+    keys: "[MouseLeft]",
+    target: container.querySelector(".modal-backdrop")!,
   });
+
+  expect(onClose).toHaveBeenCalledTimes(1);
+});
+
 });
