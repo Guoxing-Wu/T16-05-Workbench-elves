@@ -83,7 +83,9 @@ export function IconButton({
 
 
 
-// Centered modal dialog with a backdrop. Clicking the backdrop itself can closes it. 
+
+ // Centered modal dialog with a backdrop.
+ // Clicking outside the dialog no longer closes it.
 export function Modal({
   title,
   children,
@@ -96,16 +98,16 @@ export function Modal({
   wide?: boolean;
 }) {
   return (
-    <div
-      className="modal-backdrop"
-      onMouseDown={(event) => {
-        if (event.currentTarget === event.target) onClose();
-      }}
-    >
+    <div className="modal-backdrop">
       <section className={`workbench-modal ${wide ? "wide" : ""}`}>
         <header>
           <h2>{title}</h2>
-          <button type="button" className="icon-button" onClick={onClose}>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onClose}
+            aria-label="Close modal"
+          >
             <X size={18} />
           </button>
         </header>
@@ -114,6 +116,7 @@ export function Modal({
     </div>
   );
 }
+
 
 // Labeled field wrapper includes text on top, the input passed in, and an optional small hint line underneath.
 export function Field({
