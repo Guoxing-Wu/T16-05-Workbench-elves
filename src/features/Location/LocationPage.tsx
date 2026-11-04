@@ -103,13 +103,13 @@ function LocationCard({
   // Scenes that explicitly link to this location.
   const scenes = (project.scenes || []).filter((s) => s.locationId === location.id);
 
-  const characterNames = Array.from(
-    new Set(
-      [...events.flatMap((e) => e.characterIds || []), ...scenes.flatMap((s) => s.characterIds || [])]
-        .map((id) => project.characters.find((c) => c.id === id)?.name)
-        .filter((n): n is string => Boolean(n))
-    )
+  // Character locations are stored as names, so match against the location
+  // name directly. This count is independent of event and chapter links.
+  const linkedCharacters = project.characters.filter(
+    (character) =>
+      character.location?.trim().toLowerCase() === location.name.trim().toLowerCase()
   );
+  const characterNames = linkedCharacters.map((character) => character.name);
 
   // Group history by chapter: a chapter appears here either when it is
   // referenced by this location's events or scenes, or when it links this
@@ -162,7 +162,7 @@ function LocationCard({
       <div className="location-stats">
         <span><strong>{historyChapters.length}</strong> {historyChapters.length === 1 ? "chapter" : "chapters"}</span>
         <span><strong>{events.length + scenes.length}</strong> {events.length + scenes.length === 1 ? "event" : "events"}</span>
-        <span><strong>{characterNames.length}</strong> {characterNames.length === 1 ? "character" : "characters"}</span>
+        <span><strong>{linkedCharacters.length}</strong> {linkedCharacters.length === 1 ? "character" : "characters"}</span>
       </div>
 
       {characterNames.length > 0 && (
