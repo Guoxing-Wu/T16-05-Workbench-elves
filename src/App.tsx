@@ -8,6 +8,7 @@ import {
   Settings,
   Users,
 } from "lucide-react";
+import { HomePage } from "./components/HomePage";
 import { WorkbenchProvider, useWorkbench } from "./lib/store";
 import { useDbRecord } from "./lib/useDbRecord";
 import { STORES } from "./lib/db";
@@ -37,9 +38,21 @@ const INITIAL_PROFILE: AuthorProfile = {
 };
 
 // Configuration for every placeholder page: title, icon, eyebrow and description.
+type PlaceholderView = Exclude<
+  WorkbenchView,
+  "home" | "projects" | "profile" | "help"
+>;
+
+type PlaceholderConfig = {
+  title: string;
+  icon: typeof LayoutDashboard;
+  eyebrow: string;
+  description: string;
+};
+
 const PLACEHOLDER_CONFIG: Record<
-  Exclude<WorkbenchView, "projects" | "profile" | "help">,
-  { title: string; icon: typeof LayoutDashboard; eyebrow: string; description: string }
+  PlaceholderView,
+  PlaceholderConfig
 > = {
   overview: {
     title: "Overview",
@@ -100,29 +113,40 @@ const PLACEHOLDER_CONFIG: Record<
 };
 
 // Defines the profile data and save callback received by CurrentView.
+
+// Decides which component to render in the main area based on the active view.
 interface CurrentViewProps {
   profile: AuthorProfile;
   onSaveProfile: (profile: AuthorProfile) => void;
 }
 
-
-// Decides which component to render in the main area based on the active view.
 function CurrentView({
   profile,
   onSaveProfile,
 }: CurrentViewProps) {
   const { activeView, activeProject, setActiveProjectId, setActiveView } = useWorkbench();
-  // Project page always shows the project list. Opening a project jumps to its Overview dashboard. 
-  if (activeView === "projects") {
-    const openProject = (id: string) => {
-      setActiveProjectId(id);
-      setActiveView("overview");
-    };
+
+  // Opening a project jumps to its Overview dashboard.
+  const openProject = (id: string) => {
+    setActiveProjectId(id);
+    setActiveView("overview");
+  };
+
+  // Landing page.
+  if (activeView === "home") {
     return (
-      <ProjectsPage onOpen={openProject} />
+      <HomePage
+        onStart={() => setActiveView("projects")}
+        onOpen={openProject}
+      />
     );
   }
 
+
+  // Project page always shows the project list.
+  if (activeView === "projects") {
+    return <ProjectsPage onOpen={openProject} />;
+  }
   if (activeView === "help") {
     return <HelpPage />;
   }
@@ -139,7 +163,6 @@ function CurrentView({
       />
     );
   }
-
   // Story structure displays the template selected for the active project.
   if (activeView === "storyStructure") {
     // StoryStructurePage now supports both states:
@@ -249,8 +272,11 @@ function CurrentView({
 }
 
 // The root layout: collapsible sidebar on the left, main content on the right.
+
+
 function WorkbenchApp() {
-  const { persistenceStatus } = useWorkbench();
+  const { persistenceStatus, activeView } = useWorkbench();
+
   const {
     value: storedProfile,
     setValue: setProfile,
@@ -261,7 +287,7 @@ function WorkbenchApp() {
     INITIAL_PROFILE
   );
 
-  // Restore the saved image data instead of reusing an expired blob URL.
+  // Restore saved image data instead of reusing an expired blob URL.
   const profile: AuthorProfile =
     storedProfile.avatarUrl?.startsWith("blob:") &&
     storedProfile.avatarDataUrl
@@ -274,16 +300,25 @@ function WorkbenchApp() {
   const persistenceReady =
     persistenceStatus === "ready" && profileLoaded;
 
+  // The home page is full-screen: no sidebar, top bar or right sidebar.
+  if (persistenceReady && activeView === "home") {
+    return (
+      <CurrentView
+        profile={profile}
+        onSaveProfile={setProfile}
+      />
+    );
+  }
+
   return (
     <div className="app-layout">
-      {/* Enable navigation and backup tools after existing data has loaded. */}
       {persistenceReady && <Sidebar />}
+
       <div className="main-area">
         <TopBar profile={profile} />
 
         <div className="content-wrapper">
           <main className="main-workspace" id="main-content">
-            {/* Wait for existing records before showing editable content. */}
             {persistenceReady ? (
               <CurrentView
                 profile={profile}
@@ -300,6 +335,8 @@ function WorkbenchApp() {
     </div>
   );
 }
+
+
 
 export default function App() {
   return (
