@@ -12,6 +12,7 @@ import type {
 import { getStoryStructureOption } from "../story-structure/storyStructureTemplate";
 import {
   getActChapterRanges,
+  getProjectedChapterCount,
   getStoryBeatChapterMappings,
 } from "../story-structure/storyChapterMapping";
 import { ChapterCard, ACT_COLORS } from "./ChapterCard";
@@ -68,9 +69,23 @@ export function ChapterPage({ project }: { project: WritingProject }) {
   const template = getStoryStructureOption(project.storyStructure, customStoryStructures);
   const selected = chapters.find((c) => c.id === selectedId) ?? null;
 
+  // Use the same planning settings as Story Structure.
+  const hasValidSettings =
+    Number.isInteger(project.targetWordCount) &&
+    project.targetWordCount > 0 &&
+    Number.isInteger(project.averageChapterLength) &&
+    project.averageChapterLength > 0;
+
+  const chapterCount = hasValidSettings
+    ? getProjectedChapterCount(
+      project.targetWordCount,
+      project.averageChapterLength
+    )
+    : 0;
+
   // ---- Act ranges ----------------------------------------------------------
 
-  const actRanges = getActChapterRanges(template.acts, chapters.length);
+  const actRanges = getActChapterRanges(template.acts, chapterCount);
   const actIndexFor = (order: number): number => {
     const num = order + 1;
     return actRanges.findIndex((range) => num >= range.start && num <= range.end) + 1;
@@ -79,7 +94,7 @@ export function ChapterPage({ project }: { project: WritingProject }) {
   // ---- Beat assignment -----------------------------------------------------
   // Pick one beat per chapter: prefer a beat not shown yet, else the first match.
 
-  const beatMappings = getStoryBeatChapterMappings(template, chapters.length);
+  const beatMappings = getStoryBeatChapterMappings(template, chapterCount);
   const beatNamesFor = (order: number): string[] => {
     const num = order + 1;
     return beatMappings
@@ -203,7 +218,7 @@ export function ChapterPage({ project }: { project: WritingProject }) {
       <PageHeader
         eyebrow="MANUSCRIPT"
         title="Chapter Plan"
-        count={`${chapters.length} projected chapters · ${template.name}`}
+        count={`${chapterCount} projected chapters · ${template.name}`}
       >
         <ToolButton primary onClick={() => addChapter(project.id)}>
           <Plus size={15} /> Add chapter
@@ -333,9 +348,8 @@ export function ChapterPage({ project }: { project: WritingProject }) {
                     <button
                       key={c.id}
                       type="button"
-                      className={`chapter-plan-row${ai > 0 ? " act-bar" : ""}${
-                        selectedId === c.id ? " selected" : ""
-                      }`}
+                      className={`chapter-plan-row${ai > 0 ? " act-bar" : ""}${selectedId === c.id ? " selected" : ""
+                        }`}
                       style={aiColor ? { borderLeftColor: aiColor } : undefined}
                       onClick={() => setSelectedId(c.id)}
                     >
