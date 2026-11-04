@@ -392,12 +392,12 @@
   margin-top: 6px;
   padding: 14px;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   border: 1px solid var(--coral-soft);
   border-left: 4px solid var(--coral);
   border-radius: 10px;
   background: #fff2ed;
-  font-family: var(--sans);
+  font-family: lora, Georgia, serif;
 }
 
 .chapter-structure-notes>header h3 {
@@ -475,7 +475,45 @@
   margin: 9px 0 0;
   color: var(--ink-soft);
   font-size: 12px;
+  font-family: lora, Georgia, serif;
   line-height: 1.65;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+.chapter-structure-notes {
+  border: none;
+  background: transparent;
+}
+/* each group */
+.chapter-structure-group {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* distance between groups */
+.chapter-structure-group + .chapter-structure-group {
+  margin-top: 8px;
+}
+
+/* group title */
+.chapter-structure-group-title {
+  margin: 0;
+  font-family: lora, Georgia, serif;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chapter-structure-group-act > .chapter-structure-group-title {
+  color: #96772d;
+}
+
+.chapter-structure-group-beat > .chapter-structure-group-title {
+  color: #55748a;
+}
+.chapter-structure-notes {
+  padding: 0;
 }

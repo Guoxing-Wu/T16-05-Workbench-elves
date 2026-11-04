@@ -97,24 +97,41 @@ export function ChapterStructureNotes({ project, chapter }: Props) {
         >
             <header>
                 <h3>Story Structure Notes</h3>
-                <p>From Story Structure</p>
             </header>
 
-            {notes.map((item) => (
-                <article
-                    key={`${item.kind}-${item.id}`}
-                    className={`chapter-structure-note chapter-structure-note-${item.kind}`}
-                >
-                    <p className="chapter-structure-note-label">{item.label}</p>
+                        {[
+                { kind: "act", label: "Act Notes", items: actNotes },
+                { kind: "beat", label: "Story Beat Notes", items: beatNotes },
+            ]
+                .filter((group) => group.items.length > 0)
+                .map((group) => (
+                    <div
+                        key={group.kind}
+                        className={`chapter-structure-group chapter-structure-group-${group.kind}`}
+                    >
+                        <p className="chapter-structure-group-title">
+                            {group.label}
+                        </p>
 
-                    <div className="chapter-structure-note-heading">
-                        <h4>{item.title}</h4>
-                        <span>{getChapterRangeLabel(item.range)}</span>
+                        {group.items.map((item) => (
+                            <article
+                                key={`${item.kind}-${item.id}`}
+                                className={`chapter-structure-note chapter-structure-note-${item.kind}`}
+                            >
+                                <div className="chapter-structure-note-heading">
+                                    <h4>{item.title}</h4>
+                                    <span>
+                                        {getChapterRangeLabel(item.range)}
+                                    </span>
+                                </div>
+
+                                <p className="chapter-structure-note-text">
+                                    {item.note}
+                                </p>
+                            </article>
+                        ))}
                     </div>
-
-                    <p className="chapter-structure-note-text">{item.note}</p>
-                </article>
-            ))}
+                ))}
         </section>
     );
 }
