@@ -1,38 +1,12 @@
 import CreateCharacterForm from "./CreateCharacterForm";
+import { CharacterTimeline } from "./TimelineTemp";
 import { useWorkbench } from "../../lib/store";
-import { useState } from "react";
-import { Modal, PageHeader, ToolButton } from "../../components/primitives";
+import { useCallback, useState } from "react";
+import { Field, Modal, PageHeader, ToolButton } from "../../components/primitives";
 import type { Character, WritingProject } from "../../lib/domain";
-import { ChevronRight, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import "./character.css";
-import {characterAgeAtYear} from "../../lib/domain";
-import type { StoryDate } from "../../lib/domain";
 
-
-function formatStoryDate(date: StoryDate): string {
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-  ];
-
-  if (date.month === undefined) {
-    return String(date.year);
-  }
-
-  const month = months[date.month - 1];
-
-  return date.day === undefined
-    ? `${month} ${date.year}`
-    : `${date.day} ${month} ${date.year}`;
-}
-
-function compareDates(a: StoryDate, b: StoryDate): number {
-  return (
-    a.year - b.year ||
-    (a.month ?? 1) - (b.month ?? 1) ||
-    (a.day ?? 1) - (b.day ?? 1)
-  );
-}
 
 function getInitials(name: string): string {
   return name
@@ -88,10 +62,8 @@ function getAgeToday(birthday: Character["birthday"]): string {
 
 export function CharactersPage({
   project,
-  onBack,
 }: {
   project: WritingProject;
-  onBack: () => void;
 }) {
   const { addCharacter, updateCharacter, removeCharacter } = useWorkbench();
   const characters = project.characters ?? [];
@@ -99,24 +71,24 @@ export function CharactersPage({
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] =
     useState<string | null>(null);
-
-  // Keeping the editing ID separate prevents another character's form
+    const [descriptionEditor, setDescriptionEditor] = useState<{
+    id: string;
+    value: string;
+    error?: string;
+  } | null>(null);  
+   // Keeping the editing ID separate prevents another character's form
   // from opening if the selected character is removed.
   const [editingCharacterId, setEditingCharacterId] =
     useState<string | null>(null);
+  const [createLocationOnOpen, setCreateLocationOnOpen] = useState(false);
 
+  function openCharacterEditor(characterId: string, createLocation = false) {
+    setCreateLocationOnOpen(createLocation);
+    setEditingCharacterId(characterId);
+  }
   const selectedCharacter =
     characters.find((character) => character.id === selectedCharacterId) ??
     characters[0];
-
-  const characterEvents = selectedCharacter
-  ? (project.events ?? [])
-      .filter((event) =>
-        event.characterIds?.includes(selectedCharacter.id)
-      )
-      .sort((a, b) => compareDates(a.startDate, b.startDate))
-  : [];
-
 
   const editingCharacter = characters.find(
     (character) => character.id === editingCharacterId
@@ -134,20 +106,22 @@ export function CharactersPage({
       setEditingCharacterId(null);
     }
   }
+  const focusDescriptionInput = useCallback(
+  (input: HTMLTextAreaElement | null) => {
+    if (!input) return;
+
+    input.focus();
+    const end = input.value.length;
+    input.setSelectionRange(end, end);
+  },
+  []
+);
 
   return (
     <div className="page-stack core-page characters-page">
-      <button
-        type="button"
-        className="text-link back-link"
-        onClick={onBack}
-      >
-        Back
-      </button>
-
       <div className="characters-page-heading">
         <PageHeader
-          eyebrow="AUTHOR’S WORKBENCH"
+          eyebrow="AUTHOR'S WORKBENCH"
           title="Characters"
           count={`${characters.length} saved ${
             characters.length === 1 ? "profile" : "profiles"
@@ -242,7 +216,7 @@ export function CharactersPage({
                   type="button"
                   className="character-outline-button"
                   onClick={() =>
-                    setEditingCharacterId(selectedCharacter.id)
+                    openCharacterEditor(selectedCharacter.id)
                   }
                 >
                   <Pencil size={16} />
@@ -260,11 +234,6 @@ export function CharactersPage({
               </div>
             </div>
 
-
-            <p className="character-detail-description">
-              {selectedCharacter.description || "No description yet."}
-            </p>
-
             <dl className="character-detail-stats">
               <div>
                 <dt>Date of birth</dt>
@@ -280,125 +249,85 @@ export function CharactersPage({
                 <dt>Gender</dt>
                 <dd>{selectedCharacter.gender || "—"}</dd>
               </div>
-
-              <div>
-                <dt>Roles</dt>
-                  <dd>
-                    <RoleTags value={selectedCharacter.role} fallback="—" />
-                  </dd>
-              </div>
             </dl>
+            <h3 className="character-description-heading">
+              Description
+            </h3>
 
-            <section className="character-location-section">
-              <p className="character-section-label">Location</p>
-              <h3>Where {selectedCharacter.name} is in the story</h3>
+            <div className="character-description-box">
+              {descriptionEditor?.id === selectedCharacter.id ? (
+                <form
+                  className="workbench-form"
+                  onSubmit={(event) => {
+                    event.preventDefault();
 
-              {selectedCharacter.location ? (
-                <div className="character-current-location">
-                  <MapPin size={20} aria-hidden="true" />
-                  <span>{selectedCharacter.location}</span>
+                    updateCharacter(project.id, descriptionEditor.id, {
+                      description: descriptionEditor.value.trim(),
+                    });
+
+                    setDescriptionEditor(null);
+                  }}
+                >
+                  <textarea
+                    ref={focusDescriptionInput}
+                    rows={5}
+                    aria-label={`Description for ${selectedCharacter.name}`}
+                    value={descriptionEditor.value}
+                    onChange={(event) =>
+                      setDescriptionEditor({
+                        id: selectedCharacter.id,
+                        value: event.target.value,
+                      })
+                    }
+                    style={{ width: "100%", resize: "vertical" }}
+                  />
+
+                  <div className="character-form-actions">
+                    <ToolButton
+                      type="button"
+                      onClick={() => setDescriptionEditor(null)}
+                    >
+                      Cancel
+                    </ToolButton>
+
+                    <ToolButton primary type="submit">
+                      Save description
+                    </ToolButton>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <p className="character-detail-description">
+                    {selectedCharacter.description || "No description yet."}
+                  </p>
 
                   <button
                     type="button"
-                    className="character-icon-button"
-                    aria-label={`Edit ${selectedCharacter.name}'s location`}
+                    className="character-icon-button character-description-pencil"
+                    aria-label={`Edit ${selectedCharacter.name}'s description`}
+                    title="Edit description"
                     onClick={() =>
-                      setEditingCharacterId(selectedCharacter.id)
+                      setDescriptionEditor({
+                        id: selectedCharacter.id,
+                        value: selectedCharacter.description ?? "",
+                      })
                     }
                   >
-                    <Pencil size={16} />
+                    <Pencil size={18} aria-hidden="true" />
                   </button>
-                </div>
-              ) : (
-                <p className="character-empty-copy">
-                  No location recorded. Edit this character to add one.
-                </p>
+                </>
               )}
-            </section>
+            </div>
+
+            
             <section className="character-journey">
-            <p className="character-section-label">Story journey</p>
-            <h3>Age, places and events in chronological order</h3>
-
-            {characterEvents.length === 0 ? (
-              <p className="character-empty-copy">
-                No events linked to this character yet.
-                Add this character to an event to start their journey.
-              </p>
-            ) : (
-              <ol className="character-journey-list">
-                {characterEvents.map((event) => {
-                  const location = event.locationId
-                    ? (project.locations ?? []).find(
-                        (item) => item.id === event.locationId
-                      )
-                    : undefined;
-
-                  const age = selectedCharacter.birthday
-                    ? characterAgeAtYear(
-                        selectedCharacter.birthday,
-                        event.startDate
-                      )
-                    : undefined;
-
-                  const chapters = (event.chapterIds ?? [])
-                    .map((id) =>
-                      (project.chapters ?? []).find(
-                        (chapter) => chapter.id === id
-                      )
-                    )
-                    .filter(
-                      (chapter): chapter is NonNullable<typeof chapter> =>
-                        chapter !== undefined
-                    );
-
-                  return (
-                    <li key={event.id} className="character-journey-item">
-                      <div className="character-journey-date">
-                        <span>{formatStoryDate(event.startDate)}</span>
-
-                        {age != null && (
-                          <small>
-                            {age < 0 ? "Before birth" : `Age ${age}`}
-                          </small>
-                        )}
-                      </div>
-
-                      <span
-                        className="character-journey-track"
-                        aria-hidden="true"
-                      />
-
-                      <div className="character-journey-content">
-                        <p className="character-journey-kind">Event</p>
-                        <h4>{event.title}</h4>
-
-                        {event.description && (
-                          <p className="character-journey-description">
-                            {event.description}
-                          </p>
-                        )}
-
-                        {location && (
-                          <p className="character-journey-location">
-                            <MapPin size={14} aria-hidden="true" />
-                            {location.name}
-                          </p>
-                        )}
-
-                        {chapters.length > 0 && (
-                          <p className="character-journey-chapters">
-                            {chapters
-                              .map((chapter) => chapter.title)
-                              .join(" · ")}
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </section>
+              <h3>{selectedCharacter.name}'s story timeline</h3>
+              <CharacterTimeline
+                key={`${project.id}-${selectedCharacter.id}`}
+                project={project}
+                character={selectedCharacter}
+              />
+            </section>
           </section>
           
         </div>
@@ -415,6 +344,7 @@ export function CharactersPage({
           onClose={() => setShowCreateForm(false)}
         >
           <CreateCharacterForm
+            project={project}
             onCancel={() => setShowCreateForm(false)}
             onCreate={(input) => {
               addCharacter(project.id, input);
@@ -431,7 +361,9 @@ export function CharactersPage({
         >
           <EditCharacterForm
             key={`${project.id}-${editingCharacter.id}`}
+            project={project}
             character={editingCharacter}
+            createLocationOnOpen={createLocationOnOpen}
             onCancel={() => setEditingCharacterId(null)}
             onSave={(patch) => {
               updateCharacter(project.id, editingCharacter.id, patch);
@@ -467,15 +399,34 @@ function RoleTags({
 // Form for editing an existing character, with fields for name, birthday, description, and location.
 function EditCharacterForm({
   character,
+  project,
+  createLocationOnOpen = false,
   onCancel,
   onSave,
 }: {
   character: Character;
+  project: WritingProject;
+  createLocationOnOpen?: boolean;
   onCancel: () => void;
   onSave: (patch: Partial<Character>) => void;
 }) {
+  const { addLocation } = useWorkbench();
+  const locations = project.locations ?? [];
+  const LOCATION_NEW = "**new**";
+  const LOCATION_CURRENT = "**current**";
   const [name, setName] = useState(character.name);
-  const [location, setLocation] = useState(character.location ?? "");
+  const [locationId, setLocationId] = useState(() => {
+    if (createLocationOnOpen) return LOCATION_NEW;
+
+    const existing = locations.find(
+      (location) => location.name === character.location
+    );
+
+    return existing?.id ?? (character.location ? LOCATION_CURRENT : "");
+  });
+  const [newLocationName, setNewLocationName] = useState("");
+  const [locationError, setLocationError] = useState("");
+  
   const [gender, setGender] = useState(character.gender ?? "");
   const roleOptions = [
     "Protagonist",
@@ -485,7 +436,8 @@ function EditCharacterForm({
     "Deuteragonists",
     "Tertiary characters",
     "Foils",
-];
+]
+;
   const [role, setRole] = useState<string[]>(() => {
   const savedRole = character.role;
 
@@ -520,9 +472,47 @@ function EditCharacterForm({
         event.preventDefault();
         if (!name.trim()) return;
 
+        let finalLocation = "";
+
+        if (locationId === LOCATION_NEW) {
+          const locationName = newLocationName.trim();
+
+          if (!locationName) {
+            setLocationError("Please enter a location name.");
+            return;
+          }
+
+          const existing = locations.find(
+            (location) =>
+              location.name.trim().toLowerCase() === locationName.toLowerCase()
+          );
+
+          try {
+            const location = existing ?? addLocation(project.id, {
+              name: locationName,
+            });
+            finalLocation = location.name;
+          } catch {
+            setLocationError("Could not create the location. Please try again.");
+            return;
+          }
+        } else if (locationId === LOCATION_CURRENT) {
+          finalLocation = character.location ?? "";
+        } else if (locationId) {
+          const location = locations.find((item) => item.id === locationId);
+
+          if (!location) {
+            setLocationError("This location is no longer available. Please select another.");
+            return;
+          }
+
+          finalLocation = location.name;
+        }
+
+        setLocationError("");
         onSave({
           name: name.trim(),
-          location: location.trim(),
+          location: finalLocation,
           gender,
           role,
           description: description.trim(),
@@ -579,13 +569,57 @@ function EditCharacterForm({
           />
         </label>
 
-        <label className="form-field">
-          <span>Location</span>
-          <input
-            value={location}
-            onChange={(event) => setLocation(event.target.value)}
-          />
-        </label>
+        <Field label="Location" full>
+          <select
+            value={locationId}
+            onChange={(event) => {
+              setLocationId(event.target.value);
+              setLocationError("");
+
+              if (event.target.value !== LOCATION_NEW) {
+                setNewLocationName("");
+              }
+            }}
+          >
+            <option value="">No location</option>
+
+            {locations.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.name}
+              </option>
+            ))}
+
+            {character.location &&
+              !locations.some((location) => location.name === character.location) && (
+                <option value={LOCATION_CURRENT}>{character.location}</option>
+              )}
+
+            {locationId &&
+              locationId !== LOCATION_NEW &&
+              locationId !== LOCATION_CURRENT &&
+              !locations.some((location) => location.id === locationId) && (
+                <option value={locationId}>Unknown location</option>
+              )}
+
+            <option value={LOCATION_NEW}>＋ Create new location…</option>
+          </select>
+
+          {locationId === LOCATION_NEW && (
+            <input
+              required
+              aria-label="New location name"
+              value={newLocationName}
+              onChange={(event) => {
+                setNewLocationName(event.target.value);
+                setLocationError("");
+              }}
+              placeholder="New location name"
+              style={{ marginTop: 8 }}
+            />
+          )}
+
+          {locationError && <p role="alert">{locationError}</p>}
+        </Field>
 
         <label className="form-field">
           <span>Gender</span>

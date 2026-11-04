@@ -14,7 +14,7 @@
 
 * { box-sizing: border-box; }
 html { background: var(--paper); }
-body { margin: 0; min-width: 320px; background: var(--paper); color: var(--ink); font-family: var(--sans); }
+body { margin: 0; min-width: 320px; background: var(--paper); color: var(--ink); font-family:"Lora",Georgia, serif; }
 button, input, textarea, select { font: inherit; }
 button { color: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid rgba(85,116,138,.28); outline-offset: 2px; }
@@ -202,7 +202,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  font-family: var(--sans);
+  font-family: "Lora",Georgia, serif;
   font-size: 14px;
   font-weight: 600;
 }
@@ -235,7 +235,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 }
 
 .characters-page .character-list-copy strong {
-  font-family: var(--serif);
+  font-family: "Lora",Georgia, serif;
   font-size: 16px;
   font-weight: 600;
 }
@@ -280,7 +280,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .characters-page .character-section-label {
   margin: 0;
   color: var(--blue);
-  font-family: var(--sans);
+  font-family: "Lora",Georgia, serif;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.6;
@@ -292,7 +292,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .characters-page .character-detail-heading h2 {
   margin: 8px 0 0;
   color: var(--ink);
-  font-family: var(--serif);
+  font-family:lora, Georgia, serif;
   font-size: 30px;
   font-weight: 600;
   line-height: 1.25;
@@ -356,7 +356,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .characters-page .character-detail-description {
   margin: 24px 0;
   color: var(--ink-soft);
-  font-family: var(--serif);
+   font-family: "Lora",Georgia, serif;
   font-size: 16px;
   line-height: 1.8;
   white-space: pre-wrap;
@@ -366,7 +366,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 /* Profile facts */
 .characters-page .character-detail-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
   margin: 0;
   padding-bottom: 28px;
@@ -407,8 +407,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 
 .characters-page .character-location-section h3 {
   margin: 8px 0 18px;
-  font-family: var(--serif);
-  font-size: 22px;
+  font-family: lora, Georgia, serif;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -431,7 +431,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 
 .characters-page .character-current-location > span {
   min-width: 0;
-  font-family: var(--serif);
+  font-family: lora, Georgia, serif;
   font-size: 16px;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
@@ -456,7 +456,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 
 .characters-page .characters-empty-state h2 {
   margin: 0 0 12px;
-  font-family: var(--serif);
+   font-family: "Lora",Georgia, serif;
   font-size: 24px;
 }
 
@@ -559,9 +559,117 @@ button.role-tag {
   cursor: pointer;
 }
 
-.role-tag.selected {
-  background: #e8e5ff;
-  border-color: #7663c0;
-  color: #51418b;
+.workbench-form .role-tag.selected,
+.character-detail-panel .role-tag.selected,
+.characters-sidebar .role-tag.selected {
+  font-family: "Lora",Georgia, serif;
+  font-size: 10px;
+  background-color: #dce9df;
+  color: #2f4c3b;
+  border-color: #91ad9a;
 }
 
+.character-timeline { min-width: 0; }
+.character-timeline .tl-scroll { max-width: 100%; }
+.character-description-section .character-outline-button {
+font-family: "Lora",Georgia, serif; 
+  font-size: 12px;
+  line-height: 1.4;
+}
+.characters-page .character-detail-stats {
+  align-items: stretch;
+  padding-bottom: 0;
+}
+
+.characters-page .character-detail-stats > div {
+  align-self: stretch;
+  padding-bottom: 28px;
+}
+
+.characters-page .character-journey > h3 {
+  font-family: "Lora",Georgia, serif;
+  font-size: 22px;
+}
+.character-page.character-description-heading{
+  font-family: "Lora",Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+.characters-page .character-journey {
+  font-family: "Lora",Georgia, serif;
+  margin-top: 24px;
+}
+
+/* description box */
+.characters-page .character-description-box {
+  position: relative;
+  min-height: 120px;
+  padding: 20px 64px 20px 20px;
+  border: 1px solid var(--border-warm);
+  border-radius: 10px;
+  background: var(--paper-light);
+}
+
+.characters-page .character-description-box .character-detail-description {
+  font-family: lora, Georgia, serif;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* right side pencil */
+.characters-page .character-description-box .character-description-pencil {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+}
+.characters-page .character-description-box .workbench-form {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.characters-page .character-description-box textarea,
+.characters-page .character-description-box textarea:focus,
+.characters-page .character-description-box textarea:focus-visible {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.8;
+}
+.characters-page .character-description-box:has(textarea) {
+  padding: 20px;
+}
+
+.characters-page .character-description-box .workbench-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+}
+
+.characters-page .character-description-box .character-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 16px;
+}
+.characters-page .characters-page-heading > :first-child {
+  border-bottom: none;
+}
