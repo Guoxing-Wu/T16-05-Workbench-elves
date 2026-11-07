@@ -1,5 +1,6 @@
 import type { Borders, Cell, Worksheet } from "exceljs";
-import type { Chapter, WritingProject } from "./domain";
+import { formatStoryDate } from "./domain";
+import type { Chapter, StoryDate, StoryEvent, StoryScene, WritingProject } from "./domain";
 import { getStoryStructureOption } from "../features/story-structure/storyStructureTemplate";
 import type {
   StoryBeat,
@@ -17,10 +18,11 @@ import {
  *   A  Act (merged, rotated)       B  Range beats (merged)     C  Point beats
  *   D  Chapter                     E  POV (left empty to fill in Excel)
  *   F  Chapter Goal                G  Cumulative               H  percentage % of novel
- *   I  Description (chapter notes) J  one TRUE/FALSE column per character
+ *   I  Scene                     J  Event                    K  Location
+ *   L  Description (chapter notes) M  one TRUE/blank column per character
  */
 
-// Set to false to leave the per-character TRUE/FALSE columns out of the sheet.
+// Set to false to leave the per-character appearance columns out of the sheet.
 const INCLUDE_CHARACTER_COLUMNS = true;
 
 // Error type so the UI can show a friendly message.
@@ -66,8 +68,11 @@ const COL = {
   goal: 6,
   cumulative: 7,
   percent: 8,
-  description: 9,
-  firstCharacter: 10,
+  scene: 9,
+  event: 10,
+  location: 11,
+  description: 12,
+  firstCharacter: 13,
 };
 const WIDTH = {
   act: 6.5,
@@ -79,6 +84,9 @@ const WIDTH = {
   cumulative: 11.5,
   percent: 8,
   description: 45,
+  location: 22,
+  event: 30,
+  scene: 30,
   character: 12,
 };
 
@@ -126,6 +134,27 @@ interface ChapterRow {
   rangeBeat: BeatCell | null;
   pointBeats: BeatCell[];
   characterIds: Set<string>;
+  locationText: string;
+  eventText: string;
+  sceneText: string;
+}
+
+function hasStoryDate(date?: StoryDate): date is StoryDate {
+  return Boolean(date && Number.isFinite(date.year) && date.year > 0);
+}
+
+function eventLabel(event: StoryEvent): string {
+  const start = hasStoryDate(event.startDate) ? formatStoryDate(event.startDate) : "";
+  const end = hasStoryDate(event.endDate) ? formatStoryDate(event.endDate) : "";
+  const range = start && end ? `${start}–${end}` : start || end;
+  return range ? `${event.title} (${range})` : event.title;
+}
+
+function sceneLabel(scene: StoryScene): string {
+  const date = hasStoryDate(scene.date) ? formatStoryDate(scene.date) : "";
+  const time = scene.time?.trim() ?? "";
+  const dateTime = [date, time].filter(Boolean).join(" ");
+  return dateTime ? `${scene.title} (${dateTime})` : scene.title;
 }
 
 // Gathers everything one chapter row needs, using the same rules as the app.
@@ -164,14 +193,26 @@ function buildRows(
 
     const points = pointBeats.filter((b) => getBeatChapterRange(b, count).start === num);
 
+    const chapterEvents = (project.events ?? [])
+      .filter((event) => (event.chapterIds ?? []).includes(chapter.id));
+    const chapterScenes = (project.scenes ?? [])
+      .filter((scene) => (scene.chapterIds ?? []).includes(chapter.id));
+
+    // Locations can be linked directly to a chapter or through its events/scenes.
+    const locationIds = new Set([
+      ...(chapter.locationIds ?? []),
+      ...chapterEvents.map((event) => event.locationId).filter((id): id is string => Boolean(id)),
+      ...chapterScenes.map((scene) => scene.locationId).filter((id): id is string => Boolean(id)),
+    ]);
+    const locationText = (project.locations ?? [])
+      .filter((location) => locationIds.has(location.id))
+      .map((location) => location.name)
+      .join("\n");
+
     // Characters: the chapter's own + those of its linked events and scenes.
     const characterIds = new Set<string>(chapter.characterIds ?? []);
-    (project.events ?? [])
-      .filter((e) => e.chapterIds.includes(chapter.id))
-      .forEach((e) => (e.characterIds ?? []).forEach((id) => characterIds.add(id)));
-    (project.scenes ?? [])
-      .filter((s) => s.chapterIds.includes(chapter.id))
-      .forEach((s) => (s.characterIds ?? []).forEach((id) => characterIds.add(id)));
+    chapterEvents.forEach((event) => (event.characterIds ?? []).forEach((id) => characterIds.add(id)));
+    chapterScenes.forEach((scene) => (scene.characterIds ?? []).forEach((id) => characterIds.add(id)));
 
     return {
       chapter,
@@ -179,6 +220,9 @@ function buildRows(
       rangeBeat: covering[0] ? toCell(covering[0]) : null,
       pointBeats: points.map(toCell),
       characterIds,
+      locationText,
+      eventText: chapterEvents.map(eventLabel).join("\n"),
+      sceneText: chapterScenes.map(sceneLabel).join("\n"),
     };
   });
 }
@@ -228,7 +272,8 @@ export async function buildStructureWorkbook(
   // Column widths
   const widths = [
     WIDTH.act, WIDTH.rangeBeat, WIDTH.pointBeat, WIDTH.chapter, WIDTH.pov,
-    WIDTH.goal, WIDTH.cumulative, WIDTH.percent, WIDTH.description,
+    WIDTH.goal, WIDTH.cumulative, WIDTH.percent,
+    WIDTH.scene, WIDTH.event, WIDTH.location, WIDTH.description,
     ...characters.map(() => WIDTH.character),
   ];
   widths.forEach((w, i) => (sheet.getColumn(i + 1).width = w));
@@ -260,6 +305,9 @@ export async function buildStructureWorkbook(
     { col: COL.goal, text: "Chapter Goal", fill: COLORS.numbers, size: 9 },
     { col: COL.cumulative, text: "Cumulative", fill: COLORS.numbers, size: 9 },
     { col: COL.percent, text: "% novel", fill: COLORS.numbers, size: 9, center: true },
+    { col: COL.scene, text: "SCENE", fill: COLORS.numbers, size: 9, center: true },
+    { col: COL.event, text: "EVENT", fill: COLORS.numbers, size: 9, center: true },
+    { col: COL.location, text: "LOCATION", fill: COLORS.numbers, size: 9, center: true },
     { col: COL.description, text: "DESCRIPTION", fill: COLORS.numbers, size: 9, center: true },
     ...characters.map((c, i) => ({
       col: COL.firstCharacter + i,
@@ -343,7 +391,7 @@ export async function buildStructureWorkbook(
     cumCell.numFmt = "#,##0";
     pctCell.numFmt = "0.0%";
 
-    // Column I: description = chapter notes
+    // Column L: description = chapter notes
     const descCell = sheet.getCell(r, COL.description);
     descCell.value = row.chapter.notes ?? "";
     descCell.font = small;
@@ -351,10 +399,24 @@ export async function buildStructureWorkbook(
     descCell.border = BORDER;
     descCell.alignment = { horizontal: "center", vertical: "top", wrapText: true };
 
-    // Character columns: TRUE / FALSE
+    // Columns I-K: related scenes, events, and locations for this chapter.
+    [
+      [COL.scene, row.sceneText],
+      [COL.event, row.eventText],
+      [COL.location, row.locationText],
+    ].forEach(([column, value]) => {
+      const cell = sheet.getCell(r, column as number);
+      cell.value = value as string;
+      cell.font = small;
+      cell.fill = solid(COLORS.numbers);
+      cell.border = BORDER;
+      cell.alignment = { horizontal: "left", vertical: "top", wrapText: true };
+    });
+
+    // Character columns: TRUE when present; leave absent characters blank.
     characters.forEach((character, ci) => {
       const cell = sheet.getCell(r, COL.firstCharacter + ci);
-      cell.value = row.characterIds.has(character.id);
+      if (row.characterIds.has(character.id)) cell.value = true;
       cell.font = small;
       cell.fill = solid(CHARACTER_COLORS[ci % CHARACTER_COLORS.length]);
       cell.border = BORDER;
@@ -365,6 +427,9 @@ export async function buildStructureWorkbook(
     const needed = Math.max(
       estimateLines(row.chapter.title, WIDTH.chapter, 11) * lineHeight(11),
       estimateLines(row.chapter.notes ?? "", WIDTH.description, 9) * lineHeight(9),
+      estimateLines(row.locationText, WIDTH.location, 9) * lineHeight(9),
+      estimateLines(row.eventText, WIDTH.event, 9) * lineHeight(9),
+      estimateLines(row.sceneText, WIDTH.scene, 9) * lineHeight(9),
       estimateLines(pointText.join("\n\n"), WIDTH.pointBeat, 11) * lineHeight(11)
     );
     rowHeights.push(Math.min(409, Math.max(30, needed + 6)));
@@ -415,6 +480,23 @@ export async function buildStructureWorkbook(
     const lines = estimateLines(beat.note ? `${beat.text}\n${beat.note}` : beat.text, WIDTH.rangeBeat, 12);
     ensureHeight(g.from, g.to, lines * lineHeight(12) + 6);
     if (g.to > g.from) sheet.mergeCells(FIRST_ROW + g.from, COL.rangeBeat, FIRST_ROW + g.to, COL.rangeBeat);
+  });
+
+  // Carry the last range-beat color to the bottom of its act's otherwise empty cells.
+  groupBy((row) => (row.actIndex >= 0 ? row.actIndex : null)).forEach((act) => {
+    let lastRangeIndex = -1;
+    for (let i = act.from; i <= act.to; i++) {
+      if (rows[i].rangeBeat) lastRangeIndex = i;
+    }
+    if (lastRangeIndex < 0) return;
+
+    const lastBeat = rows[lastRangeIndex].rangeBeat!;
+    const color = beatColors.get(lastBeat.id)!;
+    for (let i = lastRangeIndex + 1; i <= act.to; i++) {
+      const cell = sheet.getCell(FIRST_ROW + i, COL.rangeBeat);
+      cell.fill = solid(color);
+      cell.border = BORDER;
+    }
   });
 
   rowHeights.forEach((h, i) => (sheet.getRow(FIRST_ROW + i).height = Math.round(h)));
