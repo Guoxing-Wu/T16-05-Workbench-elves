@@ -62,8 +62,8 @@ describe("buildStructureWorkbook: layout", () => {
 
   it("writes headers, with a column only for characters who appear in chapters", async () => {
     const { sheet } = await loadSheet(buildProject());
-    const headers = [4, 5, 6, 7, 8, 9, 10, 11, 12].map((c) => textOf(sheet.getCell(2, c)));
-    expect(headers).toEqual(["Chapter", "POV", "Chapter Goal", "Cumulative", "% novel", "DESCRIPTION", "ALICE", "BOB", ""]);
+    const headers = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((c) => textOf(sheet.getCell(2, c)));
+    expect(headers).toEqual(["Chapter", "POV", "Chapter Goal", "Cumulative", "% novel", "SCENE", "EVENT", "LOCATION", "DESCRIPTION", "ALICE", "BOB"]);
   });
 
   it("writes one row per chapter, sorted by order, with notes and an empty POV", async () => {
@@ -73,8 +73,46 @@ describe("buildStructureWorkbook: layout", () => {
 
     expect(column(sheet, 4)).toEqual(["Chapter 1", "Chapter 2", "Chapter 3", "Chapter 4", "Chapter 5", "Chapter 6"]);
     expect(column(sheet, 5)).toEqual(Array(6).fill(null));
-    expect(sheet.getCell("I3").value).toBe("Notes for chapter 1");
+    expect(sheet.getCell("L3").value).toBe("Notes for chapter 1");
     expect(sheet.getCell("D9").value).toBeNull();
+  });
+
+  it("writes each chapter's scenes, events and locations in the requested columns", async () => {
+    const base = buildProject();
+    const chapters = base.chapters.map((chapter, index) =>
+      index === 0 ? { ...chapter, locationIds: ["l1"] } : chapter
+    );
+    const events = base.events.map((event) => ({ ...event, locationId: "l1" }));
+    const scenes = base.scenes.map((scene) => ({ ...scene, locationId: "l1", time: "14:30" }));
+    const { sheet } = await loadSheet(buildProject({ chapters, events, scenes }));
+
+    expect(textOf(sheet.getCell("I3"))).toBe("");
+    expect(textOf(sheet.getCell("J3"))).toBe("");
+    expect(sheet.getCell("K3").value).toBe("Harbour");
+    expect(sheet.getCell("L3").value).toBe("Notes for chapter 1");
+    expect(sheet.getCell("J4").value).toBe("The storm (2020-01-01–2020-01-02)");
+    expect(sheet.getCell("K4").value).toBe("Harbour");
+    expect(sheet.getCell("I5").value).toBe("Dock fight (2020 14:30)");
+    expect(sheet.getCell("K5").value).toBe("Harbour");
+    expect(textOf(sheet.getCell("J5"))).toBe("");
+  });
+
+  it("shows only event and scene names when their dates are missing", async () => {
+    const base = buildProject();
+    const events = base.events.map((event) => ({
+      ...event,
+      startDate: { year: 0 },
+      endDate: { year: 0 },
+    }));
+    const scenes = base.scenes.map((scene) => ({
+      ...scene,
+      date: { year: 0 },
+      time: undefined,
+    }));
+    const { sheet } = await loadSheet(buildProject({ events, scenes }));
+
+    expect(sheet.getCell("J4").value).toBe("The storm");
+    expect(sheet.getCell("I5").value).toBe("Dock fight");
   });
 
   it("keeps accented text, line breaks and emoji, and uppercases character names", async () => {
@@ -82,8 +120,8 @@ describe("buildStructureWorkbook: layout", () => {
     const characters = buildProject().characters.map((c) => (c.id === "c1" ? { ...c, name: "Alice Smith" } : c));
     const { sheet } = await loadSheet(buildProject({ chapters, characters }));
     expect(sheet.getCell("D3").value).toBe("Chapitre Éclair 🌫️");
-    expect(sheet.getCell("I3").value).toBe("Première note\nSecond line");
-    expect(sheet.getCell("J2").value).toBe("ALICE SMITH");
+    expect(sheet.getCell("L3").value).toBe("Première note\nSecond line");
+    expect(sheet.getCell("M2").value).toBe("ALICE SMITH");
   });
 
   it("keeps row heights within Excel's 409-point limit", async () => {
@@ -126,16 +164,16 @@ describe("buildStructureWorkbook: numbers and characters", () => {
     expect(percent.result === undefined || percent.result === "").toBe(true);
   });
 
-  it("marks characters TRUE in chapters where they appear (directly, via scenes, via events)", async () => {
+  it("marks characters TRUE where they appear and leaves other chapters blank", async () => {
     const { sheet } = await loadSheet(buildProject());
-    expect(column(sheet, 10)).toEqual([true, false, true, false, false, false]); // Alice: ch1 + scene in ch3
-    expect(column(sheet, 11)).toEqual([false, true, false, false, false, false]); // Bob: event in ch2
+    expect(column(sheet, 13)).toEqual([true, null, true, null, null, null]); // Alice: ch1 + scene in ch3
+    expect(column(sheet, 14)).toEqual([null, true, null, null, null, null]); // Bob: event in ch2
   });
 
   it("adds no character columns when nobody appears", async () => {
     const chapters = buildProject().chapters.map((c) => ({ ...c, characterIds: undefined }));
     const { sheet } = await loadSheet(buildProject({ chapters, events: [], scenes: [] }));
-    expect(sheet.getCell("J2").value).toBeNull();
+    expect(sheet.getCell("M2").value).toBeNull();
     expect(sheet.getCell("D3").value).toBe("Chapter 1");
   });
 });
@@ -197,6 +235,10 @@ describe("buildStructureWorkbook: acts and beats", () => {
 
     const masters = rowsOf(target!.id).map((r) => sheet.getCell(r, 2).master.address);
     expect(new Set(masters).size).toBe(1);
+
+    // The last range beat's color continues through the otherwise blank rows to the act boundary.
+    expect(sheet.getCell("B6").value).toBeNull();
+    expect(sheet.getCell("B6").fill).toEqual(sheet.getCell("B5").fill);
   });
 
   it("adds beat notes under the beat name and act notes as comments, ignoring blank notes", async () => {
