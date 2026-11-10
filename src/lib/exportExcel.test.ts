@@ -77,6 +77,7 @@ describe("buildStructureWorkbook: layout", () => {
     expect(sheet.getCell("D9").value).toBeNull();
   });
 
+  // Verifies that scenes, events and locations are exported to their corresponding Excel columns.
   it("writes each chapter's scenes, events and locations in the requested columns", async () => {
     const base = buildProject();
     const chapters = base.chapters.map((chapter, index) =>
@@ -241,6 +242,7 @@ describe("buildStructureWorkbook: acts and beats", () => {
     expect(sheet.getCell("B6").fill).toEqual(sheet.getCell("B5").fill);
   });
 
+  // Ensures that story structure notes are correctly included while blank notes are ignored.
   it("adds beat notes under the beat name and act notes as comments, ignoring blank notes", async () => {
     const project = buildProject({
       storyStructureNotes: {
