@@ -4,19 +4,17 @@
 Built by Team T16-05 Workbenchelves for the COMP30022 IT Project, University of Melbourne.
 
 ## Table of Contents
-- [TL;DR](#tldr)
 - [Overview](#overview)
+- [TL;DR](#tldr)
 - [Features](#features)
-- [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
+- [Team Members](#team-members)
 - [Repository Structure](#repository-structure)
 - [Getting Started](#getting-started)
 - [Testing](#testing)
 - [CI/CD and Deployment](#cicd-and-deployment)
 - [Development Workflow](#development-workflow)
 - [Project Documentation](#project-documentation)
-- [Team](#team)
-- [License](#license)
 
 
 ## Overview
