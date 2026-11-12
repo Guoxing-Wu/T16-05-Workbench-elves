@@ -49,7 +49,6 @@ Then open the local address printed in the terminal.
 
 
 ## Tech Stack
-
 | Tool                     | Purpose                                                         |
 | ------------------------ | --------------------------------------------------------------- |
 | GitHub                   | Source control, pull requests, automated checks and deployment. |
@@ -106,45 +105,73 @@ T16-05-Workbench-elves/
 └── tsconfig.node.json
 ```
 
-
-
-## Local Setup
+## Getting Started
 ```bash
-git clone https://github.com/Mackenziekk/T16-05-Workbench-elves.git
+# 1. Clone
+git clone https://github.com/Guoxing-Wu/T16-05-Workbench-elves.git
 cd T16-05-Workbench-elves
+ 
+# 2. Install exact dependencies from package-lock.json
 npm ci
+ 
+# 3. Start the dev server
 npm run dev
 ```
-Open the local URL displayed in the terminal.
-Run all npm commands from the repository root.
-
-To check the application:
-
+ 
+Before opening a pull request, run all three checks:
+ 
 ```bash
 npm run lint
 npm test -- --ci --runInBand
 npm run build
 ```
 
-To preview the production build:
 
+To preview the production build:
 ```bash
 npm run preview
 ```
+
+
+## Testing
+**Link:** [Test Report](https://student-team-edq1stef.atlassian.net/wiki/spaces/IP/folder/9764888)
+- **Automated tests:** Jest with Testing Library, located in `src/test/`. Run with `npm test -- --ci --runInBand`.
+- **Manual tests:** scripts in `scripts/manual-tests/` cover save and restore behaviour.
+- **Coverage
+
+  
+## CI/CD and Deployment
+- **CI:** `.github/workflows/ci.yml`
+- **Deploy:**  `.github/workflows/deploy.yml`
+- Publishes the production build to GitHub Pages: https://guoxing-wu.github.io/T16-05-Workbench-elves/
+
+  
+## Development Workflow
+- Each developer works on their own branch and merges the latest `main` into it before pushing.
+- Every change goes through a pull request using the template in `.github/pull_request_template.md`.
+- A teammate pulls the branch, reviews and tests it, then merges.
+- Work is planned in Agile sprints, with a review and retrospective at the end of each sprint.
+  
+
+ 
+### How a change reaches production
+1. A developer works on their own branch and opens a pull request using the PR template.
+2. CI runs automatically on the pull request. 
+3. A teammate reviews and tests the branch, then merges it into `main`.
+4. The deploy workflow publishes the new build to GitHub Pages.
+5. The live site updates: https://guoxing-wu.github.io/T16-05-Workbench-elves/
+
+
+### Environments
+| Environment | How to run | Address |
+|---|---|---|
+| Local development | `npm run dev` | printed in the terminal |
+| Local production preview | `npm run build`, then `npm run preview` | printed in the terminal |
+| Production | published by `deploy.yml` | https://guoxing-wu.github.io/T16-05-Workbench-elves/ |
+
+
 
 ## Project Documentation
 **Documentation hub:** [Project Confluence](https://student-team-edq1stef.atlassian.net/wiki/spaces/IP/overview)
 
 
-
-## Tech Stack
-
-| Tool                     | Purpose                                                         |
-| ------------------------ | --------------------------------------------------------------- |
-| GitHub                   | Source control, pull requests, automated checks and deployment. |
-| React and TypeScript     | Application interfaces and typed business logic.                |
-| Vite                     | Local development and production builds.                        |
-| Jest and Testing Library | Automated tests.                                                |
-| ESLint                   | Code quality checks.                                            |
-| ExcelJS                  | Excel workbook export.                                          |
-| Visual Studio Code       | Code editing and debugging.                                     |
