@@ -1,28 +1,65 @@
-# AW-Authors-Workbench - T16-05-Workbench-elves
+# AW-Authors-Workbench 
 
-The goal of Author's Workbench is to help authors plan and manage their writing efficiently.
-  
+**Live demo:** https://guoxing-wu.github.io/T16-05-Workbench-elves/
+Built by Team T16-05 Workbenchelves for the COMP30022 IT Project, University of Melbourne.
+
 ## Table of Contents
-- [AW-Authors-Workbench - T16-05-Workbench-elves](#aw-authors-workbench---t16-05-workbench-elves)
-  - [Table of Contents](#table-of-contents)
-  - [Client Profile](#client-profile)
-  - [Client Requirements](#client-requirements)
-  - [Team Members](#team-members)
-  - [Repository Structure](#repository-structure)
-  - [Local Setup](#local-setup)
-  - [Project Documentation](#project-documentation)
-  - [Tools Used](#tools-used)
+- [TL;DR](#tldr)
+- [Overview](#overview)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Tech Stack](#tech-stack)
+- [Repository Structure](#repository-structure)
+- [Getting Started](#getting-started)
+- [Testing](#testing)
+- [CI/CD and Deployment](#cicd-and-deployment)
+- [Development Workflow](#development-workflow)
+- [Project Documentation](#project-documentation)
+- [Team](#team)
+- [License](#license)
 
-## Client Profile 
+
+## Overview
+Author's Workbench is a browser-based planning tool that helps authors organise writing projects. The project README describes the client's needs as flexible plot-point planning against a target word count and chapter lengths, tracking character ages, locations and key events, and exporting a plot plan to Microsoft Excel.
+
+**Client Profile:**
 Imbi Neeme is an administrator in the School of Computing and Information Systems, Faculty of Engineering and Information Technology, and is also a published author (https://www.penguin.com.au/authors/imbi-neeme). 
-
-
-## Client Requirements 
+**Client Requirements:**
 Imbi has a need for a workbench to help manage her writing efficiently, specifically with:
 
 - mapping plot points in a flexible way that accommodates the total wordcount for a specific project as well as chapter lengths
 - tracking character ages, locations, and key events 
 - a plot planning utility to integrate with Microsoft Excel
+
+## TL;DR
+```bash
+git clone https://github.com/Guoxing-Wu/T16-05-Workbench-elves.git
+cd T16-05-Workbench-elves
+npm ci
+npm run dev
+```
+Then open the local address printed in the terminal.
+
+## Features
+- Plan a story using a target word count, average chapter length and story structure.
+- Organise chapters, characters, locations, events and scenes within a writing project.
+- View story events on a timeline and track character ages at story dates.
+- Export story-structure planning to an Excel workbook.
+- Save and restore writing data locally in the browser.
+
+
+## Tech Stack
+
+| Tool                     | Purpose                                                         |
+| ------------------------ | --------------------------------------------------------------- |
+| GitHub                   | Source control, pull requests, automated checks and deployment. |
+| React and TypeScript     | Application interfaces and typed business logic.                |
+| Vite                     | Local development and production builds.                        |
+| Jest and Testing Library | Automated tests.                                                |
+| ESLint                   | Code quality checks.                                            |
+| ExcelJS                  | Excel workbook export.                                          |
+| Visual Studio Code       | Code editing and debugging.                                     |
+
 
 
 ## Team Members
@@ -100,7 +137,7 @@ npm run preview
 
 
 
-## Tools Used
+## Tech Stack
 
 | Tool                     | Purpose                                                         |
 | ------------------------ | --------------------------------------------------------------- |
