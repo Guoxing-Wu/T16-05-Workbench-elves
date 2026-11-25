@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, MapPin, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { Field, Modal, PageHeader, ToolButton } from "../../components/primitives";
 import { useWorkbench } from "../../lib/store";
@@ -83,6 +83,13 @@ function LocationCard({
 }) {
   const { removeLocation, updateLocation } = useWorkbench();
   const [open, setOpen] = useState(defaultOpen);
+  const card = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (defaultOpen) {
+      card.current?.focus({ preventScroll: true });
+      card.current?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [defaultOpen]);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(location.name);
   const [editDescription, setEditDescription] = useState(location.description ?? "");
@@ -144,7 +151,7 @@ function LocationCard({
   };
 
   return (
-    <article className="location-card">
+    <article className="location-card" ref={card} tabIndex={-1} aria-label={location.name}>
       <div className="location-card-head">
         <div className="location-head-main">
           <span className="location-eyebrow">LOCATION</span>
@@ -296,7 +303,10 @@ function LocationCard({
 }
 
 // The Locations page: manage the project's places and show what happened there.
-export function LocationsPage({ project }: { project: WritingProject }) {
+export function LocationsPage({ project, initialLocationId }: {
+  project: WritingProject;
+  initialLocationId?: string;
+}) {
   const { addLocation } = useWorkbench();
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
@@ -335,7 +345,7 @@ export function LocationsPage({ project }: { project: WritingProject }) {
               key={location.id}
               location={location}
               project={project}
-              defaultOpen={false}
+              defaultOpen={location.id === initialLocationId}
             />
           ))}
         </div>

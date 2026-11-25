@@ -1,4 +1,4 @@
-import { Check, Download, LoaderCircle, RotateCw, TriangleAlert } from "lucide-react";
+import { Check, Download, LoaderCircle, RotateCw, Sparkles, TriangleAlert } from "lucide-react";
 import { useWorkbench } from "../../lib/store";
 import type { SaveStatus } from "../../lib/store";
 import type { AuthorProfile } from "../../components/ProfilePage";
@@ -6,6 +6,8 @@ import "./Sidebar.css";
 
 interface TopBarProps {
   profile: AuthorProfile;
+  showingStorySearch?: boolean;
+  onToggleStorySearch?: () => void;
 }
 
 // Keep display text separate from the persistence logic.
@@ -38,7 +40,7 @@ const SAVE_STATUS_DETAILS: Record<
 
 
 // The top bar shown above the main content: project info on the left, actions on the right.
-export function TopBar({ profile, }: TopBarProps) {
+export function TopBar({ profile, showingStorySearch, onToggleStorySearch }: TopBarProps) {
   const { activeProject, setActiveView, saveStatus, retrySave, exportBackup, } = useWorkbench();
 
   // Title shows the open project's name, or a default when no project is open.
@@ -69,6 +71,12 @@ export function TopBar({ profile, }: TopBarProps) {
 
         {/* Right: save status and account */}
         <div className="top-bar-actions">
+          {onToggleStorySearch && (
+            <button type="button" className="toolbar-button" aria-expanded={showingStorySearch}
+              aria-controls={showingStorySearch ? "story-search" : undefined} onClick={onToggleStorySearch}>
+              <Sparkles size={15} aria-hidden="true" /> AI Story Search
+            </button>
+          )}
           {/* Display database results without introducing a manual Save action. */}
           <span
             className={`saved-badge saved-badge--${saveStatus}`}

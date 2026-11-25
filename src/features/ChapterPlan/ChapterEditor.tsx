@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CalendarDays, Clock, Trash2, X } from "lucide-react";
 import { Field, Modal, ToolButton } from "../../components/primitives";
@@ -17,11 +17,13 @@ export function ChapterEditor({
   chapter,
   onChange,
   onClose,
+  focusOnOpen,
 }: {
   project: WritingProject;
   chapter: Chapter;
   onChange: (patch: Partial<Chapter>) => void;
   onClose: () => void;
+  focusOnOpen?: boolean;
 }) {
   const {
     addCharacter,
@@ -161,8 +163,17 @@ export function ChapterEditor({
     </div>
   );
 
+  const editor = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (focusOnOpen) {
+      editor.current?.focus({ preventScroll: true });
+      editor.current?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [focusOnOpen]);
+
   return (
-    <aside className="chapter-plan-editor">
+    <aside className="chapter-plan-editor" ref={editor} tabIndex={-1}
+      aria-label={`Chapter editor: ${chapter.title}`}>
       <header>
         <h2>Chapter {chapter.order + 1}</h2>
         <span className="head-actions">

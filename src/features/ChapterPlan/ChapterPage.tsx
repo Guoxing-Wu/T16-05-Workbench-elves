@@ -47,7 +47,10 @@ const fmtPct = (n: number): string => String(Math.round(n * 10) / 10);
 // ChapterPage — act color band + grid/list views + chapter editor.
 // ---------------------------------------------------------------------------
 
-export function ChapterPage({ project }: { project: WritingProject }) {
+export function ChapterPage({ project, initialChapterId }: {
+  project: WritingProject;
+  initialChapterId?: string;
+}) {
   const {
     addChapter,
     updateChapter,
@@ -57,7 +60,7 @@ export function ChapterPage({ project }: { project: WritingProject }) {
     customStoryStructures,
   } = useWorkbench();
   const [view, setView] = useState<ViewMode>("grid");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialChapterId ?? null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [insertIndex, setInsertIndex] = useState<number | null>(null);
   const suppressClick = useRef(false);
@@ -390,6 +393,7 @@ export function ChapterPage({ project }: { project: WritingProject }) {
               <ChapterEditor
                 project={project}
                 chapter={selected}
+                focusOnOpen={selected.id === initialChapterId}
                 onChange={(patch) => updateChapter(project.id, selected.id, patch)}
                 onClose={() => setSelectedId(null)}
               />

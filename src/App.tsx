@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   BookOpen,
   Calendar,
@@ -28,6 +29,10 @@ import { LocationsPage } from "./features/Location/LocationPage";
 import { ProfilePage } from "./components/ProfilePage";
 import type { AuthorProfile } from "./components/ProfilePage";
 import { HelpPage } from "./components/HelpPage";
+import { StorySearch } from "./features/story-search/StorySearch";
+import type { AppearanceTarget } from "./features/story-search/appearances";
+
+type AppearanceNavigation = AppearanceTarget & { projectId: string; request: number };
 
 // Initial author profile used for the current browser session.
 const INITIAL_PROFILE: AuthorProfile = {
@@ -118,11 +123,13 @@ const PLACEHOLDER_CONFIG: Record<
 interface CurrentViewProps {
   profile: AuthorProfile;
   onSaveProfile: (profile: AuthorProfile) => void;
+  appearanceNavigation?: AppearanceNavigation;
 }
 
 function CurrentView({
   profile,
   onSaveProfile,
+  appearanceNavigation,
 }: CurrentViewProps) {
   const { activeView, activeProject, setActiveProjectId, setActiveView } = useWorkbench();
 
@@ -188,7 +195,10 @@ function CurrentView({
         />
       );
     }
-    return <ChapterPage project={activeProject} />;
+    return (
+      <ChapterPage key={appearanceNavigation?.request ?? activeProject.id}
+        project={activeProject} initialChapterId={appearanceNavigation?.id} />
+    );
   }
 
   // Events needs an active project to know which project's events to show.
@@ -218,7 +228,10 @@ function CurrentView({
         />
       );
     }
-    return <LocationsPage project={activeProject} />;
+    return (
+      <LocationsPage key={appearanceNavigation?.request ?? activeProject.id}
+        project={activeProject} initialLocationId={appearanceNavigation?.id} />
+    );
   }
 
 
@@ -275,7 +288,24 @@ function CurrentView({
 
 
 function WorkbenchApp() {
-  const { persistenceStatus, activeView } = useWorkbench();
+  const { persistenceStatus, activeView, activeProject, setActiveView } = useWorkbench();
+  const [searchProjectId, setSearchProjectId] = useState<string>();
+  const [navigation, setNavigation] = useState<AppearanceNavigation>();
+  const projectId = activeProject?.id;
+  const showingSearch = Boolean(projectId && searchProjectId === projectId);
+  const currentNavigation = navigation?.projectId === projectId && navigation?.view === activeView
+    ? navigation
+    : undefined;
+
+  useEffect(() => {
+    if (navigation && !currentNavigation) setNavigation(undefined);
+  }, [navigation, currentNavigation]);
+
+  function openAppearance(target: AppearanceTarget) {
+    if (!projectId) return;
+    setNavigation((previous) => ({ ...target, projectId, request: (previous?.request ?? 0) + 1 }));
+    setActiveView(target.view);
+  }
 
   const {
     value: storedProfile,
@@ -315,14 +345,21 @@ function WorkbenchApp() {
       {persistenceReady && <Sidebar />}
 
       <div className="main-area">
-        <TopBar profile={profile} />
+        <TopBar profile={profile} showingStorySearch={showingSearch}
+          onToggleStorySearch={persistenceReady && projectId
+            ? () => setSearchProjectId(showingSearch ? undefined : projectId)
+            : undefined} />
 
         <div className="content-wrapper">
           <main className="main-workspace" id="main-content">
+            {persistenceReady && activeProject && showingSearch && (
+              <StorySearch key={activeProject.id} project={activeProject} onNavigate={openAppearance} />
+            )}
             {persistenceReady ? (
               <CurrentView
                 profile={profile}
                 onSaveProfile={setProfile}
+                appearanceNavigation={currentNavigation}
               />
             ) : (
               <p role="status">Loading your workbench…</p>
